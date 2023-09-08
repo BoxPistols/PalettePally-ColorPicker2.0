@@ -18,6 +18,8 @@ type ColorInputFieldProps = {
   onChange: (newColor: string) => void
 }
 
+type PaletteType = { [colorName: string]: { [shade: string]: string } }[]
+
 const shades = {
   main: 0,
   dark: -2,
@@ -82,7 +84,7 @@ function ColorInputField({ color, onChange }: ColorInputFieldProps) {
 function ColorPicker() {
   const [numColors, setNumColors] = useState(4)
   const [color, setColor] = useState<string[]>([])
-  const [palette, setPalette] = useState<{ [k: string]: string }[] | null>(null)
+  const [palette, setPalette] = useState<PaletteType | null>(null)
   const [colorNames, setColorNames] = useState(
     Array.from({ length: numColors }, (_, i) => `color${i + 1}`)
   )
@@ -100,7 +102,7 @@ function ColorPicker() {
   }, [numColors])
 
   const handleGenerateClick = () => {
-    const newPalette = color.map((c) => {
+    const newPalette = color.map((c, idx) => {
       const baseColor = chroma(c)
       const baseHSL = baseColor.hsl()
 
@@ -113,15 +115,16 @@ function ColorPicker() {
           return [shade, chroma.hsl(h, s * 0.85, l + adjustment * 0.1).hex()]
         })
       )
-      return adjustedColors
+
+      return { [colorNames[idx]]: adjustedColors }
     })
     setPalette(newPalette)
   }
 
   const exportToJson = () => {
     const data = {
-      colors: color,
-      names: colorNames,
+      // colors: color,
+      // names: colorNames,
       palette: palette,
     }
     openDialog(JSON.stringify(data, null, 2))
@@ -225,7 +228,7 @@ function ColorPicker() {
       </FlexBox>
       {palette && (
         <Grid container spacing={2} mt={2}>
-          {palette.map((c: any, i: number) => (
+          {palette.map((colorGroup, i) => (
             <Grid
               item
               xs={6}
@@ -235,55 +238,34 @@ function ColorPicker() {
               style={{ display: "flex", flexDirection: "column" }}
             >
               <b>{colorNames[i]}</b>
-              {Object.entries(c).map(([shade, color]) => (
-                <Box
-                  m={1}
-                  px={2}
-                  key={shade}
-                  sx={{
-                    flexGrow: 1,
-                    background: color || "transparent",
-                    borderRadius: "6px",
-                    color:
-                      chroma(color as string).luminance() > 0.5
-                        ? "black"
-                        : "white",
-                  }}
-                >
-                  <Box p={1} sx={{ borderRadius: "6px" }}>
-                    {shade}: {color as string}
-                  </Box>
-                </Box>
-              ))}
-              {/* Property 'entries' does not exist on type 'ObjectConstructor'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2017' or later. */}
-              {Object.entries(c).map(([shade, color]) => (
-                <>
-                  <Box
-                    m={1}
-                    px={2}
-                    key={shade}
-                    sx={{
-                      flexGrow: 1,
-                      background: color || "transparent",
-                      borderRadius: "6px", // 角丸にするためにスタイル追加
-                      color:
-                        chroma(color as string).luminance() > 0.5
-                          ? "black"
-                          : "white",
-                    }}
-                  >
-                    <>
-                      <Box p={1} sx={{ borderRedius: "6px" }}>
-                        {shade}: {color as string}
+              {colorGroup[colorNames[i]] &&
+                Object.entries(colorGroup[colorNames[i]]).map(
+                  ([shade, colorValue]) => (
+                    <Box
+                      m={1}
+                      px={2}
+                      key={shade}
+                      sx={{
+                        flexGrow: 1,
+                        background: colorValue || "transparent",
+                        borderRadius: "6px",
+                        color:
+                          chroma(colorValue as string).luminance() > 0.5
+                            ? "black"
+                            : "white",
+                      }}
+                    >
+                      <Box p={1} sx={{ borderRadius: "6px" }}>
+                        {shade}: {colorValue}
                       </Box>
-                    </>
-                  </Box>
-                </>
-              ))}
+                    </Box>
+                  )
+                )}
             </Grid>
           ))}
         </Grid>
       )}
+
       <Dialog open={showDialog} onClose={closeDialog}>
         <DialogContent
           sx={{
