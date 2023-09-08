@@ -216,42 +216,47 @@ function ColorPicker() {
 
   return (
     <>
-      <Box sx={{ mb: 3 }}>
-        <StyledInputLabel shrink={false} htmlFor="color-length">
-          カラー数↓↑
-        </StyledInputLabel>
-        <TextField
-          id="color-length"
-          value={numColors}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-            const num = parseInt(e.target.value, 10)
-            if (!isNaN(num) && num > 0) {
-              setNumColors(num)
-            }
-          }}
-          type="number"
-          inputProps={{ min: 1, max: 24 }}
-          fullWidth
-          sx={{ mb: 1, width: 100, marginRight: 2 }}
-          size="small"
-        />
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleGenerateClick}
-          size="small"
-        >
-          カラーパレット生成 / 再生成
-        </Button>
-        <Button
-          variant="contained"
-          color="secondary"
-          onClick={exportToJson}
-          size="small"
-        >
-          Export JSON
-        </Button>
-        <input type="file" onChange={importFromJson} />
+      <Box sx={{ mb: 3, display: "flex", justifyContent: "space-between" }}>
+        <Box mt={-2}>
+          <StyledInputLabel shrink={false} htmlFor="color-length">
+            カラー数↓↑
+          </StyledInputLabel>
+          <TextField
+            id="color-length"
+            value={numColors}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              const num = parseInt(e.target.value, 10)
+              if (!isNaN(num) && num > 0) {
+                setNumColors(num)
+              }
+            }}
+            type="number"
+            inputProps={{ min: 1, max: 24 }}
+            fullWidth
+            sx={{ mb: 1, width: 100, marginRight: 2 }}
+            size="small"
+          />
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleGenerateClick}
+          >
+            カラーパレット生成 / 再生成
+          </Button>
+        </Box>
+
+        <Box>
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={exportToJson}
+            size="small"
+            sx={{ mr: 2, px: 1.5, py: 0.5 }}
+          >
+            Export JSON
+          </Button>
+          <input type="file" onChange={importFromJson} />
+        </Box>
       </Box>
       <FlexBox
         sx={{

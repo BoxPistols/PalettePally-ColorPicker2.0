@@ -15,10 +15,20 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head> 
       */}
-      <Typography variant="h1" component="h1" gutterBottom sx={{
-        fontFamily: "Noto Sans JP"
-      }}>
-        Hello Pallet Pally
+      <Typography
+        variant="h3"
+        component="h1"
+        gutterBottom
+        sx={{
+          fontFamily: "futura",
+          margin: "0 0 16px 0",
+          transform: "rotate(-90deg)",
+          position: "absolute",
+          top: "4.2em",
+          left: "-2em",
+        }}
+      >
+        - Pallet Pally -
       </Typography>
       <ColorPicker />
     </div>
