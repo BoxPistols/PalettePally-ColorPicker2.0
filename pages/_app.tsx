@@ -1,11 +1,13 @@
-import "../src/styles/globals.css"
 import type { AppProps } from "next/app"
 import createCache from "@emotion/cache"
 import { CacheProvider, ThemeProvider } from "@emotion/react"
 import { theme } from "@/lib/theme"
 import Head from "next/head"
+import { ElementType } from "react"
+import "../src/styles/globals.css"
 
-export default function App({ Component, pageProps }: AppProps) {
+
+export default function App({ Component, pageProps }: AppProps<{ Component: ElementType }>) {
   const cache = createCache({ key: "css", prepend: true, stylisPlugins: [] })
   cache.compat = true
 
