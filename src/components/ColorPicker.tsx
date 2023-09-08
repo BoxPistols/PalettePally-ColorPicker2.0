@@ -1,5 +1,15 @@
-import React, { SetStateAction, useEffect, useState } from "react"
-import { Box, TextField, Button, Grid, styled, InputLabel } from "@mui/material"
+import React, { ChangeEvent, useEffect, useState } from "react"
+import {
+  Box,
+  TextField,
+  Button,
+  Grid,
+  Dialog,
+  DialogContent,
+  DialogActions,
+  styled,
+  InputLabel,
+} from "@mui/material"
 import { SketchPicker } from "react-color"
 import chroma from "chroma-js"
 
@@ -7,6 +17,8 @@ type ColorInputFieldProps = {
   color: string
   onChange: (newColor: string) => void
 }
+
+type PaletteType = { [colorName: string]: { [shade: string]: string } }[]
 
 const shades = {
   main: 0,
@@ -17,7 +29,6 @@ const shades = {
 
 const FlexBox = styled(Box)`
   display: flex;
-  // justify-content: space-evenly;
   align-items: center;
 `
 
@@ -48,7 +59,7 @@ function ColorInputField({ color, onChange }: ColorInputFieldProps) {
         >
           <SketchPicker
             color={color}
-            onChange={(updatedColor: { hex: any }) =>
+            onChange={(updatedColor: { hex: string }) =>
               onChange(updatedColor.hex)
             }
           />
@@ -73,20 +84,40 @@ function ColorInputField({ color, onChange }: ColorInputFieldProps) {
 function ColorPicker() {
   const [numColors, setNumColors] = useState(4)
   const [color, setColor] = useState<string[]>([])
-  const [palette, setPalette] = useState<{ [k: string]: string }[] | null>(null)
+  const [palette, setPalette] = useState<PaletteType | null>(null)
+  const [colorNames, setColorNames] = useState(
+    Array.from({ length: numColors }, (_, i) => `color${i + 1}`)
+  )
+
+  const [showDialog, setShowDialog] = useState(false)
+  const [dialogContent, setDialogContent] = useState("")
 
   useEffect(() => {
-    const initialColor = Array.from(
-      { length: numColors },
-      (_, i) => chroma.hsl((i * 360) / numColors, 0.85, 0.5).hex() // 彩度を抑える
-    )
-    setColor(initialColor as never[])
-  }, [numColors])
+    if (numColors > color.length) {
+      const additionalColors = Array.from(
+        { length: numColors - color.length },
+        (_, i) =>
+          chroma.hsl(((i + color.length) * 360) / numColors, 0.85, 0.5).hex()
+      )
+      setColor((prevColors) => [...prevColors, ...additionalColors])
+      setColorNames((prevNames) => [
+        ...prevNames,
+        ...Array.from(
+          { length: additionalColors.length },
+          (_, i) => `color${i + prevNames.length + 1}`
+        ),
+      ])
+    } else if (numColors < color.length) {
+      setColor((prevColors) => prevColors.slice(0, numColors))
+      setColorNames((prevNames) => prevNames.slice(0, numColors))
+    }
+  }, [color.length, numColors])
 
-  const handleGenerateClick = () => {
-    const newPalette = color.map((c) => {
+  function handleGenerateClick() {
+    const newPalette = color.map((c, idx) => {
       const baseColor = chroma(c)
       const baseHSL = baseColor.hsl()
+
       const adjustedColors = Object.fromEntries(
         Object.entries(shades).map(([shade, adjustment]) => {
           if (shade === "main") {
@@ -96,9 +127,65 @@ function ColorPicker() {
           return [shade, chroma.hsl(h, s * 0.85, l + adjustment * 0.1).hex()]
         })
       )
-      return adjustedColors
+
+      return { [colorNames[idx]]: adjustedColors }
     })
     setPalette(newPalette)
+  }
+
+  const handleColorNameChange = (index: number, newName: string) => {
+    const newColorNames = [...colorNames]
+    const oldName = newColorNames[index]
+    newColorNames[index] = newName
+
+    if (palette) {
+      const newPalette = palette.map((colorGroup) => {
+        if (colorGroup[oldName]) {
+          const updatedGroup = { ...colorGroup }
+          updatedGroup[newName] = updatedGroup[oldName]
+          delete updatedGroup[oldName]
+          return updatedGroup
+        }
+        return colorGroup
+      })
+      setPalette(newPalette)
+    }
+
+    setColorNames(newColorNames)
+  }
+
+  const exportToJson = () => {
+    const data = {
+      // colors: color,
+      // names: colorNames,
+      palette: palette,
+    }
+    openDialog(JSON.stringify(data, null, 2))
+  }
+
+  const importFromJson = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files ? event.target.files[0] : null
+    if (file) {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        if (e.target !== null) {
+          const data = JSON.parse(e.target.result as string)
+          setColor(data.colors)
+          setColorNames(data.names)
+          setPalette(data.palette)
+        }
+      }
+      reader.readAsText(file)
+    }
+  }
+
+  const openDialog = (content: React.SetStateAction<string>) => {
+    setDialogContent(content)
+    setShowDialog(true)
+  }
+
+  const closeDialog = () => {
+    setShowDialog(false)
   }
 
   return (
@@ -108,7 +195,6 @@ function ColorPicker() {
           カラー数↓↑
         </StyledInputLabel>
         <TextField
-          size="small"
           id="color-length"
           value={numColors}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
@@ -121,14 +207,25 @@ function ColorPicker() {
           inputProps={{ min: 1, max: 24 }}
           fullWidth
           sx={{ mb: 1, width: 100, marginRight: 2 }}
+          size="small"
         />
         <Button
           variant="contained"
           color="primary"
           onClick={handleGenerateClick}
+          size="small"
         >
           カラーパレット生成 / 再生成
         </Button>
+        <Button
+          variant="contained"
+          color="secondary"
+          onClick={exportToJson}
+          size="small"
+        >
+          Export JSON
+        </Button>
+        <input type="file" onChange={importFromJson} />
       </Box>
       <FlexBox
         sx={{
@@ -141,10 +238,14 @@ function ColorPicker() {
         {Array.from({ length: numColors }, (_, i) => (
           <React.Fragment key={i}>
             <FlexBox sx={{ display: "block" }}>
-              <b>Color {i + 1}</b>
+              <TextField
+                value={colorNames[i]}
+                onChange={(e) => handleColorNameChange(i, e.target.value)}
+                size="small"
+              />
               <ColorInputField
                 color={color[i]}
-                onChange={(newColor: any) => {
+                onChange={(newColor) => {
                   const colorsCopy = [...color]
                   colorsCopy[i] = newColor
                   setColor(colorsCopy)
@@ -156,7 +257,7 @@ function ColorPicker() {
       </FlexBox>
       {palette && (
         <Grid container spacing={2} mt={2}>
-          {palette.map((c: any, i: number) => (
+          {palette.map((colorGroup, i) => (
             <Grid
               item
               xs={6}
@@ -165,36 +266,47 @@ function ColorPicker() {
               key={i}
               style={{ display: "flex", flexDirection: "column" }}
             >
-              <b>Color {i + 1}</b>
-              {/* Property 'entries' does not exist on type 'ObjectConstructor'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2017' or later. */}
-              {Object.entries(c).map(([shade, color]) => (
-                <>
-                  <Box
-                    m={1}
-                    px={2}
-                    key={shade}
-                    sx={{
-                      flexGrow: 1,
-                      background: color || "transparent",
-                      borderRadius: "6px", // 角丸にするためにスタイル追加
-                      color:
-                        chroma(color as string).luminance() > 0.5
-                          ? "black"
-                          : "white",
-                    }}
-                  >
-                    <>
-                      <Box p={1} sx={{ borderRedius: "6px" }}>
-                        {shade}: {color as string}
+              <b>{colorNames[i]}</b>
+              {colorGroup[colorNames[i]] &&
+                Object.entries(colorGroup[colorNames[i]]).map(
+                  ([shade, colorValue]) => (
+                    <Box
+                      m={1}
+                      px={2}
+                      key={shade}
+                      sx={{
+                        flexGrow: 1,
+                        background: colorValue || "transparent",
+                        borderRadius: "6px",
+                        color:
+                          chroma(colorValue as string).luminance() > 0.5
+                            ? "black"
+                            : "white",
+                      }}
+                    >
+                      <Box p={1} sx={{ borderRadius: "6px" }}>
+                        {shade}: {colorValue}
                       </Box>
-                    </>
-                  </Box>
-                </>
-              ))}
+                    </Box>
+                  )
+                )}
             </Grid>
           ))}
         </Grid>
       )}
+
+      <Dialog open={showDialog} onClose={closeDialog}>
+        <DialogContent
+          sx={{
+            minWidth: "70vw",
+          }}
+        >
+          <pre>{dialogContent}</pre>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeDialog}>閉じる</Button>
+        </DialogActions>
+      </Dialog>
     </>
   )
 }
