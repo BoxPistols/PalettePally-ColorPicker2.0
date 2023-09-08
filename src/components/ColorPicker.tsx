@@ -156,8 +156,8 @@ function ColorPicker() {
 
   const exportToJson = () => {
     const data = {
-      // colors: color,
-      // names: colorNames,
+      colors: color,
+      names: colorNames,
       palette: palette,
     }
     openDialog(JSON.stringify(data, null, 2))
@@ -173,6 +173,9 @@ function ColorPicker() {
           setColor(data.colors)
           setColorNames(data.names)
           setPalette(data.palette)
+
+          // カラーパレットとカラーピッカーの総数を更新
+          setNumColors(data.colors.length)
         }
       }
       reader.readAsText(file)
@@ -186,6 +189,29 @@ function ColorPicker() {
 
   const closeDialog = () => {
     setShowDialog(false)
+  }
+
+  function getCurrentFormattedDate() {
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = String(now.getMonth() + 1).padStart(2, "0")
+    const day = String(now.getDate()).padStart(2, "0")
+    const hours = String(now.getHours()).padStart(2, "0")
+    const minutes = String(now.getMinutes()).padStart(2, "0")
+    return `${year}-${month}-${day}-${hours}-${minutes}`
+  }
+
+  function downloadJSON(data: any) {
+    const filename = `palette-pally_${getCurrentFormattedDate()}.json`
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+      type: "application/json",
+    })
+    const link = document.createElement("a")
+    link.href = URL.createObjectURL(blob)
+    link.download = filename
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
   }
 
   return (
@@ -304,6 +330,9 @@ function ColorPicker() {
           <pre>{dialogContent}</pre>
         </DialogContent>
         <DialogActions>
+          <Button onClick={() => downloadJSON(JSON.parse(dialogContent))}>
+            ダウンロード
+          </Button>
           <Button onClick={closeDialog}>閉じる</Button>
         </DialogActions>
       </Dialog>
