@@ -93,15 +93,27 @@ function ColorPicker() {
   const [dialogContent, setDialogContent] = useState("")
 
   useEffect(() => {
-    const initialColor = Array.from(
-      { length: numColors },
-      (_, i) => chroma.hsl((i * 360) / numColors, 0.85, 0.5).hex() // 彩度を抑える
-    )
-    setColor(initialColor as never[])
-    setColorNames(Array.from({ length: numColors }, (_, i) => `color${i + 1}`))
-  }, [numColors])
+    if (numColors > color.length) {
+      const additionalColors = Array.from(
+        { length: numColors - color.length },
+        (_, i) =>
+          chroma.hsl(((i + color.length) * 360) / numColors, 0.85, 0.5).hex()
+      )
+      setColor((prevColors) => [...prevColors, ...additionalColors])
+      setColorNames((prevNames) => [
+        ...prevNames,
+        ...Array.from(
+          { length: additionalColors.length },
+          (_, i) => `color${i + prevNames.length + 1}`
+        ),
+      ])
+    } else if (numColors < color.length) {
+      setColor((prevColors) => prevColors.slice(0, numColors))
+      setColorNames((prevNames) => prevNames.slice(0, numColors))
+    }
+  }, [color.length, numColors])
 
-  const handleGenerateClick = () => {
+  function handleGenerateClick() {
     const newPalette = color.map((c, idx) => {
       const baseColor = chroma(c)
       const baseHSL = baseColor.hsl()
@@ -119,6 +131,27 @@ function ColorPicker() {
       return { [colorNames[idx]]: adjustedColors }
     })
     setPalette(newPalette)
+  }
+
+  const handleColorNameChange = (index: number, newName: string) => {
+    const newColorNames = [...colorNames]
+    const oldName = newColorNames[index]
+    newColorNames[index] = newName
+
+    if (palette) {
+      const newPalette = palette.map((colorGroup) => {
+        if (colorGroup[oldName]) {
+          const updatedGroup = { ...colorGroup }
+          updatedGroup[newName] = updatedGroup[oldName]
+          delete updatedGroup[oldName]
+          return updatedGroup
+        }
+        return colorGroup
+      })
+      setPalette(newPalette)
+    }
+
+    setColorNames(newColorNames)
   }
 
   const exportToJson = () => {
@@ -207,11 +240,7 @@ function ColorPicker() {
             <FlexBox sx={{ display: "block" }}>
               <TextField
                 value={colorNames[i]}
-                onChange={(e) => {
-                  const namesCopy = [...colorNames]
-                  namesCopy[i] = e.target.value
-                  setColorNames(namesCopy)
-                }}
+                onChange={(e) => handleColorNameChange(i, e.target.value)}
                 size="small"
               />
               <ColorInputField
