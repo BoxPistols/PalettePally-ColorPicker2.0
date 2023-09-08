@@ -1,12 +1,3 @@
-/**
- * @packageDocumentation
- * @module ColorPicker-PalettePally
- * @description
-	"message": "モジュール 'chroma-js' の宣言ファイルが見つかりませんでした。'/Users/ai/dev/Asagiri/ColorPicker-PalettePally/pallett-pally/node_modules/chroma-js/chroma.js' は暗黙的に 'any' 型になります。\n  存在する場合は `npm i --save-dev @types/chroma-js` を試すか、`declare module 'chroma-js';` を含む新しい宣言 (.d.ts) ファイルを追加します",
-
-}]
- */
-
 import React, { SetStateAction, useEffect, useState } from "react"
 import { Box, TextField, Button, Grid, styled, InputLabel } from "@mui/material"
 import { SketchPicker } from "react-color"
@@ -15,8 +6,6 @@ import chroma from "chroma-js"
 type ColorInputFieldProps = {
   color: string
   onChange: (newColor: string) => void
-  initialColor: SetStateAction<never[]>
-  newPalette: SetStateAction<never[]>
 }
 
 const shades = {
@@ -28,7 +17,7 @@ const shades = {
 
 const FlexBox = styled(Box)`
   display: flex;
-  justify-content: space-between;
+  // justify-content: space-evenly;
   align-items: center;
 `
 
@@ -83,15 +72,15 @@ function ColorInputField({ color, onChange }: ColorInputFieldProps) {
 
 function ColorPicker() {
   const [numColors, setNumColors] = useState(4)
-  const [color, setColor] = useState([])
-  const [palette, setPalette] = useState(null)
+  const [color, setColor] = useState<string[]>([])
+  const [palette, setPalette] = useState<{ [k: string]: string }[] | null>(null)
 
   useEffect(() => {
     const initialColor = Array.from(
       { length: numColors },
       (_, i) => chroma.hsl((i * 360) / numColors, 0.85, 0.5).hex() // 彩度を抑える
     )
-    setColor(initialColor)
+    setColor(initialColor as never[])
   }, [numColors])
 
   const handleGenerateClick = () => {
@@ -143,7 +132,7 @@ function ColorPicker() {
       </Box>
       <FlexBox
         sx={{
-          flexDirection: "columns",
+          flexDirection: "row",
           gap: 2,
           overflow: "auto",
           maxWidth: "90vw",
@@ -186,15 +175,17 @@ function ColorPicker() {
                     key={shade}
                     sx={{
                       flexGrow: 1,
-                      background: color,
+                      background: color || "transparent",
                       borderRadius: "6px", // 角丸にするためにスタイル追加
                       color:
-                        chroma(color).luminance() > 0.5 ? "black" : "white",
+                        chroma(color as string).luminance() > 0.5
+                          ? "black"
+                          : "white",
                     }}
                   >
                     <>
                       <Box p={1} sx={{ borderRedius: "6px" }}>
-                        {shade}: {color}
+                        {shade}: {color as string}
                       </Box>
                     </>
                   </Box>
