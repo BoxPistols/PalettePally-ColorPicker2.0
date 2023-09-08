@@ -1,5 +1,15 @@
-import React, { SetStateAction, useEffect, useState } from "react"
-import { Box, TextField, Button, Grid, styled, InputLabel } from "@mui/material"
+import React, { ChangeEvent, useEffect, useState } from "react"
+import {
+  Box,
+  TextField,
+  Button,
+  Grid,
+  Dialog,
+  DialogContent,
+  DialogActions,
+  styled,
+  InputLabel,
+} from "@mui/material"
 import { SketchPicker } from "react-color"
 import chroma from "chroma-js"
 
@@ -17,7 +27,6 @@ const shades = {
 
 const FlexBox = styled(Box)`
   display: flex;
-  // justify-content: space-evenly;
   align-items: center;
 `
 
@@ -48,7 +57,7 @@ function ColorInputField({ color, onChange }: ColorInputFieldProps) {
         >
           <SketchPicker
             color={color}
-            onChange={(updatedColor: { hex: any }) =>
+            onChange={(updatedColor: { hex: string }) =>
               onChange(updatedColor.hex)
             }
           />
@@ -74,6 +83,12 @@ function ColorPicker() {
   const [numColors, setNumColors] = useState(4)
   const [color, setColor] = useState<string[]>([])
   const [palette, setPalette] = useState<{ [k: string]: string }[] | null>(null)
+  const [colorNames, setColorNames] = useState(
+    Array.from({ length: numColors }, (_, i) => `color${i + 1}`)
+  )
+
+  const [showDialog, setShowDialog] = useState(false)
+  const [dialogContent, setDialogContent] = useState("")
 
   useEffect(() => {
     const initialColor = Array.from(
@@ -81,12 +96,14 @@ function ColorPicker() {
       (_, i) => chroma.hsl((i * 360) / numColors, 0.85, 0.5).hex() // 彩度を抑える
     )
     setColor(initialColor as never[])
+    setColorNames(Array.from({ length: numColors }, (_, i) => `color${i + 1}`))
   }, [numColors])
 
   const handleGenerateClick = () => {
     const newPalette = color.map((c) => {
       const baseColor = chroma(c)
       const baseHSL = baseColor.hsl()
+
       const adjustedColors = Object.fromEntries(
         Object.entries(shades).map(([shade, adjustment]) => {
           if (shade === "main") {
@@ -101,6 +118,40 @@ function ColorPicker() {
     setPalette(newPalette)
   }
 
+  const exportToJson = () => {
+    const data = {
+      colors: color,
+      names: colorNames,
+      palette: palette,
+    }
+    openDialog(JSON.stringify(data, null, 2))
+  }
+
+  const importFromJson = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files ? event.target.files[0] : null
+    if (file) {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        if (e.target !== null) {
+          const data = JSON.parse(e.target.result as string)
+          setColor(data.colors)
+          setColorNames(data.names)
+          setPalette(data.palette)
+        }
+      }
+      reader.readAsText(file)
+    }
+  }
+
+  const openDialog = (content: React.SetStateAction<string>) => {
+    setDialogContent(content)
+    setShowDialog(true)
+  }
+
+  const closeDialog = () => {
+    setShowDialog(false)
+  }
+
   return (
     <>
       <Box sx={{ mb: 3 }}>
@@ -108,7 +159,6 @@ function ColorPicker() {
           カラー数↓↑
         </StyledInputLabel>
         <TextField
-          size="small"
           id="color-length"
           value={numColors}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
@@ -121,14 +171,25 @@ function ColorPicker() {
           inputProps={{ min: 1, max: 24 }}
           fullWidth
           sx={{ mb: 1, width: 100, marginRight: 2 }}
+          size="small"
         />
         <Button
           variant="contained"
           color="primary"
           onClick={handleGenerateClick}
+          size="small"
         >
           カラーパレット生成 / 再生成
         </Button>
+        <Button
+          variant="contained"
+          color="secondary"
+          onClick={exportToJson}
+          size="small"
+        >
+          Export JSON
+        </Button>
+        <input type="file" onChange={importFromJson} />
       </Box>
       <FlexBox
         sx={{
@@ -141,10 +202,18 @@ function ColorPicker() {
         {Array.from({ length: numColors }, (_, i) => (
           <React.Fragment key={i}>
             <FlexBox sx={{ display: "block" }}>
-              <b>Color {i + 1}</b>
+              <TextField
+                value={colorNames[i]}
+                onChange={(e) => {
+                  const namesCopy = [...colorNames]
+                  namesCopy[i] = e.target.value
+                  setColorNames(namesCopy)
+                }}
+                size="small"
+              />
               <ColorInputField
                 color={color[i]}
-                onChange={(newColor: any) => {
+                onChange={(newColor) => {
                   const colorsCopy = [...color]
                   colorsCopy[i] = newColor
                   setColor(colorsCopy)
@@ -165,7 +234,27 @@ function ColorPicker() {
               key={i}
               style={{ display: "flex", flexDirection: "column" }}
             >
-              <b>Color {i + 1}</b>
+              <b>{colorNames[i]}</b>
+              {Object.entries(c).map(([shade, color]) => (
+                <Box
+                  m={1}
+                  px={2}
+                  key={shade}
+                  sx={{
+                    flexGrow: 1,
+                    background: color || "transparent",
+                    borderRadius: "6px",
+                    color:
+                      chroma(color as string).luminance() > 0.5
+                        ? "black"
+                        : "white",
+                  }}
+                >
+                  <Box p={1} sx={{ borderRadius: "6px" }}>
+                    {shade}: {color as string}
+                  </Box>
+                </Box>
+              ))}
               {/* Property 'entries' does not exist on type 'ObjectConstructor'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2017' or later. */}
               {Object.entries(c).map(([shade, color]) => (
                 <>
@@ -195,6 +284,18 @@ function ColorPicker() {
           ))}
         </Grid>
       )}
+      <Dialog open={showDialog} onClose={closeDialog}>
+        <DialogContent
+          sx={{
+            minWidth: "70vw",
+          }}
+        >
+          <pre>{dialogContent}</pre>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeDialog}>閉じる</Button>
+        </DialogActions>
+      </Dialog>
     </>
   )
 }
