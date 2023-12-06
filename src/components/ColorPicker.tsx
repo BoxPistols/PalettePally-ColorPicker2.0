@@ -1,10 +1,10 @@
-import React, { ChangeEvent, useEffect, useState } from "react"
-import { Box, TextField, Button, styled, InputLabel } from "@mui/material"
-import chroma from "chroma-js"
-import ColorInputField from "./ColorInputField"
-import PaletteGrid from "./PaletteGrid"
-import DialogBox from "./DialogBox"
-import { getCurrentFormattedDate, downloadJSON } from "./utils"
+import React, { ChangeEvent, useEffect, useState } from 'react'
+import { Box, TextField, Button, styled, InputLabel } from '@mui/material'
+import chroma from 'chroma-js'
+import ColorInputField from './ColorInputField'
+import PaletteGrid from './PaletteGrid'
+import DialogBox from './DialogBox'
+import { getCurrentFormattedDate, downloadJSON } from './utils'
 
 type ColorInputFieldProps = {
   color: string
@@ -43,7 +43,7 @@ function ColorPicker() {
   )
 
   const [showDialog, setShowDialog] = useState(false)
-  const [dialogContent, setDialogContent] = useState("")
+  const [dialogContent, setDialogContent] = useState('')
   useEffect(() => {
     if (numColors > color.length) {
       const additionalColors = Array.from(
@@ -73,7 +73,7 @@ function ColorPicker() {
 
       const adjustedColors = Object.fromEntries(
         Object.entries(shades).map(([shade, adjustment]) => {
-          if (shade === "main") {
+          if (shade === 'main') {
             return [shade, baseColor.hex()]
           }
           const [h, s, l] = baseHSL
@@ -121,13 +121,13 @@ function ColorPicker() {
 
   return (
     <>
-      <Box sx={{ mb: 3, display: "flex", justifyContent: "space-between" }}>
+      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between' }}>
         <Box mt={-2}>
-          <StyledInputLabel shrink={false} htmlFor="color-length">
+          <StyledInputLabel shrink={false} htmlFor='color-length'>
             カラー数↓↑
           </StyledInputLabel>
           <TextField
-            id="color-length"
+            id='color-length'
             value={numColors}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
               const num = parseInt(e.target.value, 10)
@@ -135,15 +135,15 @@ function ColorPicker() {
                 setNumColors(num)
               }
             }}
-            type="number"
+            type='number'
             inputProps={{ min: 1, max: 24 }}
             fullWidth
             sx={{ mb: 1, width: 100, marginRight: 2 }}
-            size="small"
+            size='small'
           />
           <Button
-            variant="contained"
-            color="primary"
+            variant='contained'
+            color='primary'
             onClick={handleGenerateClick}
           >
             カラーパレット生成 / 再生成
@@ -152,33 +152,33 @@ function ColorPicker() {
 
         <Box>
           <Button
-            variant="contained"
-            color="secondary"
+            variant='contained'
+            color='secondary'
             onClick={exportToJson}
-            size="small"
+            size='small'
             sx={{ mr: 2, px: 1.5, py: 0.5 }}
           >
             Export JSON
           </Button>
-          <input type="file" onChange={importFromJson} />
+          <input type='file' onChange={importFromJson} />
         </Box>
       </Box>
 
       <FlexBox
         sx={{
-          flexDirection: "row",
+          flexDirection: 'row',
           gap: 2,
-          overflow: "auto",
-          maxWidth: "90vw",
+          overflow: 'auto',
+          maxWidth: '90vw',
         }}
       >
         {Array.from({ length: numColors }, (_, i) => (
           <React.Fragment key={i}>
-            <FlexBox sx={{ display: "block" }}>
+            <FlexBox sx={{ display: 'block' }}>
               <TextField
                 value={colorNames[i]}
                 onChange={(e) => handleColorNameChange(i, e.target.value)}
-                size="small"
+                size='small'
               />
               <ColorInputField
                 color={color[i]}

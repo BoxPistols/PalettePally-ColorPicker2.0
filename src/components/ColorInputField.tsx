@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react"
-import { Box, TextField, styled, InputLabel } from "@mui/material"
-import { SketchPicker } from "react-color"
+import React, { useEffect, useState } from 'react'
+import { Box, TextField, styled, InputLabel } from '@mui/material'
+import { SketchPicker } from 'react-color'
 
 type ColorInputFieldProps = {
   color: string
@@ -29,17 +29,17 @@ function ColorInputField({ color, onChange }: ColorInputFieldProps) {
   return (
     <Box
       sx={{
-        display: "block",
+        display: 'block',
         pb: 2,
-        overflow: "auto",
-        maxWidth: "90vw",
+        overflow: 'auto',
+        maxWidth: '90vw',
       }}
     >
       <FlexBox
         sx={{
           mb: 1.5,
           gap: 1,
-          border: "1px solid #f9f9fc",
+          border: '1px solid #f9f9fc',
         }}
       >
         {isMounted && (
@@ -51,16 +51,16 @@ function ColorInputField({ color, onChange }: ColorInputFieldProps) {
           />
         )}
       </FlexBox>
-      <StyledInputLabel shrink={false} htmlFor="hex-color" size="small">
+      <StyledInputLabel shrink={false} htmlFor='hex-color' size='small'>
         Hex Color
       </StyledInputLabel>
       <TextField
-        id="hex-color"
+        id='hex-color'
         value={color}
         onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
           onChange(e.target.value)
         }
-        size="small"
+        size='small'
         sx={{ pl: 0 }}
       />
     </Box>

@@ -1,5 +1,5 @@
-import React from "react"
-import { Dialog, DialogContent, DialogActions, Button } from "@mui/material"
+import React from 'react'
+import { Dialog, DialogContent, DialogActions, Button } from '@mui/material'
 
 type DialogBoxProps = {
   showDialog: boolean
@@ -18,7 +18,7 @@ function DialogBox({
     <Dialog open={showDialog} onClose={closeDialog}>
       <DialogContent
         sx={{
-          minWidth: "60vw",
+          minWidth: '60vw',
         }}
       >
         <pre>{dialogContent}</pre>
@@ -30,7 +30,7 @@ function DialogBox({
         >
           ダウンロード
         </Button>
-        <Button onClick={closeDialog} variant="outlined" color="secondary">
+        <Button onClick={closeDialog} variant='outlined' color='secondary'>
           閉じる
         </Button>
       </DialogActions>

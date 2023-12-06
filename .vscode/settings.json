@@ -1,0 +1,17 @@
+{
+  "workbench.colorCustomizations": {
+    "activityBar.background": "#5A1120",
+    "titleBar.activeBackground": "#7E182D",
+    "titleBar.activeForeground": "#FEFBFC"
+  },
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true,
+    "**/.ruby-lsp": true,
+    "**/node_modules": true
+  }
+}

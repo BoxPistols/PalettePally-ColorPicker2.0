@@ -1,6 +1,6 @@
-import React from "react"
-import { Grid, Box } from "@mui/material"
-import chroma from "chroma-js"
+import React from 'react'
+import { Grid, Box } from '@mui/material'
+import chroma from 'chroma-js'
 
 type PaletteGridProps = {
   palette: { [colorName: string]: { [shade: string]: string } }[]
@@ -17,7 +17,7 @@ function PaletteGrid({ palette, colorNames }: PaletteGridProps) {
           md={3}
           lg={2}
           key={i}
-          style={{ display: "flex", flexDirection: "column" }}
+          style={{ display: 'flex', flexDirection: 'column' }}
         >
           <b>{colorNames[i]}</b>
           {colorGroup[colorNames[i]] &&
@@ -29,17 +29,17 @@ function PaletteGrid({ palette, colorNames }: PaletteGridProps) {
                   key={shade}
                   sx={{
                     flexGrow: 1,
-                    background: colorValue || "transparent",
-                    borderRadius: "5px",
-                    whiteSpace: "nowrap",
-                    fontSize: "0.875rem",
+                    background: colorValue || 'transparent',
+                    borderRadius: '5px',
+                    whiteSpace: 'nowrap',
+                    fontSize: '0.875rem',
                     color:
                       chroma(colorValue as string).luminance() > 0.5
-                        ? "black"
-                        : "white",
+                        ? 'black'
+                        : 'white',
                   }}
                 >
-                  <Box p={1} sx={{ borderRadius: "6px" }}>
+                  <Box p={1} sx={{ borderRadius: '6px' }}>
                     {shade}: {colorValue}
                   </Box>
                 </Box>

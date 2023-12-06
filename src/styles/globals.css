@@ -5,7 +5,7 @@ body {
 }
 
 body {
-  font-family: Inter + "Noto Sans JP", sans-serif;
+  font-family: Inter + 'Noto Sans JP', sans-serif;
   padding: 2vh 4.5vw;
   max-width: 1440px;
   margin: auto;
