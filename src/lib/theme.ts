@@ -1,9 +1,9 @@
-import { createTheme } from "@mui/material/styles"
-import { CSSProperties } from "react"
-import { TypographyStyleOptions } from "@mui/material/styles/createTypography"
-import { colorData } from "@/lib/colorToken"
+import { createTheme } from '@mui/material/styles'
+import { CSSProperties } from 'react'
+import { TypographyStyleOptions } from '@mui/material/styles/createTypography'
+import { colorData } from '@/lib/colorToken'
 
-declare module "@mui/material/styles" {
+declare module '@mui/material/styles' {
   // type PaletteColorOptions = ExtendedPaletteColor;
   interface PaletteColor {
     lighter?: string
@@ -43,14 +43,14 @@ declare module "@mui/material/styles" {
 
 // origin
 // もしTypographyのvariantを追加したい場合は、以下のように追加設定を行う
-declare module "@mui/material/Typography" {
+declare module '@mui/material/Typography' {
   interface TypographyPropsVariantOverrides {
     display1: true
     display2: true
   }
 }
 
-declare module "@mui/material/styles" {
+declare module '@mui/material/styles' {
   interface Typography {
     // xxxl?: TypographyStyleOptions | CSSProperties;
     xxl?: TypographyStyleOptions | CSSProperties
@@ -65,7 +65,7 @@ declare module "@mui/material/styles" {
   }
 }
 
-declare module "@mui/material/Typography" {
+declare module '@mui/material/Typography' {
   interface TypographyPropsVariantOverrides {
     // xxxl: true; // 24
     xxl: true // 22
@@ -206,13 +206,13 @@ export const theme = createTheme({
     fontSize: baseFontSize,
 
     allVariants: {
-      fontFamily: "Inter, Noto Sans JP, Helvetica, Arial, sans-serif",
+      fontFamily: 'Inter, Noto Sans JP, Helvetica, Arial, sans-serif',
       color: colorData.text.primary,
       lineHeight: lineHeight.medium,
       fontWeight: fontWeight.normal,
-      textTransform: "inherit",
-      WebkitFontSmoothing: "antialiased",
-      MozOsxFontSmoothing: "antialiased",
+      textTransform: 'inherit',
+      WebkitFontSmoothing: 'antialiased',
+      MozOsxFontSmoothing: 'antialiased',
       fontSize: pxToRem(baseFontSize),
     },
     h1: {
@@ -262,13 +262,13 @@ export const theme = createTheme({
     overline: {
       fontSize: fontSizesVariant.xxs, // 0.79rem = 11px
       lineHeight: lineHeight.small,
-      textTransform: "none",
+      textTransform: 'none',
     },
     button: {
       fontSize: fontSizesVariant.md, // 1rem = 14px
       fontWeight: fontWeight.normal,
       lineHeight: lineHeight.medium,
-      textTransform: "none",
+      textTransform: 'none',
     },
     // 拡張追加されたvariantのスタイル
     // @ts-ignore
@@ -324,37 +324,37 @@ export const theme = createTheme({
     MuiTypography: {
       defaultProps: {
         variantMapping: {
-          h1: "h1",
-          h2: "div",
-          h3: "div",
-          h4: "div",
-          h5: "div",
-          h6: "div",
-          body1: "p",
-          body2: "p",
-          subtitle1: "p",
-          subtitle2: "p",
-          overline: "span",
-          caption: "span",
-          button: "p",
+          h1: 'h1',
+          h2: 'div',
+          h3: 'div',
+          h4: 'div',
+          h5: 'div',
+          h6: 'div',
+          body1: 'p',
+          body2: 'p',
+          subtitle1: 'p',
+          subtitle2: 'p',
+          overline: 'span',
+          caption: 'span',
+          button: 'p',
           // xxxl: 'div',
-          xxl: "div",
-          xl: "div",
-          lg: "div",
-          ml: "p",
-          md: "p",
-          sm: "p",
-          xs: "p",
-          xxs: "span",
-          xxxs: "span",
+          xxl: 'div',
+          xl: 'div',
+          lg: 'div',
+          ml: 'p',
+          md: 'p',
+          sm: 'p',
+          xs: 'p',
+          xxs: 'span',
+          xxxs: 'span',
         },
       },
       styleOverrides: {
         gutterBottom: {
-          marginBottom: "1em",
+          marginBottom: '1em',
         },
         paragraph: {
-          marginBottom: "1em",
+          marginBottom: '1em',
           fontSize: fontSizesVariant.md, // 1rem = 14px
         },
       },
@@ -363,7 +363,7 @@ export const theme = createTheme({
     MuiAppBar: {
       styleOverrides: {
         root: {
-          boxShadow: "none",
+          boxShadow: 'none',
           height: 48,
         },
       },
@@ -371,11 +371,11 @@ export const theme = createTheme({
     MuiToolbar: {
       styleOverrides: {
         root: {
-          ".MuiTypography-root": {
+          '.MuiTypography-root': {
             color: colorData.common.white,
           },
           minHeight: 48,
-          "@media(min-width:0px)": {
+          '@media(min-width:0px)': {
             minHeight: 48,
           },
         },
@@ -384,22 +384,22 @@ export const theme = createTheme({
     // ボタンのスタイル
     MuiButton: {
       defaultProps: {
-        variant: "contained", // デフォルトのボタンの種類を設定
+        variant: 'contained', // デフォルトのボタンの種類を設定
         // disableElevation: true, // デフォルトの影を削除
         // disableRipple: true, // デフォルトのrippleを削除
       },
       styleOverrides: {
         contained: {
           // 背景がcontainedの時のスタイル
-          "&.MuiButton-contained.MuiButton-root": {
+          '&.MuiButton-contained.MuiButton-root': {
             color: colorData.text.white,
-            "&.Mui-disabled": {
+            '&.Mui-disabled': {
               // whiteのオーバーライド
               color: colorData.text.disabled,
               backgroundColor: colorData.grey[300],
             },
           },
-          "&.MuiButton-contained.MuiButton-root.MuiButton-containedInherit": {
+          '&.MuiButton-contained.MuiButton-root.MuiButton-containedInherit': {
             color: colorData.text.primary,
           },
         },
@@ -410,18 +410,18 @@ export const theme = createTheme({
     MuiSvgIcon: {
       styleOverrides: {
         root: {
-          "& path": {
-            fill: "currentColor", // svgの色を親から変更できるように設定
+          '& path': {
+            fill: 'currentColor', // svgの色を親から変更できるように設定
           },
         },
         fontSizeSmall: {
-          fontSize: "1rem",
+          fontSize: '1rem',
         },
         fontSizeMedium: {
-          fontSize: "1.5rem",
+          fontSize: '1.5rem',
         },
         fontSizeLarge: {
-          fontSize: "2rem",
+          fontSize: '2rem',
         },
       },
     },
