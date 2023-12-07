@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, memo } from 'react'
 import { Box, TextField, styled, InputLabel } from '@mui/material'
 import { SketchPicker } from 'react-color'
 
@@ -19,7 +19,7 @@ const StyledInputLabel = styled(InputLabel)`
   }
 `
 
-function ColorInputField({ color, onChange }: ColorInputFieldProps) {
+const ColorInputField = memo(({ color, onChange }: ColorInputFieldProps) => {
   const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
@@ -65,6 +65,8 @@ function ColorInputField({ color, onChange }: ColorInputFieldProps) {
       />
     </Box>
   )
-}
+})
+
+ColorInputField.displayName = 'ColorInputField'
 
 export default ColorInputField
