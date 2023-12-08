@@ -19,6 +19,9 @@ const StyledInputLabel = styled(InputLabel)`
   }
 `
 
+// HEX値が有効なカラーかどうかをチェックする関数
+const isValidHex = (hex: any) => /^#([0-9A-F]{3}){1,2}$/i.test(hex)
+
 const ColorInputField = memo(({ color, onChange }: ColorInputFieldProps) => {
   const [isMounted, setIsMounted] = useState(false)
 
@@ -57,9 +60,7 @@ const ColorInputField = memo(({ color, onChange }: ColorInputFieldProps) => {
       <TextField
         id='hex-color'
         value={color}
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-          onChange(e.target.value)
-        }
+        onChange={(e) => onChange(e.target.value)} // 親コンポーネントに変更を伝える
         size='small'
         sx={{ pl: 0 }}
       />

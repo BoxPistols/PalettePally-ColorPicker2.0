@@ -33,7 +33,6 @@ const StyledInputLabel = styled(InputLabel)`
 `
 
 // HEX値が有効なカラーかどうかをチェックする関数
-const isValidHex = (hex) => /^#([0-9A-F]{3}){1,2}$/i.test(hex)
 
 function ColorPicker() {
   const [originalColors, setOriginalColors] = useState<string[]>([]) // 調整後のカラーを保存するための状態
@@ -53,6 +52,7 @@ function ColorPicker() {
   // 調整されたカラーを一時保存するための状態
   const [adjustedColors, setAdjustedColors] = useState<string[]>([])
 
+  const isValidHex = (hex: any) => /^#([0-9A-F]{3}){1,2}$/i.test(hex)
   // useEffect を更新
   useEffect(() => {
     // カラー数が増えた場合、新しいカラーを追加
@@ -162,8 +162,10 @@ function ColorPicker() {
 
   // カラーピッカーでの変更が反映されるようにする
   const handleColorChange = (index: number, newColor: string) => {
-    if (!isValidHex(newColor)) return // 無効なHEX値は無視する
+    // HEX値の形式が正しいか検証
+    if (!isValidHex(newColor) && newColor !== '#') return
 
+    // カラー配列の更新
     const newColors = [...color]
     newColors[index] = newColor
     setColor(newColors)
