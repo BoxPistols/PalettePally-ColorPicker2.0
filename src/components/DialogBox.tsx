@@ -1,18 +1,23 @@
 import React from 'react'
 import { Dialog, DialogContent, DialogActions, Button } from '@mui/material'
 
+type PaletteData = {
+  name: string
+  value: string
+}
+
 type DialogBoxProps = {
   showDialog: boolean
   closeDialog: () => void
+  downloadJSON: (data: PaletteData) => void
   dialogContent: string
-  downloadJSON: (data: any) => void
 }
 
 function DialogBox({
   showDialog,
   closeDialog,
-  dialogContent,
   downloadJSON,
+  dialogContent,
 }: DialogBoxProps) {
   return (
     <Dialog open={showDialog} onClose={closeDialog}>
@@ -21,7 +26,9 @@ function DialogBox({
           minWidth: '60vw',
         }}
       >
-        <pre>{dialogContent}</pre>
+        <pre>
+          <code>{dialogContent}</code>
+        </pre>
       </DialogContent>
       <DialogActions>
         <Button

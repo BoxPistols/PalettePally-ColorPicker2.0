@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, memo } from 'react'
 import { Box, TextField, styled, InputLabel } from '@mui/material'
 import { SketchPicker } from 'react-color'
 
@@ -19,7 +19,10 @@ const StyledInputLabel = styled(InputLabel)`
   }
 `
 
-function ColorInputField({ color, onChange }: ColorInputFieldProps) {
+// HEX値が有効なカラーかどうかをチェックする関数
+const isValidHex = (hex: any) => /^#([0-9A-F]{3}){1,2}$/i.test(hex)
+
+const ColorInputField = memo(({ color, onChange }: ColorInputFieldProps) => {
   const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
@@ -29,17 +32,31 @@ function ColorInputField({ color, onChange }: ColorInputFieldProps) {
   return (
     <Box
       sx={{
-        display: 'block',
-        pb: 2,
-        overflow: 'auto',
-        maxWidth: '90vw',
+        display: 'flex',
+        gap: 1,
       }}
     >
-      <FlexBox
+      <Box
         sx={{
-          mb: 1.5,
-          gap: 1,
-          border: '1px solid #f9f9fc',
+          '> .sketch-picker': {
+            width: 'auto !important',
+            minWidth: '210px !important',
+            maxWidth: '210px !important',
+            boxShadow: 'none !important',
+            backgroundColor: 'transparent !important',
+            ' input': {
+              width: '100% !important',
+              padding: '0.25rem !important',
+              // border: 'none !important',
+              // boxShadow: 'none !important',
+              fontSize: '14px !important',
+              borderRadius: '2px !important',
+              textAlign: 'center !important',
+              '&:focus': {
+                boxShadow: 'none !important',
+              },
+            },
+          },
         }}
       >
         {isMounted && (
@@ -50,21 +67,24 @@ function ColorInputField({ color, onChange }: ColorInputFieldProps) {
             }
           />
         )}
-      </FlexBox>
-      <StyledInputLabel shrink={false} htmlFor='hex-color' size='small'>
+        <Box mt={1} ml={1}>
+          main: {color}
+        </Box>
+      </Box>
+      {/* <StyledInputLabel shrink={false} htmlFor='hex-color' size='small'>
         Hex Color
-      </StyledInputLabel>
-      <TextField
+      </StyledInputLabel> */}
+      {/* <TextField
         id='hex-color'
         value={color}
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-          onChange(e.target.value)
-        }
+        onChange={(e) => onChange(e.target.value)}
         size='small'
         sx={{ pl: 0 }}
-      />
+      /> */}
     </Box>
   )
-}
+})
+
+ColorInputField.displayName = 'ColorInputField'
 
 export default ColorInputField

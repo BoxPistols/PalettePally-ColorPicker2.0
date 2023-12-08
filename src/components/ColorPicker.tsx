@@ -32,7 +32,11 @@ const StyledInputLabel = styled(InputLabel)`
   }
 `
 
+// HEX値が有効なカラーかどうかをチェックする関数
+
 function ColorPicker() {
+  const [originalColors, setOriginalColors] = useState<string[]>([]) // 調整後のカラーを保存するための状態
+
   const [numColors, setNumColors] = useState(4)
   const [color, setColor] = useState<string[]>([])
   const [palette, setPalette] = useState<
@@ -44,27 +48,68 @@ function ColorPicker() {
 
   const [showDialog, setShowDialog] = useState(false)
   const [dialogContent, setDialogContent] = useState('')
+
+  // 調整されたカラーを一時保存するための状態
+  const [adjustedColors, setAdjustedColors] = useState<string[]>([])
+
+  const isValidHex = (hex: any) => /^#([0-9A-F]{3}){1,2}$/i.test(hex)
+  // useEffect を更新
   useEffect(() => {
+    // カラー数が増えた場合、新しいカラーを追加
     if (numColors > color.length) {
       const additionalColors = Array.from(
         { length: numColors - color.length },
-        (_, i) =>
-          chroma.hsl(((i + color.length) * 360) / numColors, 0.8, 0.45).hex()
+        () => generateRandomColor(color)
       )
+      setColor([...color, ...additionalColors])
+      setAdjustedColors([...adjustedColors, ...additionalColors])
 
-      setColor((prevColors) => [...prevColors, ...additionalColors])
-      setColorNames((prevNames) => [
-        ...prevNames,
-        ...Array.from(
-          { length: additionalColors.length },
-          (_, i) => `color${i + prevNames.length + 1}`
-        ),
-      ])
-    } else if (numColors < color.length) {
-      setColor((prevColors) => prevColors.slice(0, numColors))
-      setColorNames((prevNames) => prevNames.slice(0, numColors))
+      // 新しいカラー名を追加（既存の名前は維持）
+      setColorNames((oldNames) => {
+        return [
+          ...oldNames,
+          ...Array.from(
+            { length: numColors - oldNames.length },
+            (_, i) => `color${oldNames.length + i + 1}`
+          ),
+        ]
+      })
+    } else {
+      // カラー数が減少した場合、既存のカラーと名前を削減
+      setColor((oldColors) => oldColors.slice(0, numColors))
+      setColorNames((oldNames) => oldNames.slice(0, numColors))
     }
-  }, [color.length, numColors])
+  }, [numColors, color, adjustedColors])
+
+  // 初期状態へのリセット
+  const handleReset = () => {
+    const initialColors = generateInitialColors(4)
+    setNumColors(4)
+    setColor(initialColors)
+    setAdjustedColors([])
+  }
+
+  // 初期カラーの生成
+  const generateInitialColors = (num: number) => {
+    return Array.from({ length: num }, (_, i) => {
+      const hue = (i * 360) / num
+      return chroma.hsl(hue, 0.8, 0.45).hex()
+    })
+  }
+  // 新しい色を生成する関数
+  function generateRandomColor(existingColors: any[]) {
+    let newHue: number
+    do {
+      newHue = Math.floor(Math.random() * 360)
+    } while (
+      existingColors.some(
+        (color) => Math.abs(chroma(color).hsl()[0] - newHue) < 30
+      )
+    )
+    const saturation = 0.9 // 彩度
+    const lightness = 0.5 // 明度
+    return chroma.hsl(newHue, saturation, lightness).hex()
+  }
 
   const handleGenerateClick = () => {
     const newPalette = color.map((c, idx) => {
@@ -86,10 +131,44 @@ function ColorPicker() {
     setPalette(newPalette)
   }
 
+  // カラーピッカーとカラーネームの変更が反映されるようにする
+  useEffect(() => {
+    const newPalette = color.map((c, idx) => {
+      const baseColor = chroma(c)
+      const baseHSL = baseColor.hsl()
+
+      return {
+        [colorNames[idx]]: Object.fromEntries(
+          Object.entries(shades).map(([shade, adjustment]) => {
+            if (shade === 'main') {
+              return [shade, baseColor.hex()]
+            }
+            const [h, s, l] = baseHSL
+            return [shade, chroma.hsl(h, s * 0.8, l + adjustment * 0.1).hex()]
+          })
+        ),
+      }
+    })
+
+    setPalette(newPalette)
+  }, [color, colorNames])
+
+  // カラーネーム変更時のハンドラ
   const handleColorNameChange = (index: number, newName: string) => {
-    const newColorNames = [...colorNames]
-    newColorNames[index] = newName
-    setColorNames(newColorNames)
+    const newNames = [...colorNames]
+    newNames[index] = newName
+    setColorNames(newNames)
+  }
+
+  // カラーピッカーでの変更が反映されるようにする
+  const handleColorChange = (index: number, newColor: string) => {
+    // HEX値の形式が正しいか検証
+    if (!isValidHex(newColor) && newColor !== '#') return
+
+    // カラー配列の更新
+    const newColors = [...color]
+    newColors[index] = newColor
+    setColor(newColors)
   }
 
   const exportToJson = () => {
@@ -148,6 +227,9 @@ function ColorPicker() {
           >
             カラーパレット生成 / 再生成
           </Button>
+          <Button variant='contained' color='secondary' onClick={handleReset}>
+            リセット
+          </Button>
         </Box>
 
         <Box>
@@ -163,30 +245,25 @@ function ColorPicker() {
           <input type='file' onChange={importFromJson} />
         </Box>
       </Box>
-
       <FlexBox
         sx={{
           flexDirection: 'row',
           gap: 2,
           overflow: 'auto',
-          maxWidth: '90vw',
+          // maxWidth: '90vw',
         }}
       >
-        {Array.from({ length: numColors }, (_, i) => (
-          <React.Fragment key={i}>
+        {color.map((c, index) => (
+          <React.Fragment key={index}>
             <FlexBox sx={{ display: 'block' }}>
               <TextField
-                value={colorNames[i]}
-                onChange={(e) => handleColorNameChange(i, e.target.value)}
+                value={colorNames[index]}
+                onChange={(e) => handleColorNameChange(index, e.target.value)}
                 size='small'
               />
               <ColorInputField
-                color={color[i]}
-                onChange={(newColor) => {
-                  const colorsCopy = [...color]
-                  colorsCopy[i] = newColor
-                  setColor(colorsCopy)
-                }}
+                color={c}
+                onChange={(newColor) => handleColorChange(index, newColor)}
               />
             </FlexBox>
           </React.Fragment>

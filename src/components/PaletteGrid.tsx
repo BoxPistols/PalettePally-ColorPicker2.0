@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { memo } from 'react'
 import { Grid, Box } from '@mui/material'
 import chroma from 'chroma-js'
 
@@ -6,6 +6,42 @@ type PaletteGridProps = {
   palette: { [colorName: string]: { [shade: string]: string } }[]
   colorNames: string[]
 }
+
+const GridItem = memo<{
+  colorGroup: { [shade: string]: string }
+  colorName: string
+}>(({ colorGroup, colorName }) => (
+  <>
+    <b>{colorName}</b>
+    {colorGroup &&
+      Object.entries(colorGroup).map(([shade, colorValue]) => (
+        <Box
+          my={0.5}
+          px={1}
+          key={shade}
+          sx={{
+            flexGrow: 1,
+            background: colorValue || 'transparent',
+            borderRadius: '6px',
+            whiteSpace: 'nowrap',
+            fontSize: '0.875rem',
+            boxShadow: '1px 1px 4px  rgba(0,0,0,0.1)',
+            color:
+              chroma(colorValue as string).luminance() > 0.5
+                ? 'black'
+                : 'white',
+          }}
+        >
+          <Box p={1} sx={{ borderRadius: '6px' }}>
+            {shade}: {colorValue}
+          </Box>
+        </Box>
+      ))}
+  </>
+))
+
+// メモ化したコンポーネントに表示名を設定
+GridItem.displayName = 'GridItem'
 
 function PaletteGrid({ palette, colorNames }: PaletteGridProps) {
   return (
@@ -17,34 +53,12 @@ function PaletteGrid({ palette, colorNames }: PaletteGridProps) {
           md={3}
           lg={2}
           key={i}
-          style={{ display: 'flex', flexDirection: 'column' }}
+          sx={{ display: 'flex', flexDirection: 'column' }}
         >
-          <b>{colorNames[i]}</b>
-          {colorGroup[colorNames[i]] &&
-            Object.entries(colorGroup[colorNames[i]]).map(
-              ([shade, colorValue]) => (
-                <Box
-                  my={1}
-                  px={1}
-                  key={shade}
-                  sx={{
-                    flexGrow: 1,
-                    background: colorValue || 'transparent',
-                    borderRadius: '5px',
-                    whiteSpace: 'nowrap',
-                    fontSize: '0.875rem',
-                    color:
-                      chroma(colorValue as string).luminance() > 0.5
-                        ? 'black'
-                        : 'white',
-                  }}
-                >
-                  <Box p={1} sx={{ borderRadius: '6px' }}>
-                    {shade}: {colorValue}
-                  </Box>
-                </Box>
-              )
-            )}
+          <GridItem
+            colorGroup={colorGroup[colorNames[i]]}
+            colorName={colorNames[i]}
+          />
         </Grid>
       ))}
     </Grid>
