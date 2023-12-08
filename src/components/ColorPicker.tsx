@@ -250,7 +250,7 @@ function ColorPicker() {
           flexDirection: 'row',
           gap: 2,
           overflow: 'auto',
-          maxWidth: '90vw',
+          // maxWidth: '90vw',
         }}
       >
         {color.map((c, index) => (

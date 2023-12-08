@@ -32,17 +32,31 @@ const ColorInputField = memo(({ color, onChange }: ColorInputFieldProps) => {
   return (
     <Box
       sx={{
-        display: 'block',
-        pb: 2,
-        overflow: 'auto',
-        maxWidth: '90vw',
+        display: 'flex',
+        gap: 1,
       }}
     >
-      <FlexBox
+      <Box
         sx={{
-          mb: 1.5,
-          gap: 1,
-          border: '1px solid #f9f9fc',
+          '> .sketch-picker': {
+            width: 'auto !important',
+            minWidth: '210px !important',
+            maxWidth: '210px !important',
+            boxShadow: 'none !important',
+            backgroundColor: 'transparent !important',
+            ' input': {
+              width: '100% !important',
+              padding: '0.25rem !important',
+              // border: 'none !important',
+              // boxShadow: 'none !important',
+              fontSize: '14px !important',
+              borderRadius: '2px !important',
+              textAlign: 'center !important',
+              '&:focus': {
+                boxShadow: 'none !important',
+              },
+            },
+          },
         }}
       >
         {isMounted && (
@@ -53,17 +67,20 @@ const ColorInputField = memo(({ color, onChange }: ColorInputFieldProps) => {
             }
           />
         )}
-      </FlexBox>
-      <StyledInputLabel shrink={false} htmlFor='hex-color' size='small'>
+        <Box mt={1} ml={1}>
+          main: {color}
+        </Box>
+      </Box>
+      {/* <StyledInputLabel shrink={false} htmlFor='hex-color' size='small'>
         Hex Color
-      </StyledInputLabel>
-      <TextField
+      </StyledInputLabel> */}
+      {/* <TextField
         id='hex-color'
         value={color}
-        onChange={(e) => onChange(e.target.value)} // 親コンポーネントに変更を伝える
+        onChange={(e) => onChange(e.target.value)}
         size='small'
         sx={{ pl: 0 }}
-      />
+      /> */}
     </Box>
   )
 })
