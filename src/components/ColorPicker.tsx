@@ -100,26 +100,6 @@ function ColorPicker() {
     return chroma.hsl(newHue, saturation, lightness).hex()
   }
 
-  const handleGenerateClick = () => {
-    const newPalette = color.map((c, idx) => {
-      const baseColor = chroma(c)
-      const baseHSL = baseColor.hsl()
-
-      const adjustedColors = Object.fromEntries(
-        Object.entries(shades).map(([shade, adjustment]) => {
-          if (shade === 'main') {
-            return [shade, baseColor.hex()]
-          }
-          const [h, s, l] = baseHSL
-          return [shade, chroma.hsl(h, s * 0.8, l + adjustment * 0.1).hex()]
-        })
-      )
-
-      return { [colorNames[idx]]: adjustedColors }
-    })
-    setPalette(newPalette)
-  }
-
   // カラーピッカーとカラーネームの変更が反映されるようにする
   useEffect(() => {
     const newPalette = color.map((c, idx) => {
