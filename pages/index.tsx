@@ -16,17 +16,21 @@ const Home: NextPage = () => {
       </Head> 
       */}
       <Typography
-        variant='h3'
         component='h1'
         gutterBottom
         sx={{
-          fontFamily: 'futura',
+          fontSize: '24px',
           margin: '0 0 16px 0',
-          transform: 'rotate(-90deg)',
-          position: 'absolute',
-          top: '4.2em',
-          left: '-2em',
-          color: 'tomato',
+          lineHeight: '1.15',
+          fontWeight: 'bold',
+          // transform: "rotate(-90deg)",
+          // position: "absolute",
+          // top: "1%",
+          // left: "1%",
+          color: 'transparent',
+          letterSpacing: '0.05em',
+          WebkitTextStroke: '2px #33c',
+          TextStroke: '2px #33c',
         }}
       >
         - Pallet Pally -

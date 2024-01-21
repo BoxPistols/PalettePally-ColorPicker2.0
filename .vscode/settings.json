@@ -4,7 +4,7 @@
     "activityBar.background": "#4d3524",
     "titleBar.activeForeground": "#f1ecee",
     "titleBar.inactiveBackground": "#c85909",
-    "titleBar.inactiveForeground": "#d1c3c8",
+    "titleBar.inactiveForeground": "#d1c3c8"
   },
   "files.exclude": {
     "**/.git": true,
@@ -15,5 +15,8 @@
     "**/Thumbs.db": true,
     "**/.ruby-lsp": true,
     "**/node_modules": true
-  }
+  },
+  "html.completion.attributeDefaultValue": "doublequotes",
+  "javascript.preferences.quoteStyle": "single",
+  "typescript.preferences.quoteStyle": "single"
 }
