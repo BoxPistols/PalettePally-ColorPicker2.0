@@ -48,7 +48,7 @@ function ColorPicker() {
     if (numColors > color.length) {
       const additionalColors = Array.from(
         { length: numColors - color.length },
-        () => generateRandomColor(color)
+        () => generateRandomColor(color.concat(adjustedColors) as never[])
       )
       setColor([...color, ...additionalColors])
       setAdjustedColors([...adjustedColors, ...additionalColors])
@@ -152,7 +152,7 @@ function ColorPicker() {
   // カラーピッカーでの変更が反映されるようにする
   const handleColorChange = (index: number, newColor: string) => {
     // HEX値の形式が正しいか検証
-    if (!isValidHex(newColor) && newColor !== '#') return
+    if (!isValidHex(newColor as string) && newColor !== '#') return
 
     // カラー配列の更新
     const newColors = [...color]
