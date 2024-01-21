@@ -152,7 +152,7 @@ function ColorPicker() {
   // カラーピッカーでの変更が反映されるようにする
   const handleColorChange = (index: number, newColor: string) => {
     // HEX値の形式が正しいか検証
-    if (!isValidHex(newColor as string) && newColor !== '#') return
+    if (!isValidHex(newColor as never) && newColor !== '#') return
 
     // カラー配列の更新
     const newColors = [...color]
