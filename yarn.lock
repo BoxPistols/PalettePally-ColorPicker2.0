@@ -704,14 +704,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:18.2.21":
-  version: 18.2.21
-  resolution: "@types/react@npm:18.2.21"
+"@types/react@npm:18.2.0":
+  version: 18.2.0
+  resolution: "@types/react@npm:18.2.0"
   dependencies:
     "@types/prop-types": "npm:*"
     "@types/scheduler": "npm:*"
     csstype: "npm:^3.0.2"
-  checksum: 5b5aff55d38c358a50108dddb24e06d344e4d578cc177dd2e24a7c5d0fadb034298e5e652b174053b5e75f0d6b0d9f926976c1c9f5e84fe94bb91348c54f5313
+  checksum: e38f98b7524817459bb1214d39f4cfcb1dd7ffb31992a427b4494f3988aa6195dc349dfb66b299270b399b34568d045bf1cb6230349a6d343e183052ee486eaa
   languageName: node
   linkType: hard
 
@@ -2847,7 +2847,7 @@ __metadata:
     "@mui/material": "npm:^5.14.2"
     "@types/chroma-js": "npm:^2.4.1"
     "@types/node": "npm:20.5.9"
-    "@types/react": "npm:18.2.21"
+    "@types/react": "npm:18.2.0"
     "@types/react-color": "npm:^3.0.6"
     "@types/react-dom": "npm:18.2.7"
     "@typescript-eslint/eslint-plugin": "npm:^6.19.0"
