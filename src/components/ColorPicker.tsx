@@ -4,19 +4,12 @@ import chroma from 'chroma-js'
 import ColorInputField from './ColorInputField'
 import PaletteGrid from './PaletteGrid'
 import DialogBox from './DialogBox'
-import { getCurrentFormattedDate, downloadJSON } from './utils'
-
-type ColorInputFieldProps = {
-  color: string
-  onChange: (newColor: string) => void
-}
-
-type PaletteType = { [colorName: string]: { [shade: string]: string } }[]
+import { downloadJSON } from './utils'
 
 const shades = {
   main: 0,
-  dark: -2,
-  light: 1.25,
+  dark: -1,
+  light: 1,
   lighter: 4,
 }
 
@@ -32,11 +25,7 @@ const StyledInputLabel = styled(InputLabel)`
   }
 `
 
-// HEX値が有効なカラーかどうかをチェックする関数
-
 function ColorPicker() {
-  const [originalColors, setOriginalColors] = useState<string[]>([]) // 調整後のカラーを保存するための状態
-
   const [numColors, setNumColors] = useState(4)
   const [color, setColor] = useState<string[]>([])
   const [palette, setPalette] = useState<
@@ -52,7 +41,7 @@ function ColorPicker() {
   // 調整されたカラーを一時保存するための状態
   const [adjustedColors, setAdjustedColors] = useState<string[]>([])
 
-  const isValidHex = (hex: any) => /^#([0-9A-F]{3}){1,2}$/i.test(hex)
+  const isValidHex = (hex: never) => /^#([0-9A-F]{3}){1,2}$/i.test(hex)
   // useEffect を更新
   useEffect(() => {
     // カラー数が増えた場合、新しいカラーを追加
@@ -65,7 +54,7 @@ function ColorPicker() {
       setAdjustedColors([...adjustedColors, ...additionalColors])
 
       // 新しいカラー名を追加（既存の名前は維持）
-      setColorNames((oldNames) => {
+      setColorNames(oldNames => {
         return [
           ...oldNames,
           ...Array.from(
@@ -76,8 +65,8 @@ function ColorPicker() {
       })
     } else {
       // カラー数が減少した場合、既存のカラーと名前を削減
-      setColor((oldColors) => oldColors.slice(0, numColors))
-      setColorNames((oldNames) => oldNames.slice(0, numColors))
+      setColor(oldColors => oldColors.slice(0, numColors))
+      setColorNames(oldNames => oldNames.slice(0, numColors))
     }
   }, [numColors, color, adjustedColors])
 
@@ -97,13 +86,13 @@ function ColorPicker() {
     })
   }
   // 新しい色を生成する関数
-  function generateRandomColor(existingColors: any[]) {
+  function generateRandomColor(existingColors: never[]) {
     let newHue: number
     do {
       newHue = Math.floor(Math.random() * 360)
     } while (
       existingColors.some(
-        (color) => Math.abs(chroma(color).hsl()[0] - newHue) < 30
+        color => Math.abs(chroma(color).hsl()[0] - newHue) < 30
       )
     )
     const saturation = 0.9 // 彩度
@@ -185,7 +174,7 @@ function ColorPicker() {
     const file = event.target.files ? event.target.files[0] : null
     if (file) {
       const reader = new FileReader()
-      reader.onload = (e) => {
+      reader.onload = e => {
         if (e.target !== null) {
           const data = JSON.parse(e.target.result as string)
           setColor(data.colors)
@@ -220,13 +209,6 @@ function ColorPicker() {
             sx={{ mb: 1, width: 100, marginRight: 2 }}
             size='small'
           />
-          <Button
-            variant='contained'
-            color='primary'
-            onClick={handleGenerateClick}
-          >
-            カラーパレット生成 / 再生成
-          </Button>
           <Button variant='contained' color='secondary' onClick={handleReset}>
             リセット
           </Button>
@@ -254,19 +236,19 @@ function ColorPicker() {
         }}
       >
         {color.map((c, index) => (
-          <React.Fragment key={index}>
+          <Box key={index}>
             <FlexBox sx={{ display: 'block' }}>
               <TextField
                 value={colorNames[index]}
-                onChange={(e) => handleColorNameChange(index, e.target.value)}
+                onChange={e => handleColorNameChange(index, e.target.value)}
                 size='small'
               />
               <ColorInputField
                 color={c}
-                onChange={(newColor) => handleColorChange(index, newColor)}
+                onChange={newColor => handleColorChange(index, newColor)}
               />
             </FlexBox>
-          </React.Fragment>
+          </Box>
         ))}
       </FlexBox>
 

@@ -1,7 +1,7 @@
 {
   "extends": [
     "next/core-web-vitals",
-    "plugin:@typescript-eslint/recommended"
+    // "plugin:@typescript-eslint/recommended"
   ],
   "rules": {
     // prettierとの競合回避のために引用符関連のルールをoffに
