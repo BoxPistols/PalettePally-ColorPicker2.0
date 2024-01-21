@@ -1,7 +1,11 @@
 {
-  "extends": ["next/core-web-vitals", "plugin:@typescript-eslint/recommended"],
+  "extends": [
+    "next/core-web-vitals",
+    "plugin:@typescript-eslint/recommended"
+  ],
   "rules": {
-    // prettierとの競合回避のために引用符関連のルールをoffに
+    // next.config.jsを除外
+    "import/no-anonymous-default-export": "off",
     "quotes": "off",
     "indent": "off",
     "comma-dangle": "off",
