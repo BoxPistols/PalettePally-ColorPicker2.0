@@ -9,7 +9,7 @@ import '../src/styles/globals.css'
 export default function App({
   Component,
   pageProps,
-}: AppProps<{ Component: ElementType }>) {
+}: AppProps<{ Component: ElementType; pageProps: any }>) {
   const cache = createCache({ key: 'css', prepend: true, stylisPlugins: [] })
   cache.compat = true
 
