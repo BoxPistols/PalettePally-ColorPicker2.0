@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useEffect, useState } from 'react'
+import React, { ChangeEvent, useCallback, useEffect, useState } from 'react'
 import { Box, TextField, Button, styled, InputLabel } from '@mui/material'
 import chroma from 'chroma-js'
 import ColorInputField from './ColorInputField'
@@ -70,21 +70,28 @@ function ColorPicker() {
     }
   }, [numColors, color, adjustedColors])
 
-  // 初期状態へのリセット
-  const handleReset = () => {
-    const initialColors = generateInitialColors(4)
-    setNumColors(4)
-    setColor(initialColors)
-    setAdjustedColors([])
-  }
-
-  // 初期カラーの生成
-  const generateInitialColors = (num: number) => {
+  // カラーピッカーの初期色を生成する関数
+  const generateInitialColors = useCallback((num: number) => {
     return Array.from({ length: num }, (_, i) => {
-      const hue = (i * 360) / num
-      return chroma.hsl(hue, 0.8, 0.45).hex()
+      // 色相環の開始を赤色 (0度) とする
+      const hue = i * (360 / num)
+      return chroma.hsl(hue, 0.8, 0.5).hex() // 明度を0.5に設定して赤色を含める
     })
-  }
+  }, [])
+
+  // カラーピッカーのリセット処理
+  const handleReset = useCallback(() => {
+    const initialColors = generateInitialColors(numColors)
+    setColor(initialColors)
+    setAdjustedColors([...initialColors]) // adjustedColorsも更新する
+    // ...他にリセットが必要なstateがあればここで設定
+  }, [generateInitialColors, numColors])
+
+  // コンポーネントのマウント時に一度だけリセット処理を実行
+  useEffect(() => {
+    handleReset()
+  }, [handleReset])
+
   // 新しい色を生成する関数
   function generateRandomColor(existingColors: never[]) {
     let newHue: number
@@ -189,7 +196,11 @@ function ColorPicker() {
             sx={{ mb: 1, width: 100, marginRight: 2 }}
             size='small'
           />
-          <Button variant='contained' color='secondary' onClick={handleReset}>
+          <Button
+            variant='contained'
+            color='secondary'
+            onClick={() => handleReset()}
+          >
             リセット
           </Button>
         </Box>

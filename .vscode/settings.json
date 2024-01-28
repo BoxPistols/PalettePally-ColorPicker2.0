@@ -17,5 +17,7 @@
   },
   "html.completion.attributeDefaultValue": "doublequotes",
   "javascript.preferences.quoteStyle": "single",
-  "typescript.preferences.quoteStyle": "single"
+  "typescript.preferences.quoteStyle": "single",
+  "bookmarks.navigateThroughAllFiles": false,
+  "center-editor-window.offset": 12
 }
