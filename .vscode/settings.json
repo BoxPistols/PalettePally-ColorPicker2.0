@@ -3,7 +3,7 @@
     "titleBar.activeBackground": "#c75d12",
     "titleBar.activeForeground": "#e9d9cc",
     "activityBar.background": "#34312f",
-    "activityBar.foreground": "#b5ada6",
+    "activityBar.foreground": "#b5ada6"
   },
   "files.exclude": {
     "**/.git": true,
