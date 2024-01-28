@@ -675,12 +675,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:18.2.7":
-  version: 18.2.7
-  resolution: "@types/react-dom@npm:18.2.7"
+"@types/react-dom@npm:18.2.0":
+  version: 18.2.0
+  resolution: "@types/react-dom@npm:18.2.0"
   dependencies:
     "@types/react": "npm:*"
-  checksum: bd090f5e1b13765fbc191d9eb720dd152d26c20558221963009189c4636ce11e4c1c976e4cde4a74335f997a2be651af27d3727474a8091424101a83a71eebfb
+  checksum: f9f7a396c5499a6fb97e31ef9b050cf9ec5f61e6ec4040badb53428f9e73258c95e5b3dd8233541631b0461d623739b3f6348a4130359c92ce0a69d74a5e9176
   languageName: node
   linkType: hard
 
@@ -2849,7 +2849,7 @@ __metadata:
     "@types/node": "npm:20.5.9"
     "@types/react": "npm:18.2.0"
     "@types/react-color": "npm:^3.0.6"
-    "@types/react-dom": "npm:18.2.7"
+    "@types/react-dom": "npm:18.2.0"
     "@typescript-eslint/eslint-plugin": "npm:^6.19.0"
     chroma-js: "npm:^2.4.2"
     eslint: "npm:8.48.0"

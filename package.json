@@ -18,16 +18,16 @@
     "@mui/material": "^5.14.2",
     "chroma-js": "^2.4.2",
     "next": "13.4.19",
-    "react-color": "^2.19.3",
     "react": "18.2.0",
+    "react-color": "^2.19.3",
     "react-dom": "18.2.0"
   },
   "devDependencies": {
     "@types/chroma-js": "^2.4.1",
     "@types/node": "20.5.9",
     "@types/react": "18.2.0",
-    "@types/react-dom": "18.2.0",
     "@types/react-color": "^3.0.6",
+    "@types/react-dom": "18.2.0",
     "@typescript-eslint/eslint-plugin": "^6.19.0",
     "eslint": "8.48.0",
     "eslint-config-next": "13.4.19",
