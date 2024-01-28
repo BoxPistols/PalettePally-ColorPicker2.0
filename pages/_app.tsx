@@ -1,9 +1,9 @@
 import type { AppProps } from 'next/app'
 import createCache from '@emotion/cache'
-import { CacheProvider, ThemeProvider } from '@emotion/react'
 import { theme } from '@/lib/theme'
 import Head from 'next/head'
 import '../src/styles/globals.css'
+import { ThemeProvider, CacheProvider } from '@emotion/react'
 
 export default function App({ Component, pageProps }: AppProps) {
   const cache = createCache({ key: 'css', prepend: true, stylisPlugins: [] })

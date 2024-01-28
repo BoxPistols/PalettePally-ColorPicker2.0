@@ -1,5 +1,6 @@
-import React, { useEffect, useState, memo } from 'react'
 import { Box } from '@mui/material'
+import React, { useEffect, useState, memo } from 'react'
+
 import { SketchPicker } from 'react-color'
 
 type ColorInputFieldProps = {

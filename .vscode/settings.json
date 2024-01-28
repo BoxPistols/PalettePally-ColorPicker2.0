@@ -1,10 +1,9 @@
 {
   "workbench.colorCustomizations": {
-    "titleBar.activeBackground": "#d66617",
-    "activityBar.background": "#4d3524",
-    "titleBar.activeForeground": "#f1ecee",
-    "titleBar.inactiveBackground": "#c85909",
-    "titleBar.inactiveForeground": "#d1c3c8"
+    "titleBar.activeBackground": "#c75d12",
+    "titleBar.activeForeground": "#e9d9cc",
+    "activityBar.background": "#34312f",
+    "activityBar.foreground": "#b5ada6",
   },
   "files.exclude": {
     "**/.git": true,
