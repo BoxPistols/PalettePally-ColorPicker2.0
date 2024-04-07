@@ -1,6 +1,6 @@
 {
   "workbench.colorCustomizations": {
-    "titleBar.activeBackground": "#c75d12",
+    "titleBar.activeBackground": "#e06d1a",
     "titleBar.activeForeground": "#e9d9cc",
     "activityBar.background": "#34312f",
     "activityBar.foreground": "#b5ada6"
@@ -15,9 +15,13 @@
     "**/.ruby-lsp": true,
     "**/node_modules": true
   },
-  "html.completion.attributeDefaultValue": "doublequotes",
-  "javascript.preferences.quoteStyle": "single",
-  "typescript.preferences.quoteStyle": "single",
-  "bookmarks.navigateThroughAllFiles": false,
-  "center-editor-window.offset": 12
+  "editor.formatOnSave": true,
+  "files.autoSave": "afterDelay",
+  "files.refactoring.autoSave": false,
+  "editorconfig.generateAuto": true,
+  "prettier.enable": true,
+  "prettier.jsxSingleQuote": true,
+  "prettier.semi": false,
+  "prettier.singleAttributePerLine": false,
+  "prettier.singleQuote": true
 }

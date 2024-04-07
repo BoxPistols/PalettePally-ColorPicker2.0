@@ -206,7 +206,7 @@ export const theme = createTheme({
     fontSize: baseFontSize,
 
     allVariants: {
-      fontFamily: 'Inter, Noto Sans JP, Helvetica, Arial, sans-serif',
+      fontFamily: 'Jost, Inter, Noto Sans JP, Helvetica, Arial, sans-serif',
       color: colorData.text.primary,
       lineHeight: lineHeight.medium,
       fontWeight: fontWeight.normal,

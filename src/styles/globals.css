@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,100..900;1,100..900&display=swap');
+
 html,
 body {
   padding: 0;
@@ -5,7 +7,9 @@ body {
 }
 
 body {
-  font-family: 'Inter', 'Noto Sans JP', sans-serif;
+  font-family: 'Jost', 'Inter', 'Noto Sans JP', sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
   padding: 1vh 3vw;
   max-width: 1440px;
   margin: auto;

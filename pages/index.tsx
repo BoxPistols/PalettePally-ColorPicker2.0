@@ -20,14 +20,13 @@ const Home: NextPage = () => {
         component='h1'
         gutterBottom
         sx={{
-          fontSize: '24px',
+          // minmax rwd font size
+          fontSize: ['1.25rem', '1.75rem', '2rem'],
           margin: '0 0 24px 0',
           lineHeight: '1.15',
-          fontWeight: 'bold',
-          letterSpacing: '0.05em',
+          fontWeight: 700,
+          letterSpacing: '0.02em',
           color: deepOrange[500],
-          // WebkitTextStroke: '2px #33c',
-          // TextStroke: '2px #33c',
         }}
       >
         Pallet Pally
