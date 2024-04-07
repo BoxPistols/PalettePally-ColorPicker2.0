@@ -1,5 +1,5 @@
 // base https://mui.com/material-ui/customization/color/
-import { pink, blue, amber, grey } from '@mui/material/colors'
+import { pink, blue, amber, grey } from '@mui/material/colors';
 
 export const colorData = {
   // チャートカラー
@@ -90,7 +90,7 @@ export const colorData = {
     action: amber[400],
     disabled: grey[500],
   },
-}
+};
 
 /* ===== Examples =====
 styled-componentsを使う場合

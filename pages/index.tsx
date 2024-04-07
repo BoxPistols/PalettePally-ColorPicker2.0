@@ -1,10 +1,10 @@
-import type { NextPage } from 'next'
+import type { NextPage } from 'next';
 // import Head from "next/head"
 // import Image from "next/image"
-import styles from '../src/styles/Home.module.css'
-import ColorPicker from '../src/components/ColorPicker'
-import { Typography } from '@mui/material'
-import { deepOrange } from '@mui/material/colors'
+import styles from '../src/styles/Home.module.css';
+import ColorPicker from '../src/components/ColorPicker';
+import { Typography } from '@mui/material';
+import { deepOrange } from '@mui/material/colors';
 
 const Home: NextPage = () => {
   return (
@@ -33,7 +33,7 @@ const Home: NextPage = () => {
       </Typography>
       <ColorPicker />
     </div>
-  )
-}
+  );
+};
 
-export default Home
+export default Home;

@@ -1,41 +1,42 @@
-import { createTheme } from '@mui/material/styles'
-import { CSSProperties } from 'react'
-import { TypographyStyleOptions } from '@mui/material/styles/createTypography'
-import { colorData } from '@/lib/colorToken'
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+import { createTheme } from '@mui/material/styles';
+import { CSSProperties } from 'react';
+import { TypographyStyleOptions } from '@mui/material/styles/createTypography';
+import { colorData } from '@/lib/colorToken';
 
 declare module '@mui/material/styles' {
   // type PaletteColorOptions = ExtendedPaletteColor;
   interface PaletteColor {
-    lighter?: string
+    lighter?: string;
   }
   interface SimplePaletteColorOptions {
-    lighter?: string
+    lighter?: string;
   }
   // 独自カラー
   interface Palette {
     // background utility
-    surfaceBackground: string
-    surfaceBackgroundDark: string
-    surfaceBackgroundDisabled: string
+    surfaceBackground: string;
+    surfaceBackgroundDark: string;
+    surfaceBackgroundDisabled: string;
     // icon
-    iconWhite: string
-    iconLight: string
-    iconDark: string
-    iconAction: string
-    iconDisabled: string
+    iconWhite: string;
+    iconLight: string;
+    iconDark: string;
+    iconAction: string;
+    iconDisabled: string;
   }
 
   interface PaletteOptions {
     // background utility
-    surfaceBackground: string
-    surfaceBackgroundDark: string
-    surfaceBackgroundDisabled: string
+    surfaceBackground: string;
+    surfaceBackgroundDark: string;
+    surfaceBackgroundDisabled: string;
     // icon
-    iconWhite: string
-    iconLight: string
-    iconDark: string
-    iconAction: string
-    iconDisabled: string
+    iconWhite: string;
+    iconLight: string;
+    iconDark: string;
+    iconAction: string;
+    iconDisabled: string;
   }
 }
 
@@ -45,49 +46,49 @@ declare module '@mui/material/styles' {
 // もしTypographyのvariantを追加したい場合は、以下のように追加設定を行う
 declare module '@mui/material/Typography' {
   interface TypographyPropsVariantOverrides {
-    display1: true
-    display2: true
+    display1: true;
+    display2: true;
   }
 }
 
 declare module '@mui/material/styles' {
   interface Typography {
     // xxxl?: TypographyStyleOptions | CSSProperties;
-    xxl?: TypographyStyleOptions | CSSProperties
-    xl?: TypographyStyleOptions | CSSProperties
-    lg?: TypographyStyleOptions | CSSProperties
-    ml?: TypographyStyleOptions | CSSProperties
-    md?: TypographyStyleOptions | CSSProperties
-    sm?: TypographyStyleOptions | CSSProperties
-    xs?: TypographyStyleOptions | CSSProperties
-    xxs?: TypographyStyleOptions | CSSProperties
-    xxxs?: TypographyStyleOptions | CSSProperties
+    xxl?: TypographyStyleOptions | CSSProperties;
+    xl?: TypographyStyleOptions | CSSProperties;
+    lg?: TypographyStyleOptions | CSSProperties;
+    ml?: TypographyStyleOptions | CSSProperties;
+    md?: TypographyStyleOptions | CSSProperties;
+    sm?: TypographyStyleOptions | CSSProperties;
+    xs?: TypographyStyleOptions | CSSProperties;
+    xxs?: TypographyStyleOptions | CSSProperties;
+    xxxs?: TypographyStyleOptions | CSSProperties;
   }
 }
 
 declare module '@mui/material/Typography' {
   interface TypographyPropsVariantOverrides {
     // xxxl: true; // 24
-    xxl: true // 22
-    xl: true // 20
-    lg: true // 18
-    ml: true // 16
-    md: true // 14
-    sm: true // 13
-    xs: true // 12
-    xxs: true // 11
-    xxxs: true // 10
+    xxl: true; // 22
+    xl: true; // 20
+    lg: true; // 18
+    ml: true; // 16
+    md: true; // 14
+    sm: true; // 13
+    xs: true; // 12
+    xxs: true; // 11
+    xxxs: true; // 10
   }
 }
 
 // ブラウザのdefaultは16pxだが14pxにオーバーライドする事で全体にコンパクトに収めたプロダクトに合わせる事が出来る
-const baseFontSize = 14
+const baseFontSize = 14;
 
 // convert px to rem
 const pxToRem = (px: number) => {
-  const remValue = (px / baseFontSize).toFixed(2)
-  return `${parseFloat(remValue)}rem`
-}
+  const remValue = (px / baseFontSize).toFixed(2);
+  return `${parseFloat(remValue)}rem`;
+};
 
 // md = 1rem = という抽象化された値を使うことで、拡大表示などアクセシビリティの向上と実装の簡素化を図る
 const fontSizesVariant = {
@@ -101,27 +102,27 @@ const fontSizesVariant = {
   xs: pxToRem(12), // About -> 0.86rem
   xxs: pxToRem(11), // About -> 0.79rem
   xxxs: pxToRem(10), // About -> 0.71rem
-}
+};
 
 // fontWeightのバリエーション
 const fontWeight = {
   bold: 700,
   // medium: 500, ミディアムは、ブラウザーによっては正しく表示されないことがあるため、一旦使用しない
   normal: 400,
-}
+};
 
 // lineHeightのバリエーション
 const lineHeight = {
   large: 1.8,
   medium: 1.6,
   small: 1.4,
-}
+};
 
 // heading共通スタイル
 const heading = {
   fontWeight: fontWeight.bold,
   lineHeight: lineHeight.small,
-}
+};
 
 export const theme = createTheme({
   // ----- Color Palette -----
@@ -270,10 +271,9 @@ export const theme = createTheme({
       lineHeight: lineHeight.medium,
       textTransform: 'none',
     },
-    // 拡張追加されたvariantのスタイル
-    // @ts-ignore
+    // @ts-expect-error
     xxl: {
-      fontSize: fontSizesVariant.xxl, // 1.571rem = 22px
+      fontSize: fontSizesVariant.xl, // 1.429rem = 20px
       ...heading,
     },
     xl: {
@@ -450,4 +450,4 @@ export const theme = createTheme({
     tooltip: 1500,
   },
   */
-})
+});

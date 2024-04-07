@@ -1,13 +1,13 @@
-import type { AppProps } from 'next/app'
-import createCache from '@emotion/cache'
-import { theme } from '@/lib/theme'
-import Head from 'next/head'
-import '../src/styles/globals.css'
-import { ThemeProvider, CacheProvider } from '@emotion/react'
+import type { AppProps } from 'next/app';
+import createCache from '@emotion/cache';
+import { theme } from '@/lib/theme';
+import Head from 'next/head';
+import '../src/styles/globals.css';
+import { ThemeProvider, CacheProvider } from '@emotion/react';
 
 export default function App({ Component, pageProps }: AppProps) {
-  const cache = createCache({ key: 'css', prepend: true, stylisPlugins: [] })
-  cache.compat = true
+  const cache = createCache({ key: 'css', prepend: true, stylisPlugins: [] });
+  cache.compat = true;
 
   return (
     <>
@@ -25,5 +25,5 @@ export default function App({ Component, pageProps }: AppProps) {
         </CacheProvider>
       </ThemeProvider>
     </>
-  )
+  );
 }

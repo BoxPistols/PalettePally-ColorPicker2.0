@@ -1,20 +1,14 @@
 {
-  // prettier 設定
   "extends": [
     "next/core-web-vitals",
     "plugin:@typescript-eslint/recommended",
     "prettier"
   ],
   "rules": {
-    // next.config.jsを除外
     "import/no-anonymous-default-export": "warn",
-    "quotes": "warn",
-    "indent": "warn",
-    "comma-dangle": "warn",
-    "semi": "warn",
     "@typescript-eslint/ban-ts-comment": "warn",
     "@typescript-eslint/no-explicit-any": "warn",
     "@typescript-eslint/no-empty-function": "warn",
-    "@https://typescript-eslint.io/rules/no-var-requires": "off"
+    "@typescript-eslint/no-var-requires": "off"
   }
 }

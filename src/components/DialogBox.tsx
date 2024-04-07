@@ -1,17 +1,17 @@
-import React from 'react'
-import { Dialog, DialogContent, DialogActions, Button } from '@mui/material'
+import React from 'react';
+import { Dialog, DialogContent, DialogActions, Button } from '@mui/material';
 
 type PaletteData = {
-  name: string
-  value: string
-}
+  name: string;
+  value: string;
+};
 
 type DialogBoxProps = {
-  showDialog: boolean
-  closeDialog: () => void
-  downloadJSON: (data: PaletteData) => void
-  dialogContent: string
-}
+  showDialog: boolean;
+  closeDialog: () => void;
+  downloadJSON: (data: PaletteData) => void;
+  dialogContent: string;
+};
 
 function DialogBox({
   showDialog,
@@ -42,7 +42,7 @@ function DialogBox({
         </Button>
       </DialogActions>
     </Dialog>
-  )
+  );
 }
 
-export default DialogBox
+export default DialogBox;

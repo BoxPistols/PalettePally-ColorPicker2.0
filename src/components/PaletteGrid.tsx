@@ -1,15 +1,15 @@
-import React, { memo } from 'react'
-import { Grid, Box } from '@mui/material'
-import chroma from 'chroma-js'
+import React, { memo } from 'react';
+import { Grid, Box } from '@mui/material';
+import chroma from 'chroma-js';
 
 type PaletteGridProps = {
-  palette: { [colorName: string]: { [shade: string]: string } }[]
-  colorNames: string[]
-}
+  palette: { [colorName: string]: { [shade: string]: string } }[];
+  colorNames: string[];
+};
 
 const GridItem = memo<{
-  colorGroup: { [shade: string]: string }
-  colorName: string
+  colorGroup: { [shade: string]: string };
+  colorName: string;
 }>(({ colorGroup, colorName }) => (
   <>
     <b>{colorName}</b>
@@ -38,10 +38,10 @@ const GridItem = memo<{
         </Box>
       ))}
   </>
-))
+));
 
 // メモ化したコンポーネントに表示名を設定
-GridItem.displayName = 'GridItem'
+GridItem.displayName = 'GridItem';
 
 function PaletteGrid({ palette, colorNames }: PaletteGridProps) {
   return (
@@ -62,7 +62,7 @@ function PaletteGrid({ palette, colorNames }: PaletteGridProps) {
         </Grid>
       ))}
     </Grid>
-  )
+  );
 }
 
-export default PaletteGrid
+export default PaletteGrid;

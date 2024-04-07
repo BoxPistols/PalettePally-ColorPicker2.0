@@ -1,4 +1,4 @@
-import Document, { Html, Head, Main, NextScript } from 'next/document'
+import Document, { Html, Head, Main, NextScript } from 'next/document';
 
 // Web Font
 export const WebFont = () => {
@@ -19,8 +19,8 @@ export const WebFont = () => {
         rel='stylesheet'
       />
     </>
-  )
-}
+  );
+};
 
 class MyDocument extends Document {
   render() {
@@ -51,7 +51,7 @@ class MyDocument extends Document {
           /> */}
         </body>
       </Html>
-    )
+    );
   }
 }
-export default MyDocument
+export default MyDocument;

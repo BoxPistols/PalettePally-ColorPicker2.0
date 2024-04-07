@@ -20,8 +20,6 @@
   "files.refactoring.autoSave": false,
   "editorconfig.generateAuto": true,
   "prettier.enable": true,
-  "prettier.jsxSingleQuote": true,
-  "prettier.semi": false,
-  "prettier.singleAttributePerLine": false,
-  "prettier.singleQuote": true
+  "prettier.useEditorConfig": true,
+  "commentTranslate.targetLanguage": "ja"
 }

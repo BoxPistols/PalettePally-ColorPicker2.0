@@ -1,19 +1,19 @@
-import { Box } from '@mui/material'
-import React, { useEffect, useState, memo } from 'react'
+import { Box } from '@mui/material';
+import React, { useEffect, useState, memo } from 'react';
 
-import { SketchPicker } from 'react-color'
+import { SketchPicker } from 'react-color';
 
 type ColorInputFieldProps = {
-  color: string
-  onChange: (newColor: string) => void
-}
+  color: string;
+  onChange: (newColor: string) => void;
+};
 
 const ColorInputField = memo(({ color, onChange }: ColorInputFieldProps) => {
-  const [isMounted, setIsMounted] = useState(false)
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true)
-  }, [])
+    setIsMounted(true);
+  }, []);
 
   return (
     <Box
@@ -56,9 +56,9 @@ const ColorInputField = memo(({ color, onChange }: ColorInputFieldProps) => {
         </Box>
       </Box>
     </Box>
-  )
-})
+  );
+});
 
-ColorInputField.displayName = 'ColorInputField'
+ColorInputField.displayName = 'ColorInputField';
 
-export default ColorInputField
+export default ColorInputField;
