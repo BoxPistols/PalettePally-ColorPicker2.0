@@ -191,7 +191,7 @@ function ColorPicker() {
               }
             }}
             type='number'
-            inputProps={{ min: 1, max: 24 }}
+            inputProps={{ min: 1, max: 12 }}
             fullWidth
             sx={{ mb: 1, width: 100, marginRight: 2 }}
             size='small'

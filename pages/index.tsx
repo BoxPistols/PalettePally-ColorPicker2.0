@@ -4,6 +4,7 @@ import type { NextPage } from 'next'
 import styles from '../src/styles/Home.module.css'
 import ColorPicker from '../src/components/ColorPicker'
 import { Typography } from '@mui/material'
+import { deepOrange } from '@mui/material/colors'
 
 const Home: NextPage = () => {
   return (
@@ -20,20 +21,16 @@ const Home: NextPage = () => {
         gutterBottom
         sx={{
           fontSize: '24px',
-          margin: '0 0 16px 0',
+          margin: '0 0 24px 0',
           lineHeight: '1.15',
           fontWeight: 'bold',
-          // transform: "rotate(-90deg)",
-          // position: "absolute",
-          // top: "1%",
-          // left: "1%",
-          color: 'transparent',
           letterSpacing: '0.05em',
-          WebkitTextStroke: '2px #33c',
-          TextStroke: '2px #33c',
+          color: deepOrange[500],
+          // WebkitTextStroke: '2px #33c',
+          // TextStroke: '2px #33c',
         }}
       >
-        - Pallet Pally -
+        Pallet Pally
       </Typography>
       <ColorPicker />
     </div>
