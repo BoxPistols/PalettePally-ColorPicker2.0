@@ -51,15 +51,17 @@ export function generateColorScheme(hex: string): ColorPalette {
 
   const theme = themeFromSourceColor(argbFromHex(key));
   const p = theme.palettes.primary;
+  // Material Design 3: light=tone40, dark=tone80
+  const lightMain = hexFromArgb(p.tone(40));
   const darkMain = hexFromArgb(p.tone(80));
 
   const result: ColorPalette = {
     light: {
-      main: hex,
+      main: lightMain,
       dark: hexFromArgb(p.tone(30)),
       light: hexFromArgb(p.tone(60)),
       lighter: hexFromArgb(p.tone(90)),
-      contrastText: getContrastText(hex),
+      contrastText: getContrastText(lightMain),
     },
     dark: {
       main: darkMain,
