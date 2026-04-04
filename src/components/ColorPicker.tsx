@@ -57,6 +57,8 @@ function ColorPicker() {
     Array.from({ length: numColors }, (_, i) => `color${i + 1}`)
   );
 
+  const [themeTokens, setThemeTokens] = useState<ThemeTokens | null>(null);
+
   const [showDialog, setShowDialog] = useState(false);
   const [dialogContent, setDialogContent] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -112,6 +114,7 @@ function ColorPicker() {
         setNumColors(data.numColors ?? data.colors.length);
         setColor(data.colors);
         setColorNames(data.names ?? data.colors.map((_: string, i: number) => `color${i + 1}`));
+        if (data.themeTokens) setThemeTokens(data.themeTokens);
       }
     } catch { /* ignore */ }
   }, []);
@@ -129,10 +132,11 @@ function ColorPicker() {
         numColors,
         colors: color,
         names: colorNames,
+        themeTokens,
       }));
     }, 300);
     return () => clearTimeout(timer);
-  }, [numColors, color, colorNames]);
+  }, [numColors, color, colorNames, themeTokens]);
 
   function generateDistinctColor(existingColors: string[]): string {
     const count = existingColors.length;
@@ -201,12 +205,16 @@ function ColorPicker() {
   );
 
   // Primary から grey + utility tokens を生成（手動編集も可能）
-  const [themeTokens, setThemeTokens] = useState<ThemeTokens | null>(null);
   const primaryColor = color.length > 0 ? color[0] : undefined;
+  const prevPrimaryRef = useRef<string | undefined>(undefined);
   useEffect(() => {
     if (!primaryColor) return;
-    setThemeTokens(generateThemeTokens(primaryColor));
-  }, [primaryColor]);
+    // 初回生成 or primary カラー変更時のみ再生成（手動編集を保護）
+    if (!themeTokens || prevPrimaryRef.current !== primaryColor) {
+      prevPrimaryRef.current = primaryColor;
+      setThemeTokens(generateThemeTokens(primaryColor));
+    }
+  }, [primaryColor]); // themeTokens を deps に入れない（手動編集時の再生成を防ぐ）
 
   const exportToJson = () => {
     const data = { colors: color, names: colorNames, palette, themeTokens };
