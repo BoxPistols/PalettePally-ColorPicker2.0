@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react';
 import {
   Box,
   TextField,
@@ -14,7 +14,7 @@ import { PaletteCard } from './PaletteGrid';
 import { GreyScaleCard, UtilityTokensCard } from './ThemeTokenCards';
 import DialogBox from './DialogBox';
 import { downloadJSON } from './utils';
-import { generateColorScheme, generateThemeTokens, ColorPalette, MuiColorVariant } from './colorUtils';
+import { generateColorScheme, generateThemeTokens, ColorPalette, MuiColorVariant, ThemeTokens } from './colorUtils';
 
 // バウハウス風ロゴ: 多色ドットの構造的配置
 const LogoMark = () => (
@@ -61,46 +61,45 @@ function ColorPicker() {
   const [dialogContent, setDialogContent] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [adjustedColors, setAdjustedColors] = useState<string[]>([]);
   const skipAutoResetRef = useRef(false);
 
   const isValidHex = (hex: never) => /^#([0-9A-F]{3}){1,2}$/i.test(hex);
 
+  // numColors 変更時のみ色を増減（functional setState でカスケード防止）
   useEffect(() => {
-    if (numColors > color.length) {
-      const additionalColors = Array.from(
-        { length: numColors - color.length },
-        () => generateRandomColor(color.concat(adjustedColors) as never[])
-      );
-      setColor([...color, ...additionalColors]);
-      setAdjustedColors([...adjustedColors, ...additionalColors]);
-      setColorNames(oldNames => [
-        ...oldNames,
-        ...Array.from(
-          { length: numColors - oldNames.length },
-          (_, i) => `color${oldNames.length + i + 1}`
-        ),
-      ]);
-    } else if (numColors < color.length) {
-      setColor(oldColors => oldColors.slice(0, numColors));
-      setColorNames(oldNames => oldNames.slice(0, numColors));
-    }
-  }, [numColors, color, adjustedColors]);
-
-  const generateInitialColors = useCallback((num: number) => {
-    return Array.from({ length: num }, (_, i) => {
-      const hue = i * (360 / num);
-      return chroma.hsl(hue, 0.8, 0.5).hex();
+    setColor(prev => {
+      if (numColors > prev.length) {
+        const result = [...prev];
+        for (let i = prev.length; i < numColors; i++) {
+          result.push(generateDistinctColor(result));
+        }
+        return result;
+      }
+      return numColors < prev.length ? prev.slice(0, numColors) : prev;
     });
-  }, []);
+    setColorNames(prev => {
+      if (numColors > prev.length) {
+        return [
+          ...prev,
+          ...Array.from(
+            { length: numColors - prev.length },
+            (_, i) => `color${prev.length + i + 1}`
+          ),
+        ];
+      }
+      return numColors < prev.length ? prev.slice(0, numColors) : prev;
+    });
+  }, [numColors]);
 
   const handleReset = useCallback(() => {
     skipAutoResetRef.current = false;
-    const initialColors = generateInitialColors(numColors);
+    const initialColors = Array.from({ length: numColors }, (_, i) => {
+      const hue = i * (360 / numColors);
+      return chroma.hsl(hue, 0.8, 0.5).hex();
+    });
     setColor(initialColors);
-    setAdjustedColors([...initialColors]);
     setColorNames(Array.from({ length: numColors }, (_, i) => `color${i + 1}`));
-  }, [generateInitialColors, numColors]);
+  }, [numColors]);
 
   // localStorage から復元
   useEffect(() => {
@@ -112,7 +111,6 @@ function ColorPicker() {
         skipAutoResetRef.current = true;
         setNumColors(data.numColors ?? data.colors.length);
         setColor(data.colors);
-        setAdjustedColors([...data.colors]);
         setColorNames(data.names ?? data.colors.map((_: string, i: number) => `color${i + 1}`));
       }
     } catch { /* ignore */ }
@@ -136,16 +134,29 @@ function ColorPicker() {
     return () => clearTimeout(timer);
   }, [numColors, color, colorNames]);
 
-  function generateRandomColor(existingColors: never[]) {
-    let newHue: number;
-    do {
-      newHue = Math.floor(Math.random() * 360);
-    } while (
-      existingColors.some(
-        color => Math.abs(chroma(color).hsl()[0] - newHue) < 30
-      )
-    );
-    return chroma.hsl(newHue, 0.9, 0.5).hex();
+  function generateDistinctColor(existingColors: string[]): string {
+    const count = existingColors.length;
+    const minGap = Math.max(5, Math.floor(300 / Math.max(count, 1)));
+    let bestHue = Math.floor(Math.random() * 360);
+    let bestDist = 0;
+
+    for (let attempt = 0; attempt < 200; attempt++) {
+      const hue = Math.floor(Math.random() * 360);
+      let nearest = 360;
+      for (const c of existingColors) {
+        try {
+          const h = chroma(c).hsl()[0] || 0;
+          const diff = Math.abs(h - hue);
+          nearest = Math.min(nearest, diff, 360 - diff);
+        } catch { /* skip */ }
+      }
+      if (nearest >= minGap) return chroma.hsl(hue, 0.9, 0.5).hex();
+      if (nearest > bestDist) {
+        bestDist = nearest;
+        bestHue = hue;
+      }
+    }
+    return chroma.hsl(bestHue, 0.9, 0.5).hex();
   }
 
   useEffect(() => {
@@ -189,11 +200,13 @@ function ColorPicker() {
     [colorNames]
   );
 
-  // Primary から grey + utility tokens を生成（キャッシュ済み）
-  const themeTokens = useMemo(() => {
-    if (color.length === 0) return null;
-    return generateThemeTokens(color[0]);
-  }, [color]);
+  // Primary から grey + utility tokens を生成（手動編集も可能）
+  const [themeTokens, setThemeTokens] = useState<ThemeTokens | null>(null);
+  const primaryColor = color.length > 0 ? color[0] : undefined;
+  useEffect(() => {
+    if (!primaryColor) return;
+    setThemeTokens(generateThemeTokens(primaryColor));
+  }, [primaryColor]);
 
   const exportToJson = () => {
     const data = { colors: color, names: colorNames, palette, themeTokens };
@@ -477,10 +490,16 @@ function ColorPicker() {
           </Typography>
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6} md={4} lg={3}>
-              <GreyScaleCard grey={themeTokens.grey} />
+              <GreyScaleCard
+                grey={themeTokens.grey}
+                onUpdate={grey => setThemeTokens(prev => prev ? { ...prev, grey } : prev)}
+              />
             </Grid>
             <Grid item xs={12} sm={6} md={4} lg={3}>
-              <UtilityTokensCard utility={themeTokens.utility} />
+              <UtilityTokensCard
+                utility={themeTokens.utility}
+                onUpdate={utility => setThemeTokens(prev => prev ? { ...prev, utility } : prev)}
+              />
             </Grid>
           </Grid>
         </Box>

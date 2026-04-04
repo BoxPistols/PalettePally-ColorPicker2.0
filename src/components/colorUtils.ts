@@ -20,36 +20,17 @@ export type ColorPalette = {
   dark: MuiColorVariant;
 };
 
-// ── Theme Token Types ──
+// ── Theme Token Types (flexible for add/remove) ──
 
-export type GreyShades = {
-  50: string;
-  100: string;
-  200: string;
-  300: string;
-  400: string;
-  500: string;
-  600: string;
-  700: string;
-  800: string;
-  900: string;
-};
-
-export const GREY_KEYS = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900] as const;
-
-export type UtilityTokens = {
-  text: { primary: string; secondary: string; disabled: string };
-  background: { default: string; paper: string };
-  surface: { background: string; backgroundDisabled: string };
-  action: { hover: string; selected: string; disabled: string; active: string };
-  divider: string;
-  common: { black: string; white: string };
-};
+export type GreyShades = Record<string, string>;
+export type UtilityTokens = Record<string, Record<string, string>>;
 
 export type ThemeTokens = {
   grey: { light: GreyShades; dark: GreyShades };
   utility: { light: UtilityTokens; dark: UtilityTokens };
 };
+
+export const DEFAULT_GREY_KEYS = ['50', '100', '200', '300', '400', '500', '600', '700', '800', '900'];
 
 // ── Helpers ──
 
@@ -107,28 +88,28 @@ export function generateThemeTokens(primaryHex: string): ThemeTokens {
   const result: ThemeTokens = {
     grey: {
       light: {
-        50: hexFromArgb(n.tone(98)),
-        100: hexFromArgb(n.tone(96)),
-        200: hexFromArgb(n.tone(92)),
-        300: hexFromArgb(n.tone(87)),
-        400: hexFromArgb(n.tone(70)),
-        500: hexFromArgb(n.tone(60)),
-        600: hexFromArgb(n.tone(50)),
-        700: hexFromArgb(n.tone(40)),
-        800: hexFromArgb(n.tone(30)),
-        900: hexFromArgb(n.tone(20)),
+        '50': hexFromArgb(n.tone(98)),
+        '100': hexFromArgb(n.tone(96)),
+        '200': hexFromArgb(n.tone(92)),
+        '300': hexFromArgb(n.tone(87)),
+        '400': hexFromArgb(n.tone(70)),
+        '500': hexFromArgb(n.tone(60)),
+        '600': hexFromArgb(n.tone(50)),
+        '700': hexFromArgb(n.tone(40)),
+        '800': hexFromArgb(n.tone(30)),
+        '900': hexFromArgb(n.tone(20)),
       },
       dark: {
-        50: hexFromArgb(n.tone(10)),
-        100: hexFromArgb(n.tone(15)),
-        200: hexFromArgb(n.tone(20)),
-        300: hexFromArgb(n.tone(25)),
-        400: hexFromArgb(n.tone(35)),
-        500: hexFromArgb(n.tone(45)),
-        600: hexFromArgb(n.tone(55)),
-        700: hexFromArgb(n.tone(70)),
-        800: hexFromArgb(n.tone(80)),
-        900: hexFromArgb(n.tone(90)),
+        '50': hexFromArgb(n.tone(10)),
+        '100': hexFromArgb(n.tone(15)),
+        '200': hexFromArgb(n.tone(20)),
+        '300': hexFromArgb(n.tone(25)),
+        '400': hexFromArgb(n.tone(35)),
+        '500': hexFromArgb(n.tone(45)),
+        '600': hexFromArgb(n.tone(55)),
+        '700': hexFromArgb(n.tone(70)),
+        '800': hexFromArgb(n.tone(80)),
+        '900': hexFromArgb(n.tone(90)),
       },
     },
     utility: {
@@ -152,7 +133,7 @@ export function generateThemeTokens(primaryHex: string): ThemeTokens {
           disabled: 'rgba(0, 0, 0, 0.26)',
           active: 'rgba(0, 0, 0, 0.54)',
         },
-        divider: 'rgba(0, 0, 0, 0.08)',
+        divider: { default: 'rgba(0, 0, 0, 0.08)' },
         common: { black: '#09090b', white: '#ffffff' },
       },
       dark: {
@@ -175,7 +156,7 @@ export function generateThemeTokens(primaryHex: string): ThemeTokens {
           disabled: 'rgba(255, 255, 255, 0.26)',
           active: 'rgba(255, 255, 255, 0.54)',
         },
-        divider: 'rgba(255, 255, 255, 0.08)',
+        divider: { default: 'rgba(255, 255, 255, 0.08)' },
         common: { black: '#09090b', white: '#ffffff' },
       },
     },

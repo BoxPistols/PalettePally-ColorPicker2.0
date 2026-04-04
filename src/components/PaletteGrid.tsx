@@ -1,5 +1,13 @@
 import React, { memo, useCallback, useState, useRef, useEffect } from 'react';
-import { Box, Typography, Snackbar } from '@mui/material';
+import {
+  Box,
+  Typography,
+  Snackbar,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  IconButton,
+} from '@mui/material';
 import chroma from 'chroma-js';
 import { ColorPalette, MuiColorVariant } from './colorUtils';
 
@@ -31,54 +39,23 @@ const copyToClipboard = (text: string) => {
 
 const isValidHex = (hex: string) => /^#([0-9A-F]{3}){1,2}$/i.test(hex);
 
+// ── Read-only Swatch (click to copy) ──
+
 const ColorSwatch = memo<{
   shade: keyof MuiColorVariant;
   colorValue: string;
   isDark: boolean;
-  editMode: boolean;
   onCopy: (text: string) => void;
-  onEdit?: (shade: keyof MuiColorVariant, value: string) => void;
-}>(({ shade, colorValue, isDark, editMode, onCopy, onEdit }) => {
-  const [editing, setEditing] = useState(false);
-  const [editValue, setEditValue] = useState(colorValue);
-  const inputRef = useRef<HTMLInputElement>(null);
+}>(({ shade, colorValue, isDark, onCopy }) => {
   const isLight = shade === 'light';
   const luminance = chroma(colorValue).luminance();
   const textColor =
     luminance > 0.35 ? 'rgba(0,0,0,0.85)' : 'rgba(255,255,255,0.95)';
-  const isEditing = editMode || editing;
-
-  useEffect(() => {
-    setEditValue(colorValue);
-  }, [colorValue]);
-
-  useEffect(() => {
-    if (editing && !editMode && inputRef.current) {
-      inputRef.current.focus();
-      inputRef.current.select();
-    }
-  }, [editing, editMode]);
-
-  const commitEdit = () => {
-    setEditing(false);
-    const val = editValue.startsWith('#') ? editValue : `#${editValue}`;
-    if (isValidHex(val) && onEdit) {
-      onEdit(shade, val);
-    } else {
-      setEditValue(colorValue);
-    }
-  };
 
   return (
     <Box
-      onClick={() => {
-        if (!isEditing) onCopy(colorValue);
-      }}
-      onDoubleClick={e => {
-        e.stopPropagation();
-        if (!editMode && onEdit) setEditing(true);
-      }}
-      title={isEditing ? '' : `${shade}: ${colorValue} — click to copy, double-click to edit`}
+      onClick={() => onCopy(colorValue)}
+      title={`${shade}: ${colorValue} — click to copy`}
       sx={{
         background: colorValue,
         borderRadius: '6px',
@@ -86,23 +63,19 @@ const ColorSwatch = memo<{
         color: textColor,
         mb: 0.5,
         transition: 'transform 0.15s ease, box-shadow 0.15s ease',
-        cursor: isEditing ? 'default' : 'pointer',
-        border: editMode
-          ? `1.5px dashed ${isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.3)'}`
-          : isLight
-            ? `1.5px solid ${isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)'}`
-            : '1.5px solid transparent',
+        cursor: 'pointer',
+        border: isLight
+          ? `1.5px solid ${isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)'}`
+          : '1.5px solid transparent',
         boxShadow:
           shade === 'main'
             ? '0 2px 6px rgba(0,0,0,0.12)'
             : '0 1px 2px rgba(0,0,0,0.06)',
-        '&:hover': isEditing
-          ? {}
-          : {
-              transform: 'scale(1.02)',
-              boxShadow: '0 3px 10px rgba(0,0,0,0.12)',
-            },
-        '&:active': isEditing ? {} : { transform: 'scale(0.98)' },
+        '&:hover': {
+          transform: 'scale(1.02)',
+          boxShadow: '0 3px 10px rgba(0,0,0,0.12)',
+        },
+        '&:active': { transform: 'scale(0.98)' },
       }}
     >
       <Box
@@ -126,82 +99,20 @@ const ColorSwatch = memo<{
         >
           {SHADE_LABELS[shade]}
         </Box>
-        {isEditing ? (
-          <Box
-            sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}
-            onClick={(e: React.MouseEvent) => e.stopPropagation()}
-          >
-            {editMode && (
-              <Box
-                component='input'
-                type='color'
-                value={colorValue}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  if (onEdit) onEdit(shade, e.target.value);
-                }}
-                sx={{
-                  width: 22,
-                  height: 22,
-                  p: 0,
-                  border: '2px solid rgba(255,255,255,0.7)',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  flexShrink: 0,
-                  '&::-webkit-color-swatch-wrapper': { p: 0 },
-                  '&::-webkit-color-swatch': { border: 'none', borderRadius: '2px' },
-                }}
-              />
-            )}
-            <Box
-              component='input'
-              ref={inputRef}
-              value={editValue}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setEditValue(e.target.value)
-              }
-              onBlur={commitEdit}
-              onKeyDown={(e: React.KeyboardEvent) => {
-                if (e.key === 'Enter') commitEdit();
-                if (e.key === 'Escape') {
-                  setEditValue(colorValue);
-                  setEditing(false);
-                }
-              }}
-              sx={{
-                background: 'rgba(255,255,255,0.9)',
-                border: '1px solid rgba(0,0,0,0.2)',
-                borderRadius: '3px',
-                color: '#1a1a2e',
-                fontSize: '0.75rem',
-                fontFamily: 'inherit',
-                px: 0.5,
-                py: 0.25,
-                width: '5.5em',
-                minWidth: 0,
-                outline: 'none',
-                '&:focus': {
-                  borderColor: '#3f50b5',
-                  boxShadow: '0 0 0 2px rgba(63,80,181,0.2)',
-                },
-              }}
-            />
-          </Box>
-        ) : (
-          <Box
-            component='span'
-            sx={{
-              opacity: 0.75,
-              fontSize: '0.75rem',
-              fontWeight: 400,
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              minWidth: 0,
-            }}
-          >
-            {colorValue}
-          </Box>
-        )}
+        <Box
+          component='span'
+          sx={{
+            opacity: 0.75,
+            fontSize: '0.75rem',
+            fontWeight: 400,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            minWidth: 0,
+          }}
+        >
+          {colorValue}
+        </Box>
       </Box>
     </Box>
   );
@@ -209,13 +120,13 @@ const ColorSwatch = memo<{
 
 ColorSwatch.displayName = 'ColorSwatch';
 
+// ── Scheme Column (light / dark) ──
+
 const SchemeColumn = memo<{
   variant: MuiColorVariant;
   mode: 'light' | 'dark';
-  editMode: boolean;
   onCopy: (text: string) => void;
-  onEdit?: (shade: keyof MuiColorVariant, value: string) => void;
-}>(({ variant, mode, editMode, onCopy, onEdit }) => {
+}>(({ variant, mode, onCopy }) => {
   const isDark = mode === 'dark';
 
   const handleCopyGroup = useCallback(() => {
@@ -264,9 +175,7 @@ const SchemeColumn = memo<{
           shade={shade}
           colorValue={variant[shade]}
           isDark={isDark}
-          editMode={editMode}
           onCopy={onCopy}
-          onEdit={onEdit}
         />
       ))}
     </Box>
@@ -275,9 +184,223 @@ const SchemeColumn = memo<{
 
 SchemeColumn.displayName = 'SchemeColumn';
 
+// ── Edit Cell (color picker + hex input) ──
+
+const EditCell = memo<{
+  value: string;
+  onChange: (value: string) => void;
+}>(({ value, onChange }) => {
+  const [hex, setHex] = useState(value);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setHex(value);
+  }, [value]);
+
+  const commit = () => {
+    const v = hex.startsWith('#') ? hex : `#${hex}`;
+    if (isValidHex(v)) {
+      onChange(v);
+    } else {
+      setHex(value);
+    }
+  };
+
+  return (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      <Box
+        sx={{
+          width: 32,
+          height: 32,
+          borderRadius: '6px',
+          bgcolor: value,
+          border: '1px solid rgba(0,0,0,0.12)',
+          flexShrink: 0,
+        }}
+      />
+      <Box
+        component='input'
+        type='color'
+        value={value}
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+          onChange(e.target.value)
+        }
+        sx={{
+          width: 32,
+          height: 32,
+          p: 0,
+          border: '1px solid rgba(0,0,0,0.12)',
+          borderRadius: '6px',
+          cursor: 'pointer',
+          flexShrink: 0,
+          '&::-webkit-color-swatch-wrapper': { p: '2px' },
+          '&::-webkit-color-swatch': {
+            border: 'none',
+            borderRadius: '4px',
+          },
+        }}
+      />
+      <Box
+        component='input'
+        ref={inputRef}
+        value={hex}
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+          setHex(e.target.value)
+        }
+        onBlur={commit}
+        onKeyDown={(e: React.KeyboardEvent) => {
+          if (e.key === 'Enter') commit();
+        }}
+        sx={{
+          flex: 1,
+          minWidth: 0,
+          background: '#fff',
+          border: '1px solid rgba(0,0,0,0.15)',
+          borderRadius: '6px',
+          color: '#1a1a2e',
+          fontSize: '0.85rem',
+          fontFamily: '"JetBrains Mono", "Fira Code", monospace',
+          px: 1,
+          py: 0.75,
+          outline: 'none',
+          '&:focus': {
+            borderColor: '#3f50b5',
+            boxShadow: '0 0 0 2px rgba(63,80,181,0.15)',
+          },
+        }}
+      />
+    </Box>
+  );
+});
+EditCell.displayName = 'EditCell';
+
+// ── Edit Dialog ──
+
+const EditDialog = memo<{
+  open: boolean;
+  onClose: () => void;
+  colorName: string;
+  colorPalette: ColorPalette;
+  onEdit: (mode: 'light' | 'dark', shade: keyof MuiColorVariant, value: string) => void;
+}>(({ open, onClose, colorName, colorPalette, onEdit }) => {
+  const mainColor = colorPalette.light.main;
+
+  return (
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth='sm'
+      fullWidth
+      PaperProps={{
+        sx: { borderRadius: '16px', overflow: 'hidden' },
+      }}
+    >
+      <DialogTitle
+        sx={{
+          background: mainColor,
+          color: chroma(mainColor).luminance() > 0.35 ? '#000' : '#fff',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          py: 1.5,
+          px: 2.5,
+        }}
+      >
+        <Typography sx={{ fontWeight: 700, fontSize: '1rem' }}>
+          {colorName}
+        </Typography>
+        <IconButton
+          onClick={onClose}
+          size='small'
+          sx={{
+            color: 'inherit',
+            bgcolor: 'rgba(255,255,255,0.15)',
+            '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' },
+          }}
+        >
+          <svg
+            width='16'
+            height='16'
+            viewBox='0 0 24 24'
+            fill='none'
+            stroke='currentColor'
+            strokeWidth='2.5'
+            strokeLinecap='round'
+            strokeLinejoin='round'
+          >
+            <polyline points='20 6 9 17 4 12' />
+          </svg>
+        </IconButton>
+      </DialogTitle>
+      <DialogContent sx={{ p: 2.5, pt: '20px !important' }}>
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: '80px 1fr 1fr',
+            gap: 1.5,
+            alignItems: 'center',
+          }}
+        >
+          {/* Header */}
+          <Box />
+          <Typography
+            sx={{
+              fontWeight: 700,
+              fontSize: '0.75rem',
+              textTransform: 'uppercase',
+              letterSpacing: 1,
+              color: 'rgba(0,0,0,0.4)',
+            }}
+          >
+            Light
+          </Typography>
+          <Typography
+            sx={{
+              fontWeight: 700,
+              fontSize: '0.75rem',
+              textTransform: 'uppercase',
+              letterSpacing: 1,
+              color: 'rgba(0,0,0,0.4)',
+            }}
+          >
+            Dark
+          </Typography>
+
+          {/* Rows */}
+          {SHADE_KEYS.map(shade => (
+            <React.Fragment key={shade}>
+              <Typography
+                sx={{
+                  fontWeight: 600,
+                  fontSize: '0.8rem',
+                  fontFamily: '"JetBrains Mono", "Fira Code", monospace',
+                  color: '#1a1a2e',
+                }}
+              >
+                {SHADE_LABELS[shade]}
+              </Typography>
+              <EditCell
+                value={colorPalette.light[shade]}
+                onChange={v => onEdit('light', shade, v)}
+              />
+              <EditCell
+                value={colorPalette.dark[shade]}
+                onChange={v => onEdit('dark', shade, v)}
+              />
+            </React.Fragment>
+          ))}
+        </Box>
+      </DialogContent>
+    </Dialog>
+  );
+});
+EditDialog.displayName = 'EditDialog';
+
+// ── Palette Card ──
+
 export const PaletteCard = memo<PaletteCardProps>(
   ({ colorPalette, colorName, onEdit }) => {
-    const [editMode, setEditMode] = useState(false);
+    const [dialogOpen, setDialogOpen] = useState(false);
     const [snackOpen, setSnackOpen] = useState(false);
     const [copiedText, setCopiedText] = useState('');
 
@@ -303,20 +426,6 @@ export const PaletteCard = memo<PaletteCardProps>(
       };
       handleCopy(JSON.stringify(data, null, 2));
     }, [colorPalette, colorName, handleCopy]);
-
-    const handleEditLight = useCallback(
-      (shade: keyof MuiColorVariant, value: string) => {
-        onEdit?.('light', shade, value);
-      },
-      [onEdit]
-    );
-
-    const handleEditDark = useCallback(
-      (shade: keyof MuiColorVariant, value: string) => {
-        onEdit?.('dark', shade, value);
-      },
-      [onEdit]
-    );
 
     if (!colorPalette) return null;
 
@@ -386,9 +495,9 @@ export const PaletteCard = memo<PaletteCardProps>(
                 component='button'
                 onClick={(e: React.MouseEvent) => {
                   e.stopPropagation();
-                  setEditMode(prev => !prev);
+                  setDialogOpen(true);
                 }}
-                title={editMode ? 'Done editing' : 'Edit colors'}
+                title='Edit colors'
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
@@ -396,14 +505,9 @@ export const PaletteCard = memo<PaletteCardProps>(
                   width: 28,
                   height: 28,
                   p: 0,
-                  border: '1.5px solid',
-                  borderColor: editMode
-                    ? 'rgba(255,255,255,0.5)'
-                    : 'rgba(255,255,255,0.25)',
+                  border: '1.5px solid rgba(255,255,255,0.25)',
                   borderRadius: '6px',
-                  bgcolor: editMode
-                    ? 'rgba(255,255,255,0.2)'
-                    : 'transparent',
+                  bgcolor: 'transparent',
                   color: headerTextColor,
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
@@ -413,16 +517,19 @@ export const PaletteCard = memo<PaletteCardProps>(
                   },
                 }}
               >
-                {editMode ? (
-                  <svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2.5' strokeLinecap='round' strokeLinejoin='round'>
-                    <polyline points='20 6 9 17 4 12' />
-                  </svg>
-                ) : (
-                  <svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
-                    <path d='M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z' />
-                    <path d='m15 5 4 4' />
-                  </svg>
-                )}
+                <svg
+                  width='14'
+                  height='14'
+                  viewBox='0 0 24 24'
+                  fill='none'
+                  stroke='currentColor'
+                  strokeWidth='2'
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                >
+                  <path d='M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z' />
+                  <path d='m15 5 4 4' />
+                </svg>
               </Box>
             )}
           </Box>
@@ -433,18 +540,25 @@ export const PaletteCard = memo<PaletteCardProps>(
           <SchemeColumn
             variant={colorPalette.light}
             mode='light'
-            editMode={editMode}
             onCopy={handleCopy}
-            onEdit={onEdit ? handleEditLight : undefined}
           />
           <SchemeColumn
             variant={colorPalette.dark}
             mode='dark'
-            editMode={editMode}
             onCopy={handleCopy}
-            onEdit={onEdit ? handleEditDark : undefined}
           />
         </Box>
+
+        {/* Edit Dialog */}
+        {onEdit && (
+          <EditDialog
+            open={dialogOpen}
+            onClose={() => setDialogOpen(false)}
+            colorName={colorName}
+            colorPalette={colorPalette}
+            onEdit={onEdit}
+          />
+        )}
 
         <Snackbar
           open={snackOpen}
