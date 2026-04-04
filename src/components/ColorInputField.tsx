@@ -18,43 +18,39 @@ const ColorInputField = memo(({ color, onChange }: ColorInputFieldProps) => {
   return (
     <Box
       sx={{
-        display: 'flex',
-        gap: 1,
-      }}
-    >
-      <Box
-        sx={{
-          '> .sketch-picker': {
-            width: 'auto !important',
-            minWidth: '210px !important',
-            maxWidth: '210px !important',
-            boxShadow: 'none !important',
-            backgroundColor: 'transparent !important',
-            ' input': {
-              width: '100% !important',
-              padding: '0.25rem !important',
-              fontSize: '14px !important',
-              borderRadius: '2px !important',
-              textAlign: 'center !important',
-              '&:focus': {
-                boxShadow: 'none !important',
-              },
+        '> .sketch-picker': {
+          width: '100% !important',
+          minWidth: '0 !important',
+          maxWidth: '100% !important',
+          boxSizing: 'border-box',
+          boxShadow: 'none !important',
+          backgroundColor: 'transparent !important',
+          padding: '0 !important',
+          ' .saturation-white': {
+            borderRadius: '6px',
+          },
+          ' input': {
+            width: '100% !important',
+            padding: '0.2rem !important',
+            fontSize: '12px !important',
+            borderRadius: '3px !important',
+            textAlign: 'center !important',
+            '&:focus': {
+              boxShadow: 'none !important',
             },
           },
-        }}
-      >
-        {isMounted && (
-          <SketchPicker
-            color={color}
-            onChange={(updatedColor: { hex: string }) =>
-              onChange(updatedColor.hex)
-            }
-          />
-        )}
-        <Box mt={1} ml={1}>
-          main: {color}
-        </Box>
-      </Box>
+        },
+      }}
+    >
+      {isMounted && (
+        <SketchPicker
+          color={color}
+          onChange={(updatedColor: { hex: string }) =>
+            onChange(updatedColor.hex)
+          }
+          width='100%'
+        />
+      )}
     </Box>
   );
 });

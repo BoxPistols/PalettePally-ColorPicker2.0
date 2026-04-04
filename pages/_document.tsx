@@ -27,8 +27,22 @@ class MyDocument extends Document {
     return (
       <Html lang='ja'>
         <Head>
-          <link rel='icon' href='/favicon.ico' />
-          {/* <link rel="preload" href="https://fonts.googleapis.com/icon?family=Material+Icons" as="font" crossOrigin="anonymous" /> */}
+          {/* Favicon */}
+          <link rel='icon' href='/favicon.ico' sizes='32x32' />
+          <link rel='icon' href='/favicon.svg' type='image/svg+xml' />
+          <link rel='apple-touch-icon' href='/favicon.svg' />
+          {/* Manifest */}
+          <link rel='manifest' href='/site.webmanifest' />
+          <meta name='theme-color' content='#3f50b5' />
+          {/* OGP */}
+          <meta property='og:title' content='Pallett Pally' />
+          <meta property='og:description' content='MUI 互換カラーパレット生成ツール - Material You ベース' />
+          <meta property='og:type' content='website' />
+          <meta property='og:locale' content='ja_JP' />
+          {/* Twitter Card */}
+          <meta name='twitter:card' content='summary' />
+          <meta name='twitter:title' content='Pallett Pally' />
+          <meta name='twitter:description' content='MUI 互換カラーパレット生成ツール' />
           <WebFont />
           {/* <style>
             {` .MuiSvgIcon-root { opacity: 0; transition: opacity 0.3s; }

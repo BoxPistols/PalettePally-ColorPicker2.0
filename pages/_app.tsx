@@ -14,12 +14,9 @@ export default function App({ Component, pageProps }: AppProps) {
       <ThemeProvider theme={theme}>
         <CacheProvider value={cache}>
           <Head>
-            <meta name='description' content='this is content' />
-            <meta
-              name='viewport'
-              content='width=device-width, initial-scale=1'
-            />
-            <link rel='icon' href='/favicon.ico' />
+            <title>Pallett Pally - MUI カラーパレット生成</title>
+            <meta name='description' content='Material You ベースの MUI 互換カラーパレット生成ツール。シードカラーから light/dark 両対応の5色構成を自動生成。' />
+            <meta name='viewport' content='width=device-width, initial-scale=1' />
           </Head>
           <Component {...pageProps} />
         </CacheProvider>

@@ -33,3 +33,7 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+
+# Claude Code
+.claude/skills/ui-ux-pro-max/
+.claude/settings.local.json
