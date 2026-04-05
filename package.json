@@ -12,8 +12,22 @@
     "format-fix": "prettier . --write",
     "fix": "yarn lint-fix && yarn format-fix",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "size": "size-limit"
   },
+  "size-limit": [
+    {
+      "name": "First Load JS (shared)",
+      "path": ".next/static/chunks/main-*.js",
+      "limit": "50 KB"
+    },
+    {
+      "name": "App bundle",
+      "path": ".next/static/chunks/pages/_app-*.js",
+      "limit": "250 KB"
+    }
+  ],
   "dependencies": {
     "@emotion/react": "^11.5.0",
     "@emotion/styled": "^11.3.0",
@@ -28,6 +42,7 @@
     "react-dom": "18.2.0"
   },
   "devDependencies": {
+    "@size-limit/preset-big-lib": "^12.0.1",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
@@ -48,6 +63,7 @@
     "jest-environment-jsdom": "^30.3.0",
     "prettier": "3.2.4",
     "react-test-renderer": "^19.2.4",
+    "size-limit": "^12.0.1",
     "ts-jest": "^29.4.9",
     "typescript": "^4.9.5"
   },
