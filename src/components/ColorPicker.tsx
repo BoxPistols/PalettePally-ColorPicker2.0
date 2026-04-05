@@ -31,23 +31,24 @@ import { FigmaExportDialog } from './figma/FigmaExportDialog';
 import { FigmaImportDialog } from './figma/FigmaImportDialog';
 import * as firestoreService from '@/lib/firebase/firestore';
 
-// "PP" ロゴ: Palette Pally の頭文字を2つ並べたミニマル構成
+// Pallet + Palette: ハンドリフトがカラー版を運ぶダブルミーニング
 const LogoMark = () => (
-  <svg width='44' height='36' viewBox='0 0 44 36' fill='none'>
-    {/* P1 — indigo */}
-    <path
-      fillRule='evenodd'
-      clipRule='evenodd'
-      d='M 2 3 L 2 33 L 6.5 33 L 6.5 22 L 13 22 C 18.5 22, 22 18, 22 12.5 C 22 7, 18.5 3, 13 3 Z M 6.5 7.5 L 13 7.5 C 15.8 7.5, 17.5 9.5, 17.5 12.5 C 17.5 15.5, 15.8 17.5, 13 17.5 L 6.5 17.5 Z'
-      fill='#4A5EC4'
-    />
-    {/* P2 — coral */}
-    <path
-      fillRule='evenodd'
-      clipRule='evenodd'
-      d='M 22 3 L 22 33 L 26.5 33 L 26.5 22 L 33 22 C 38.5 22, 42 18, 42 12.5 C 42 7, 38.5 3, 33 3 Z M 26.5 7.5 L 33 7.5 C 35.8 7.5, 37.5 9.5, 37.5 12.5 C 37.5 15.5, 35.8 17.5, 33 17.5 L 26.5 17.5 Z'
-      fill='#E07A5F'
-    />
+  <svg width='48' height='40' viewBox='0 0 48 40' fill='none'>
+    {/* ハンドリフト本体 (L字フレーム) */}
+    <path d='M 2 3 L 6 3 L 6 30 L 46 30 L 46 33 L 2 33 Z' fill='#1a1a2e' />
+    {/* 車輪 */}
+    <circle cx='8' cy='36' r='2.5' fill='none' stroke='#1a1a2e' strokeWidth='1.5' />
+    {/* カラー版ブロック (テトリス状配置) */}
+    <rect x='9' y='5' width='18' height='6' rx='1' fill='#E57373' />
+    <rect x='29' y='5' width='15' height='6' rx='1' fill='#4DB6AC' />
+    <rect x='9' y='13' width='12' height='6' rx='1' fill='#FFD54F' />
+    <rect x='23' y='13' width='21' height='6' rx='1' fill='#4DB6AC' />
+    <rect x='9' y='21' width='12' height='6' rx='1' fill='#FFD54F' />
+    <rect x='23' y='21' width='21' height='6' rx='1' fill='#B39DDB' />
+    {/* パレット支柱 */}
+    <rect x='10' y='33' width='4' height='3' fill='#1a1a2e' />
+    <rect x='23' y='33' width='4' height='3' fill='#1a1a2e' />
+    <rect x='36' y='33' width='4' height='3' fill='#1a1a2e' />
   </svg>
 );
 
