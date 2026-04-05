@@ -63,7 +63,7 @@ const headerButtonSx = {
 };
 
 function ColorPicker() {
-  const { user } = useAuthContext();
+  const { user, firebaseReady } = useAuthContext();
   const { state: confirmState, confirm, handleConfirm, handleCancel } = useConfirmDialog();
 
   // Cloud state
@@ -605,8 +605,8 @@ function ColorPicker() {
           {/* Divider */}
           <Box sx={{ width: '1px', height: 24, bgcolor: 'rgba(0,0,0,0.1)' }} />
 
-          {/* Cloud / Auth */}
-          {user ? (
+          {/* Cloud / Auth (Firebase 未設定時は非表示) */}
+          {!firebaseReady ? null : user ? (
             <>
               <Tooltip title={currentPaletteId ? 'Update to cloud' : 'Save to cloud'} arrow>
                 <Button

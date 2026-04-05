@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { User } from 'firebase/auth';
+import { isConfigured } from '@/lib/firebase/config';
 import * as authService from '@/lib/firebase/auth';
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(isConfigured);
 
   useEffect(() => {
     const unsubscribe = authService.onAuthChange(u => {

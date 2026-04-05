@@ -1,10 +1,12 @@
 import React, { createContext, useContext, ReactNode } from 'react';
 import { User } from 'firebase/auth';
 import { useAuth } from '@/hooks/useAuth';
+import { isConfigured } from '@/lib/firebase/config';
 
 type AuthContextType = {
   user: User | null;
   loading: boolean;
+  firebaseReady: boolean;
   signIn: (email: string, password: string) => Promise<User>;
   signUp: (email: string, password: string) => Promise<User>;
   signOut: () => Promise<void>;
@@ -14,7 +16,8 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const auth = useAuth();
-  return <AuthContext.Provider value={auth}>{children}</AuthContext.Provider>;
+  const value: AuthContextType = { ...auth, firebaseReady: isConfigured };
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuthContext(): AuthContextType {

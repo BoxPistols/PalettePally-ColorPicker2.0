@@ -17,6 +17,11 @@ import {
 import { db } from './config';
 import { PaletteData, PaletteDocument, PaletteVersion } from '@/lib/types/palette';
 
+function getDb() {
+  if (!db) throw new Error('Firebase not configured');
+  return db;
+}
+
 const PALETTES = 'palettes';
 const VERSIONS = 'versions';
 
@@ -28,9 +33,9 @@ export async function savePalette(
   name: string,
   description = ''
 ): Promise<string> {
-  const batch = writeBatch(db);
+  const batch = writeBatch(getDb());
 
-  const paletteRef = doc(collection(db, PALETTES));
+  const paletteRef = doc(collection(getDb(), PALETTES));
   batch.set(paletteRef, {
     ownerUid: uid,
     name,
@@ -64,14 +69,14 @@ export async function updatePalette(
   data: PaletteData,
   changeNote = ''
 ): Promise<void> {
-  const paletteRef = doc(db, PALETTES, paletteId);
+  const paletteRef = doc(getDb(), PALETTES, paletteId);
   const snap = await getDoc(paletteRef);
   if (!snap.exists()) throw new Error('Palette not found');
 
   const currentVersion = snap.data().currentVersion ?? 0;
   const nextVersion = currentVersion + 1;
 
-  const batch = writeBatch(db);
+  const batch = writeBatch(getDb());
 
   batch.update(paletteRef, {
     data,
@@ -94,7 +99,7 @@ export async function updatePalette(
 // ── Load ──
 
 export async function loadPalette(paletteId: string): Promise<PaletteDocument> {
-  const snap = await getDoc(doc(db, PALETTES, paletteId));
+  const snap = await getDoc(doc(getDb(), PALETTES, paletteId));
   if (!snap.exists()) throw new Error('Palette not found');
   return { id: snap.id, ...snap.data() } as PaletteDocument;
 }
@@ -103,7 +108,7 @@ export async function loadPalette(paletteId: string): Promise<PaletteDocument> {
 
 export async function listPalettes(uid: string): Promise<PaletteDocument[]> {
   const q = query(
-    collection(db, PALETTES),
+    collection(getDb(), PALETTES),
     where('ownerUid', '==', uid),
     orderBy('updatedAt', 'desc')
   );
@@ -116,11 +121,11 @@ export async function listPalettes(uid: string): Promise<PaletteDocument[]> {
 export async function deletePalette(paletteId: string): Promise<void> {
   // Delete versions subcollection first
   const versionsSnap = await getDocs(
-    collection(db, PALETTES, paletteId, VERSIONS)
+    collection(getDb(), PALETTES, paletteId, VERSIONS)
   );
-  const batch = writeBatch(db);
+  const batch = writeBatch(getDb());
   for (const vDoc of versionsSnap.docs) batch.delete(vDoc.ref);
-  batch.delete(doc(db, PALETTES, paletteId));
+  batch.delete(doc(getDb(), PALETTES, paletteId));
   await batch.commit();
 }
 
@@ -130,7 +135,7 @@ export async function getVersionHistory(
   paletteId: string
 ): Promise<PaletteVersion[]> {
   const q = query(
-    collection(db, PALETTES, paletteId, VERSIONS),
+    collection(getDb(), PALETTES, paletteId, VERSIONS),
     orderBy('version', 'desc')
   );
   const snap = await getDocs(q);
@@ -142,7 +147,7 @@ export async function restoreVersion(
   versionId: string
 ): Promise<void> {
   const versionSnap = await getDoc(
-    doc(db, PALETTES, paletteId, VERSIONS, versionId)
+    doc(getDb(), PALETTES, paletteId, VERSIONS, versionId)
   );
   if (!versionSnap.exists()) throw new Error('Version not found');
 
@@ -158,7 +163,7 @@ export async function generateShareLink(
 ): Promise<string> {
   const { nanoid } = await import('nanoid');
   const shareId = nanoid(12);
-  await updateDoc(doc(db, PALETTES, paletteId), {
+  await updateDoc(doc(getDb(), PALETTES, paletteId), {
     shareId,
     sharePermission: permission,
   });
@@ -166,7 +171,7 @@ export async function generateShareLink(
 }
 
 export async function revokeShareLink(paletteId: string): Promise<void> {
-  await updateDoc(doc(db, PALETTES, paletteId), {
+  await updateDoc(doc(getDb(), PALETTES, paletteId), {
     shareId: null,
     sharePermission: null,
   });
@@ -176,7 +181,7 @@ export async function loadSharedPalette(
   shareId: string
 ): Promise<PaletteDocument | null> {
   const q = query(
-    collection(db, PALETTES),
+    collection(getDb(), PALETTES),
     where('shareId', '==', shareId),
     limit(1)
   );
