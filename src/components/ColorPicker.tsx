@@ -641,6 +641,7 @@ function ColorPicker() {
               </svg>
             </IconButton>
           </Tooltip>
+          {/* TODO: Harmony / Compare ボタンは UX 説明不足のため一旦非表示
           <Tooltip title='Harmony Generator (complementary/triadic/...)' arrow>
             <Button
               variant='text'
@@ -661,6 +662,7 @@ function ColorPicker() {
               Compare
             </Button>
           </Tooltip>
+          */}
 
           <Tooltip title='Export (JSON/DTCG/CSS/SCSS/MUI/Tailwind/MCP)' arrow>
             <Button
