@@ -10,6 +10,7 @@ import {
 } from '@mui/material';
 import chroma from 'chroma-js';
 import { ColorPalette, MuiColorVariant } from './colorUtils';
+import { contrastRatio, wcagLevel, WCAG_COLOR } from '@/lib/wcag';
 
 type PaletteCardProps = {
   colorPalette: ColorPalette;
@@ -264,6 +265,37 @@ const EditCell = memo<{
 });
 EditCell.displayName = 'EditCell';
 
+// ── WCAG Contrast Badge ──
+
+const WcagBadge = memo<{ ratio: number }>(({ ratio }) => {
+  const level = wcagLevel(ratio);
+  const color = WCAG_COLOR[level];
+  return (
+    <Box
+      title={`${ratio.toFixed(2)}:1 (${level})`}
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 0.25,
+        py: 0.5,
+        borderRadius: '6px',
+        bgcolor: `${color}1a`,
+        border: `1px solid ${color}`,
+      }}
+    >
+      <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color, lineHeight: 1, fontFamily: 'monospace' }}>
+        {ratio.toFixed(1)}
+      </Typography>
+      <Typography sx={{ fontSize: '0.55rem', fontWeight: 600, color, lineHeight: 1, letterSpacing: 0.3 }}>
+        {level}
+      </Typography>
+    </Box>
+  );
+});
+WcagBadge.displayName = 'WcagBadge';
+
 // ── Edit Dialog ──
 
 const EditDialog = memo<{
@@ -326,7 +358,7 @@ const EditDialog = memo<{
         <Box
           sx={{
             display: 'grid',
-            gridTemplateColumns: '80px 1fr 1fr',
+            gridTemplateColumns: '80px 1fr 56px 1fr 56px',
             gap: 1.5,
             alignItems: 'center',
           }}
@@ -334,52 +366,50 @@ const EditDialog = memo<{
           {/* Header */}
           <Box />
           <Typography
-            sx={{
-              fontWeight: 700,
-              fontSize: '0.75rem',
-              textTransform: 'uppercase',
-              letterSpacing: 1,
-              color: 'rgba(0,0,0,0.4)',
-            }}
+            sx={{ fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: 1, color: 'rgba(0,0,0,0.4)' }}
           >
             Light
           </Typography>
           <Typography
-            sx={{
-              fontWeight: 700,
-              fontSize: '0.75rem',
-              textTransform: 'uppercase',
-              letterSpacing: 1,
-              color: 'rgba(0,0,0,0.4)',
-            }}
+            sx={{ fontWeight: 700, fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: 0.5, color: 'rgba(0,0,0,0.35)', textAlign: 'center' }}
+          >
+            WCAG
+          </Typography>
+          <Typography
+            sx={{ fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: 1, color: 'rgba(0,0,0,0.4)' }}
           >
             Dark
           </Typography>
+          <Typography
+            sx={{ fontWeight: 700, fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: 0.5, color: 'rgba(0,0,0,0.35)', textAlign: 'center' }}
+          >
+            WCAG
+          </Typography>
 
           {/* Rows */}
-          {SHADE_KEYS.map(shade => (
-            <React.Fragment key={shade}>
-              <Typography
-                sx={{
-                  fontWeight: 600,
-                  fontSize: '0.8rem',
-                  fontFamily: '"JetBrains Mono", "Fira Code", monospace',
-                  color: '#1a1a2e',
-                }}
-              >
-                {SHADE_LABELS[shade]}
-              </Typography>
-              <EditCell
-                value={colorPalette.light[shade]}
-                onChange={v => onEdit('light', shade, v)}
-              />
-              <EditCell
-                value={colorPalette.dark[shade]}
-                onChange={v => onEdit('dark', shade, v)}
-              />
-            </React.Fragment>
-          ))}
+          {SHADE_KEYS.map(shade => {
+            const lightBg = colorPalette.light[shade];
+            const darkBg = colorPalette.dark[shade];
+            const lightRatio = contrastRatio(colorPalette.light.contrastText, lightBg);
+            const darkRatio = contrastRatio(colorPalette.dark.contrastText, darkBg);
+            return (
+              <React.Fragment key={shade}>
+                <Typography
+                  sx={{ fontWeight: 600, fontSize: '0.8rem', fontFamily: '"JetBrains Mono", "Fira Code", monospace', color: '#1a1a2e' }}
+                >
+                  {SHADE_LABELS[shade]}
+                </Typography>
+                <EditCell value={lightBg} onChange={v => onEdit('light', shade, v)} />
+                <WcagBadge ratio={lightRatio} />
+                <EditCell value={darkBg} onChange={v => onEdit('dark', shade, v)} />
+                <WcagBadge ratio={darkRatio} />
+              </React.Fragment>
+            );
+          })}
         </Box>
+        <Typography sx={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.45)', mt: 2, textAlign: 'center' }}>
+          Contrast ratio with contrastText · AAA ≥ 7 · AA ≥ 4.5 · AA-Large ≥ 3
+        </Typography>
       </DialogContent>
     </Dialog>
   );

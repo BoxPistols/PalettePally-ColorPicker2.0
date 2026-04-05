@@ -13,6 +13,8 @@ import { PaletteCard } from './PaletteGrid';
 import { GreyScaleCard, UtilityGroupCard, AddGroupCard } from './ThemeTokenCards';
 import { ConfirmDialog } from './common/ConfirmDialog';
 import { useConfirmDialog } from '@/hooks/useConfirmDialog';
+import { useHistory } from '@/hooks/useHistory';
+import { HarmonyDialog } from './harmony/HarmonyDialog';
 import { useAuthContext } from './auth/AuthProvider';
 import { LoginDialog } from './auth/LoginDialog';
 import { UserMenu } from './auth/UserMenu';
@@ -90,7 +92,8 @@ function ColorPicker() {
   // contrastText 戦略 ('auto' = WCAG準拠, 'white' = 常に白)
   const [contrastMode, setContrastMode] = useState<ContrastMode>('auto');
 
-  // Help / Example / Export / Import / Figma state
+  // Harmony / Help / Example / Export / Import / Figma state
+  const [harmonyOpen, setHarmonyOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [exampleOpen, setExampleOpen] = useState(false);
   const [exportHubOpen, setExportHubOpen] = useState(false);
@@ -373,6 +376,14 @@ function ColorPicker() {
     });
   }, [confirm]);
 
+  // Undo/Redo (Cmd+Z / Cmd+Shift+Z)
+  const { undo, redo, canUndo, canRedo } = useHistory(color, colorNames, (c, n) => {
+    setColor(c);
+    setColorNames(n);
+    setNumColors(c.length);
+    setNumColorsInput(String(c.length));
+  });
+
   const handleResetWithConfirm = useCallback(async () => {
     const ok = await confirm({
       title: 'Reset All Colors',
@@ -556,6 +567,48 @@ function ColorPicker() {
           {/* Divider */}
           <Box sx={{ width: '1px', height: 24, bgcolor: 'rgba(0,0,0,0.1)' }} />
 
+          {/* Undo / Redo */}
+          <Tooltip title='Undo (⌘Z)' arrow>
+            <span>
+              <IconButton
+                onClick={undo}
+                disabled={!canUndo}
+                size='small'
+                sx={{
+                  width: 34, height: 34, borderRadius: '8px',
+                  border: '1px solid rgba(0,0,0,0.12)', bgcolor: '#f5f5f5', color: '#1a1a2e',
+                  '&:hover': { bgcolor: '#eaeaea', borderColor: 'rgba(0,0,0,0.2)' },
+                  '&:disabled': { opacity: 0.4 },
+                }}
+              >
+                <svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
+                  <path d='M3 7v6h6' />
+                  <path d='M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13' />
+                </svg>
+              </IconButton>
+            </span>
+          </Tooltip>
+          <Tooltip title='Redo (⌘⇧Z)' arrow>
+            <span>
+              <IconButton
+                onClick={redo}
+                disabled={!canRedo}
+                size='small'
+                sx={{
+                  width: 34, height: 34, borderRadius: '8px',
+                  border: '1px solid rgba(0,0,0,0.12)', bgcolor: '#f5f5f5', color: '#1a1a2e',
+                  '&:hover': { bgcolor: '#eaeaea', borderColor: 'rgba(0,0,0,0.2)' },
+                  '&:disabled': { opacity: 0.4 },
+                }}
+              >
+                <svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
+                  <path d='M21 7v6h-6' />
+                  <path d='M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13' />
+                </svg>
+              </IconButton>
+            </span>
+          </Tooltip>
+
           {/* Action Buttons */}
           <Tooltip title='Reset all colors' arrow>
             <IconButton
@@ -581,6 +634,16 @@ function ColorPicker() {
                 <path d='M3 3v5h5' />
               </svg>
             </IconButton>
+          </Tooltip>
+          <Tooltip title='Harmony Generator (complementary/triadic/...)' arrow>
+            <Button
+              variant='text'
+              onClick={() => setHarmonyOpen(true)}
+              size='small'
+              sx={headerButtonSx}
+            >
+              Harmony
+            </Button>
           </Tooltip>
 
           <Tooltip title='Export (JSON/DTCG/CSS/SCSS/MUI/Tailwind/MCP)' arrow>
@@ -992,6 +1055,15 @@ function ColorPicker() {
           confirmLabel: 'Import',
           severity: 'warning',
         })}
+      />
+
+      {/* ===== Harmony Generator ===== */}
+      <HarmonyDialog
+        open={harmonyOpen}
+        onClose={() => setHarmonyOpen(false)}
+        baseColor={color[0] ?? '#1976d2'}
+        count={numColors}
+        onApply={newColors => setColor(newColors)}
       />
 
       {/* ===== Help Dialog ===== */}
