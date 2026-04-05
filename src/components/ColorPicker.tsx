@@ -28,6 +28,8 @@ import { PaletteData, PaletteDocument } from '@/lib/types/palette';
 import { ParsedVariable } from '@/lib/figma/types';
 import { HelpDialog } from './help/HelpDialog';
 import { ExampleDialog } from './example/ExampleDialog';
+import { ExportHubDialog } from './export/ExportHubDialog';
+import { ImportHubDialog } from './export/ImportHubDialog';
 import { FigmaConnectDialog } from './figma/FigmaConnectDialog';
 import { FigmaExportDialog } from './figma/FigmaExportDialog';
 import { FigmaImportDialog } from './figma/FigmaImportDialog';
@@ -88,9 +90,11 @@ function ColorPicker() {
   const [currentPaletteName, setCurrentPaletteName] = useState('');
   const [currentShareId, setCurrentShareId] = useState<string | null>(null);
 
-  // Help / Example / Figma state
+  // Help / Example / Export / Import / Figma state
   const [helpOpen, setHelpOpen] = useState(false);
   const [exampleOpen, setExampleOpen] = useState(false);
+  const [exportHubOpen, setExportHubOpen] = useState(false);
+  const [importHubOpen, setImportHubOpen] = useState(false);
   const [figmaConnectOpen, setFigmaConnectOpen] = useState(false);
   const [figmaExportOpen, setFigmaExportOpen] = useState(false);
   const [figmaImportOpen, setFigmaImportOpen] = useState(false);
@@ -568,11 +572,11 @@ function ColorPicker() {
             </IconButton>
           </Tooltip>
 
-          <Tooltip title='Export as JSON' arrow>
+          <Tooltip title='Export (JSON/DTCG/CSS/SCSS/MUI/Tailwind/MCP)' arrow>
             <Button
               variant='text'
-              onClick={exportToJson}
-              aria-label='Export palette as JSON'
+              onClick={() => setExportHubOpen(true)}
+              aria-label='Export palette'
               size='small'
               startIcon={
                 <svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
@@ -587,11 +591,11 @@ function ColorPicker() {
             </Button>
           </Tooltip>
 
-          <Tooltip title='Import JSON file' arrow>
+          <Tooltip title='Import (JSON/DTCG/Tokens Studio)' arrow>
             <Button
               variant='text'
-              onClick={() => fileInputRef.current?.click()}
-              aria-label='Import JSON file'
+              onClick={() => setImportHubOpen(true)}
+              aria-label='Import palette'
               size='small'
               startIcon={
                 <svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
@@ -856,6 +860,32 @@ function ColorPicker() {
           />
         </>
       )}
+      {/* ===== Export / Import Hub ===== */}
+      <ExportHubDialog
+        open={exportHubOpen}
+        onClose={() => setExportHubOpen(false)}
+        paletteData={buildPaletteData()}
+      />
+      <ImportHubDialog
+        open={importHubOpen}
+        onClose={() => setImportHubOpen(false)}
+        onImport={data => {
+          if (data.colors && data.colors.length > 0) {
+            setColor(data.colors);
+            setNumColors(data.colors.length);
+            setNumColorsInput(String(data.colors.length));
+          }
+          if (data.names) setColorNames(data.names);
+          if (data.themeTokens) setThemeTokens(data.themeTokens);
+        }}
+        onConfirm={() => confirm({
+          title: 'Import Palette',
+          message: '現在のパレットを上書きしますか？',
+          confirmLabel: 'Import',
+          severity: 'warning',
+        })}
+      />
+
       {/* ===== Help Dialog ===== */}
       <HelpDialog open={helpOpen} onClose={() => setHelpOpen(false)} />
 
