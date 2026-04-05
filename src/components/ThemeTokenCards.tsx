@@ -602,3 +602,60 @@ export const UtilityTokensCard = memo<{
   );
 });
 UtilityTokensCard.displayName = 'UtilityTokensCard';
+
+// ══════════════════════════════════════
+// Utility Group Card (single category)
+// ══════════════════════════════════════
+
+export const UtilityGroupCard = memo<{
+  groupName: string;
+  utility: ThemeTokens['utility'];
+  onUpdate?: (utility: ThemeTokens['utility']) => void;
+}>(({ groupName, utility, onUpdate }) => {
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [snackOpen, setSnackOpen] = useState(false);
+  const [copiedText, setCopiedText] = useState('');
+
+  const handleCopy = useCallback((text: string) => {
+    copyToClipboard(text);
+    setCopiedText(text.length > 20 ? 'Copied!' : text);
+    setSnackOpen(true);
+  }, []);
+
+  const lightEntries = utility.light[groupName] ?? {};
+  const darkEntries = utility.dark[groupName] ?? {};
+  const entryKeys = Object.keys(lightEntries);
+
+  return (
+    <Box sx={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid', borderColor: 'rgba(0,0,0,0.08)', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+      <Box sx={{ background: 'linear-gradient(135deg, #475569, #334155)', px: 1.5, py: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Typography variant='subtitle2' sx={{ fontWeight: 700, color: '#fff', fontSize: '0.8rem', textTransform: 'capitalize' }}>
+          {groupName}
+        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+          <Typography variant='caption' sx={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem' }}>
+            {entryKeys.length} {entryKeys.length === 1 ? 'token' : 'tokens'}
+          </Typography>
+          {onUpdate && <EditButton onClick={() => setDialogOpen(true)} />}
+        </Box>
+      </Box>
+      <Box sx={{ display: 'flex', gap: 0.75, p: 1, bgcolor: '#fff' }}>
+        <TokenColumn mode='light' onCopy={handleCopy} copyData={lightEntries}>
+          {entryKeys.map(k => (
+            <TokenSwatch key={k} label={k} value={lightEntries[k]} isDark={false} onCopy={handleCopy} />
+          ))}
+        </TokenColumn>
+        <TokenColumn mode='dark' onCopy={handleCopy} copyData={darkEntries}>
+          {entryKeys.map(k => (
+            <TokenSwatch key={k} label={k} value={darkEntries[k]} isDark={true} onCopy={handleCopy} />
+          ))}
+        </TokenColumn>
+      </Box>
+      {onUpdate && (
+        <UtilityEditDialog open={dialogOpen} onClose={() => setDialogOpen(false)} utility={utility} onUpdate={onUpdate} />
+      )}
+      <Snackbar open={snackOpen} autoHideDuration={1200} onClose={() => setSnackOpen(false)} message={`Copied: ${copiedText}`} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }} />
+    </Box>
+  );
+});
+UtilityGroupCard.displayName = 'UtilityGroupCard';

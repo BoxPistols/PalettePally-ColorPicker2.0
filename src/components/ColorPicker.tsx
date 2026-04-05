@@ -11,7 +11,7 @@ import {
 import chroma from 'chroma-js';
 import ColorInputField from './ColorInputField';
 import { PaletteCard } from './PaletteGrid';
-import { GreyScaleCard, UtilityTokensCard } from './ThemeTokenCards';
+import { GreyScaleCard, UtilityGroupCard } from './ThemeTokenCards';
 import { ConfirmDialog } from './common/ConfirmDialog';
 import { useConfirmDialog } from '@/hooks/useConfirmDialog';
 import { useAuthContext } from './auth/AuthProvider';
@@ -743,12 +743,15 @@ function ColorPicker() {
                 onUpdate={grey => setThemeTokens(prev => prev ? { ...prev, grey } : prev)}
               />
             </Grid>
-            <Grid item xs={12} sm={6} md={4} lg={3}>
-              <UtilityTokensCard
-                utility={themeTokens.utility}
-                onUpdate={utility => setThemeTokens(prev => prev ? { ...prev, utility } : prev)}
-              />
-            </Grid>
+            {Object.keys(themeTokens.utility.light).map(groupName => (
+              <Grid item xs={12} sm={6} md={4} lg={3} key={groupName}>
+                <UtilityGroupCard
+                  groupName={groupName}
+                  utility={themeTokens.utility}
+                  onUpdate={utility => setThemeTokens(prev => prev ? { ...prev, utility } : prev)}
+                />
+              </Grid>
+            ))}
           </Grid>
         </Box>
       )}
