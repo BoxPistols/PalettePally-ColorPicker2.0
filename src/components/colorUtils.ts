@@ -1,9 +1,16 @@
 import {
   themeFromSourceColor,
   argbFromHex,
-  hexFromArgb,
+  hexFromArgb as rawHexFromArgb,
 } from '@material/material-color-utilities';
 import chroma from 'chroma-js';
+
+// hexFromArgb が leading zero を落とす問題に対処（#04786 → #004786）
+const hexFromArgb = (argb: number): string => {
+  const hex = rawHexFromArgb(argb);
+  const digits = hex.replace('#', '');
+  return `#${digits.padStart(6, '0')}`;
+};
 
 // ── Action Color Types ──
 
@@ -62,10 +69,11 @@ export function defaultColorForName(name: string, fallbackHex: string): string {
 
 // ── Helpers ──
 
-export type ContrastMode = 'auto' | 'white';
+export type ContrastMode = 'auto' | 'white' | 'black';
 
 const getContrastText = (mainHex: string, mode: ContrastMode = 'auto'): string => {
   if (mode === 'white') return '#ffffff';
+  if (mode === 'black') return '#000000';
   return chroma(mainHex).luminance() > 0.179 ? '#000000' : '#ffffff';
 };
 

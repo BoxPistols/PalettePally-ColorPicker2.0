@@ -182,7 +182,7 @@ function ColorPicker() {
           // 復元済みトークンが primary useEffect で上書きされるのを防ぐ
           prevPrimaryRef.current = data.colors[0];
         }
-        if (data.contrastMode === 'auto' || data.contrastMode === 'white') {
+        if (['auto', 'white', 'black'].includes(data.contrastMode)) {
           setContrastMode(data.contrastMode);
         }
       }
@@ -382,6 +382,20 @@ function ColorPicker() {
     });
     if (ok) handleReset();
   }, [confirm, handleReset]);
+
+  // 既存の color1/color2 名を semantic 名 (primary/secondary/...) に移行
+  const handleMigrateNames = useCallback(async () => {
+    const hasLegacy = colorNames.some((n, i) => /^color\d+$/.test(n) && i < 6);
+    if (!hasLegacy) return;
+    const ok = await confirm({
+      title: 'Rename to Semantic Names',
+      message: 'color1/color2... を primary/secondary/success/warning/info/error に変更しますか？',
+      confirmLabel: 'Rename',
+      severity: 'warning',
+    });
+    if (!ok) return;
+    setColorNames(prev => prev.map((n, i) => (/^color\d+$/.test(n) ? defaultColorName(i) : n)));
+  }, [colorNames, confirm]);
 
   const handleFigmaConnect = useCallback((pat: string, fileKey: string) => {
     setFigmaPat(pat);
@@ -614,10 +628,33 @@ function ColorPicker() {
             style={{ display: 'none' }}
           />
 
+          {/* Legacy name migration (表示条件: color1/color2 名が残っている) */}
+          {colorNames.slice(0, 6).some(n => /^color\d+$/.test(n)) && (
+            <>
+              <Tooltip title='Rename color1/color2... to semantic names' arrow>
+                <Button
+                  variant='text'
+                  onClick={handleMigrateNames}
+                  size='small'
+                  sx={{
+                    ...headerButtonSx,
+                    bgcolor: '#fef3c7',
+                    borderColor: '#f59e0b',
+                    color: '#92400e',
+                    '&:hover': { bgcolor: '#fde68a', borderColor: '#d97706' },
+                  }}
+                >
+                  Rename
+                </Button>
+              </Tooltip>
+              <Box sx={{ width: '1px', height: 24, bgcolor: 'rgba(0,0,0,0.1)' }} />
+            </>
+          )}
+
           {/* Contrast Mode Toggle */}
           <Tooltip title='Contrast text: A11y (WCAG) or White (brand)' arrow>
             <Box sx={{ display: 'flex', bgcolor: '#f5f5f5', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', p: '2px' }}>
-              {(['auto', 'white'] as ContrastMode[]).map(m => (
+              {(['auto', 'white', 'black'] as ContrastMode[]).map(m => (
                 <Box
                   key={m}
                   component='button'
@@ -638,7 +675,7 @@ function ColorPicker() {
                     transition: 'all 0.15s ease',
                   }}
                 >
-                  {m === 'auto' ? 'A11y' : 'White'}
+                  {m === 'auto' ? 'A11y' : m === 'white' ? 'White' : 'Black'}
                 </Box>
               ))}
             </Box>
