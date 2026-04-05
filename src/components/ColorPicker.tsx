@@ -31,14 +31,26 @@ import { FigmaExportDialog } from './figma/FigmaExportDialog';
 import { FigmaImportDialog } from './figma/FigmaImportDialog';
 import * as firestoreService from '@/lib/firebase/firestore';
 
-// バウハウス風ロゴ: 多色ドットの構造的配置
+// "P" ロゴ: 文字 P + 仲間たちのカラフルドット (pally = party/friends)
 const LogoMark = () => (
-  <svg width='36' height='36' viewBox='0 0 36 36' fill='none'>
-    {/* 4色ドット — バウハウス的幾何学配置 */}
-    <circle cx='11' cy='11' r='7' fill='#7B6BC4' />
-    <circle cx='25' cy='9' r='5.5' fill='#4A90D9' />
-    <circle cx='9' cy='25' r='5' fill='#E07A5F' />
-    <circle cx='23' cy='24' r='6' fill='#3EBD6E' />
+  <svg width='40' height='40' viewBox='0 0 40 40' fill='none'>
+    <defs>
+      <linearGradient id='pally-p' x1='8' y1='6' x2='32' y2='34' gradientUnits='userSpaceOnUse'>
+        <stop offset='0' stopColor='#7B6BC4' />
+        <stop offset='0.6' stopColor='#4A90D9' />
+        <stop offset='1' stopColor='#3EBD6E' />
+      </linearGradient>
+    </defs>
+    {/* 周りの仲間ドット */}
+    <circle cx='33' cy='6' r='3.5' fill='#E07A5F' />
+    <circle cx='36' cy='19' r='2.5' fill='#F2C94C' />
+    <circle cx='5' cy='33' r='3' fill='#3EBD6E' />
+    <circle cx='22' cy='37' r='2.5' fill='#E07A5F' />
+    {/* 文字 P */}
+    <path
+      d='M 8 5 L 8 35 L 13 35 L 13 24 L 21 24 C 28 24, 33 19.5, 33 14.5 C 33 9.5, 28 5, 21 5 Z M 13 10 L 21 10 C 24.5 10, 27.5 12, 27.5 14.5 C 27.5 17, 24.5 19, 21 19 L 13 19 Z'
+      fill='url(#pally-p)'
+    />
   </svg>
 );
 
