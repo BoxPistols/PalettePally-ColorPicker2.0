@@ -12,9 +12,20 @@ import chroma from 'chroma-js';
 import ColorInputField from './ColorInputField';
 import { PaletteCard } from './PaletteGrid';
 import { GreyScaleCard, UtilityTokensCard } from './ThemeTokenCards';
+import { ConfirmDialog } from './common/ConfirmDialog';
+import { useConfirmDialog } from '@/hooks/useConfirmDialog';
+import { useAuthContext } from './auth/AuthProvider';
+import { LoginDialog } from './auth/LoginDialog';
+import { UserMenu } from './auth/UserMenu';
+import { SavePaletteDialog } from './palette/SavePaletteDialog';
+import { PaletteListDrawer } from './palette/PaletteListDrawer';
+import { ShareDialog } from './palette/ShareDialog';
+import { PaletteVersionHistory } from './palette/PaletteVersionHistory';
 import DialogBox from './DialogBox';
 import { downloadJSON } from './utils';
 import { generateColorScheme, generateThemeTokens, ColorPalette, MuiColorVariant, ThemeTokens } from './colorUtils';
+import { PaletteData, PaletteDocument } from '@/lib/types/palette';
+import * as firestoreService from '@/lib/firebase/firestore';
 
 // バウハウス風ロゴ: 多色ドットの構造的配置
 const LogoMark = () => (
@@ -48,6 +59,19 @@ const headerButtonSx = {
 };
 
 function ColorPicker() {
+  const { user } = useAuthContext();
+  const { state: confirmState, confirm, handleConfirm, handleCancel } = useConfirmDialog();
+
+  // Cloud state
+  const [loginOpen, setLoginOpen] = useState(false);
+  const [saveOpen, setSaveOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [versionOpen, setVersionOpen] = useState(false);
+  const [currentPaletteId, setCurrentPaletteId] = useState<string | null>(null);
+  const [currentPaletteName, setCurrentPaletteName] = useState('');
+  const [currentShareId, setCurrentShareId] = useState<string | null>(null);
+
   const [numColors, setNumColors] = useState(4);
   const [color, setColor] = useState<string[]>([]);
   const [palette, setPalette] = useState<
@@ -216,6 +240,93 @@ function ColorPicker() {
     }
   }, [primaryColor]); // themeTokens を deps に入れない（手動編集時の再生成を防ぐ）
 
+  // ── Cloud Handlers ──
+
+  const buildPaletteData = useCallback((): PaletteData => ({
+    numColors,
+    colors: color,
+    names: colorNames,
+    palette: palette ?? [],
+    themeTokens,
+  }), [numColors, color, colorNames, palette, themeTokens]);
+
+  const handleCloudSave = useCallback(async (name: string, description: string) => {
+    if (!user) return;
+    if (currentPaletteId) {
+      const ok = await confirm({
+        title: 'Update Palette',
+        message: `"${name}" を上書きしますか？`,
+        confirmLabel: 'Update',
+        severity: 'warning',
+      });
+      if (!ok) return;
+      await firestoreService.updatePalette(currentPaletteId, buildPaletteData(), description);
+    } else {
+      const id = await firestoreService.savePalette(user.uid, buildPaletteData(), name, description);
+      setCurrentPaletteId(id);
+      setCurrentPaletteName(name);
+    }
+  }, [user, currentPaletteId, buildPaletteData, confirm]);
+
+  const handleCloudLoad = useCallback((doc: PaletteDocument) => {
+    setCurrentPaletteId(doc.id);
+    setCurrentPaletteName(doc.name);
+    setCurrentShareId(doc.shareId);
+    setNumColors(doc.data.numColors);
+    setColor(doc.data.colors);
+    setColorNames(doc.data.names);
+    if (doc.data.themeTokens) setThemeTokens(doc.data.themeTokens);
+  }, []);
+
+  const handleCloudDelete = useCallback(async (paletteId: string, name: string): Promise<boolean> => {
+    const ok = await confirm({
+      title: 'Delete Palette',
+      message: `"${name}" を完全に削除しますか？この操作は取り消せません。`,
+      confirmLabel: 'Delete',
+      severity: 'error',
+    });
+    if (!ok) return false;
+    await firestoreService.deletePalette(paletteId);
+    if (paletteId === currentPaletteId) {
+      setCurrentPaletteId(null);
+      setCurrentPaletteName('');
+    }
+    return true;
+  }, [confirm, currentPaletteId]);
+
+  const handleVersionRestore = useCallback(async (versionId: string, version: number): Promise<boolean> => {
+    const ok = await confirm({
+      title: 'Restore Version',
+      message: `v${version} に復元しますか？現在の変更は新しいバージョンとして保存されます。`,
+      confirmLabel: 'Restore',
+      severity: 'warning',
+    });
+    if (!ok || !currentPaletteId) return false;
+    await firestoreService.restoreVersion(currentPaletteId, versionId);
+    const doc = await firestoreService.loadPalette(currentPaletteId);
+    handleCloudLoad(doc);
+    return true;
+  }, [confirm, currentPaletteId, handleCloudLoad]);
+
+  const handleRevokeShare = useCallback(async (): Promise<boolean> => {
+    return confirm({
+      title: 'Revoke Share Link',
+      message: 'このリンクを無効にしますか？既に共有された相手はアクセスできなくなります。',
+      confirmLabel: 'Revoke',
+      severity: 'error',
+    });
+  }, [confirm]);
+
+  const handleResetWithConfirm = useCallback(async () => {
+    const ok = await confirm({
+      title: 'Reset All Colors',
+      message: '全てのカラーを初期状態にリセットしますか？',
+      confirmLabel: 'Reset',
+      severity: 'warning',
+    });
+    if (ok) handleReset();
+  }, [confirm, handleReset]);
+
   const exportToJson = () => {
     const data = { colors: color, names: colorNames, palette, themeTokens };
     setDialogContent(JSON.stringify(data, null, 2));
@@ -350,7 +461,7 @@ function ColorPicker() {
           {/* Action Buttons */}
           <Tooltip title='Reset all colors' arrow>
             <IconButton
-              onClick={() => handleReset()}
+              onClick={handleResetWithConfirm}
               aria-label='Reset all colors'
               size='small'
               sx={{
@@ -418,6 +529,59 @@ function ColorPicker() {
             onChange={importFromJson}
             style={{ display: 'none' }}
           />
+
+          {/* Divider */}
+          <Box sx={{ width: '1px', height: 24, bgcolor: 'rgba(0,0,0,0.1)' }} />
+
+          {/* Cloud / Auth */}
+          {user ? (
+            <>
+              <Tooltip title={currentPaletteId ? 'Update to cloud' : 'Save to cloud'} arrow>
+                <Button
+                  variant='text'
+                  onClick={() => setSaveOpen(true)}
+                  size='small'
+                  sx={headerButtonSx}
+                >
+                  {currentPaletteId ? 'Update' : 'Save'}
+                </Button>
+              </Tooltip>
+              {currentPaletteId && (
+                <>
+                  <Tooltip title='Share palette' arrow>
+                    <Button
+                      variant='text'
+                      onClick={() => setShareOpen(true)}
+                      size='small'
+                      sx={headerButtonSx}
+                    >
+                      Share
+                    </Button>
+                  </Tooltip>
+                  <Tooltip title='Version history' arrow>
+                    <Button
+                      variant='text'
+                      onClick={() => setVersionOpen(true)}
+                      size='small'
+                      sx={headerButtonSx}
+                    >
+                      History
+                    </Button>
+                  </Tooltip>
+                </>
+              )}
+              <UserMenu onOpenPalettes={() => setDrawerOpen(true)} />
+            </>
+          ) : (
+            <Button
+              variant='text'
+              onClick={() => setLoginOpen(true)}
+              size='small'
+              sx={headerButtonSx}
+            >
+              Login
+            </Button>
+          )}
         </Box>
       </Box>
 
@@ -518,6 +682,49 @@ function ColorPicker() {
         closeDialog={() => setShowDialog(false)}
         dialogContent={dialogContent}
         downloadJSON={() => downloadJSON(JSON.parse(dialogContent))}
+      />
+
+      {/* ===== Cloud Dialogs ===== */}
+      <LoginDialog open={loginOpen} onClose={() => setLoginOpen(false)} />
+      <SavePaletteDialog
+        open={saveOpen}
+        onClose={() => setSaveOpen(false)}
+        onSave={handleCloudSave}
+        defaultName={currentPaletteName}
+        isUpdate={!!currentPaletteId}
+      />
+      {user && (
+        <PaletteListDrawer
+          open={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          uid={user.uid}
+          onLoad={handleCloudLoad}
+          onDelete={handleCloudDelete}
+        />
+      )}
+      {currentPaletteId && (
+        <>
+          <ShareDialog
+            open={shareOpen}
+            onClose={() => setShareOpen(false)}
+            paletteId={currentPaletteId}
+            paletteName={currentPaletteName}
+            currentShareId={currentShareId}
+            onRevoke={handleRevokeShare}
+          />
+          <PaletteVersionHistory
+            open={versionOpen}
+            onClose={() => setVersionOpen(false)}
+            paletteId={currentPaletteId}
+            paletteName={currentPaletteName}
+            onRestore={handleVersionRestore}
+          />
+        </>
+      )}
+      <ConfirmDialog
+        state={confirmState}
+        onConfirm={handleConfirm}
+        onCancel={handleCancel}
       />
     </>
   );

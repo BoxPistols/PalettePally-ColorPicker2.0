@@ -4,13 +4,14 @@ import { theme } from '@/lib/theme';
 import Head from 'next/head';
 import '../src/styles/globals.css';
 import { ThemeProvider, CacheProvider } from '@emotion/react';
+import { AuthProvider } from '@/components/auth/AuthProvider';
 
 export default function App({ Component, pageProps }: AppProps) {
   const cache = createCache({ key: 'css', prepend: true, stylisPlugins: [] });
   cache.compat = true;
 
   return (
-    <>
+    <AuthProvider>
       <ThemeProvider theme={theme}>
         <CacheProvider value={cache}>
           <Head>
@@ -21,6 +22,6 @@ export default function App({ Component, pageProps }: AppProps) {
           <Component {...pageProps} />
         </CacheProvider>
       </ThemeProvider>
-    </>
+    </AuthProvider>
   );
 }
