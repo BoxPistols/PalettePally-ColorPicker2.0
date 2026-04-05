@@ -67,11 +67,12 @@ export function clearColorSchemeCache() {
 // ── Action Color Generator (cached) ──
 
 export function generateColorScheme(hex: string, contrastMode: ContrastMode = 'auto'): ColorPalette {
-  const key = `${hex.toLowerCase()}|${contrastMode}`;
-  const cached = colorSchemeCache.get(key);
+  const normalizedHex = hex.toLowerCase();
+  const cacheKey = `${normalizedHex}|${contrastMode}`;
+  const cached = colorSchemeCache.get(cacheKey);
   if (cached) return cached;
 
-  const inputChroma = chroma(key).lch()[1] || 0;
+  const inputChroma = chroma(normalizedHex).lch()[1] || 0;
 
   // main は常に入力値をそのまま使用（Material You のアクセシビリティ補正を禁止）
   const lightMain = hex;
@@ -96,11 +97,11 @@ export function generateColorScheme(hex: string, contrastMode: ContrastMode = 'a
         contrastText: getContrastText(darkMain, contrastMode),
       },
     };
-    colorSchemeCache.set(key, result);
+    colorSchemeCache.set(cacheKey, result);
     return result;
   }
 
-  const theme = themeFromSourceColor(argbFromHex(key));
+  const theme = themeFromSourceColor(argbFromHex(normalizedHex));
   // 低彩度 (chroma 4-8) は neutral palette、有彩色は primary palette
   const p = inputChroma < 8 ? theme.palettes.neutral : theme.palettes.primary;
   const darkMain = hexFromArgb(p.tone(80));
@@ -122,7 +123,7 @@ export function generateColorScheme(hex: string, contrastMode: ContrastMode = 'a
     },
   };
 
-  colorSchemeCache.set(key, result);
+  colorSchemeCache.set(cacheKey, result);
   return result;
 }
 

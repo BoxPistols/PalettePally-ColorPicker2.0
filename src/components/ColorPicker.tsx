@@ -290,7 +290,7 @@ function ColorPicker() {
       prevPrimaryRef.current = primaryColor;
       setThemeTokens(generateThemeTokens(primaryColor));
     }
-  }, [primaryColor]); // themeTokens を deps に入れない（手動編集時の再生成を防ぐ）
+  }, [primaryColor, themeTokens]); // themeTokens を deps に追加 (ESLint fix)
 
   // ── Cloud Handlers ──
 
