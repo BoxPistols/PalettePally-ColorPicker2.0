@@ -13,8 +13,8 @@ const colorToken = (value: string, description?: string): DTCGToken => ({
 export function paletteToDTCG(data: PaletteData): DTCGFile {
   const result: DTCGFile = {};
 
-  // Action colors (per-color palette)
-  if (data.palette) {
+  // Action colors (per-color palette) — 空配列のときはグループを出力しない
+  if (data.palette && data.palette.length > 0) {
     const actionColors: DTCGGroup = {
       $description: 'MUI action color palettes',
     };
