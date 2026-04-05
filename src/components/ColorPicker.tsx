@@ -26,6 +26,8 @@ import { downloadJSON } from './utils';
 import { generateColorScheme, generateThemeTokens, ColorPalette, MuiColorVariant, ThemeTokens } from './colorUtils';
 import { PaletteData, PaletteDocument } from '@/lib/types/palette';
 import { ParsedVariable } from '@/lib/figma/types';
+import { HelpDialog } from './help/HelpDialog';
+import { ExampleDialog } from './example/ExampleDialog';
 import { FigmaConnectDialog } from './figma/FigmaConnectDialog';
 import { FigmaExportDialog } from './figma/FigmaExportDialog';
 import { FigmaImportDialog } from './figma/FigmaImportDialog';
@@ -86,7 +88,9 @@ function ColorPicker() {
   const [currentPaletteName, setCurrentPaletteName] = useState('');
   const [currentShareId, setCurrentShareId] = useState<string | null>(null);
 
-  // Figma state
+  // Help / Example / Figma state
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [exampleOpen, setExampleOpen] = useState(false);
   const [figmaConnectOpen, setFigmaConnectOpen] = useState(false);
   const [figmaExportOpen, setFigmaExportOpen] = useState(false);
   const [figmaImportOpen, setFigmaImportOpen] = useState(false);
@@ -612,7 +616,7 @@ function ColorPicker() {
           {/* Navigation */}
           <Button
             variant='text'
-            href='/example'
+            onClick={() => setExampleOpen(true)}
             size='small'
             sx={headerButtonSx}
           >
@@ -620,7 +624,7 @@ function ColorPicker() {
           </Button>
           <Button
             variant='text'
-            href='/help'
+            onClick={() => setHelpOpen(true)}
             size='small'
             sx={headerButtonSx}
           >
@@ -852,6 +856,16 @@ function ColorPicker() {
           />
         </>
       )}
+      {/* ===== Help Dialog ===== */}
+      <HelpDialog open={helpOpen} onClose={() => setHelpOpen(false)} />
+
+      {/* ===== Example Dialog (現在のパレットを即時反映) ===== */}
+      <ExampleDialog
+        open={exampleOpen}
+        onClose={() => setExampleOpen(false)}
+        paletteData={buildPaletteData()}
+      />
+
       {/* ===== Figma Dialogs ===== */}
       <FigmaConnectDialog
         open={figmaConnectOpen}
