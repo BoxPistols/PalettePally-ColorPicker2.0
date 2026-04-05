@@ -3,7 +3,6 @@ import {
   Box,
   TextField,
   Button,
-  Grid,
   IconButton,
   Typography,
   Tooltip,
@@ -21,7 +20,7 @@ import { SavePaletteDialog } from './palette/SavePaletteDialog';
 import { PaletteListDrawer } from './palette/PaletteListDrawer';
 import { ShareDialog } from './palette/ShareDialog';
 import { PaletteVersionHistory } from './palette/PaletteVersionHistory';
-import { generateColorScheme, generateThemeTokens, defaultColorName, ColorPalette, MuiColorVariant, ThemeTokens, ContrastMode } from './colorUtils';
+import { generateColorScheme, generateThemeTokens, defaultColorName, defaultColorForName, ColorPalette, MuiColorVariant, ThemeTokens, ContrastMode } from './colorUtils';
 import { PaletteData, PaletteDocument } from '@/lib/types/palette';
 import { ParsedVariable } from '@/lib/figma/types';
 import { HelpDialog } from './help/HelpDialog';
@@ -159,8 +158,9 @@ function ColorPicker() {
   const handleReset = useCallback(() => {
     skipAutoResetRef.current = false;
     const initialColors = Array.from({ length: numColors }, (_, i) => {
-      const hue = i * (360 / numColors);
-      return chroma.hsl(hue, 0.8, 0.5).hex();
+      const name = defaultColorName(i);
+      const fallback = chroma.hsl(i * (360 / numColors), 0.8, 0.5).hex();
+      return defaultColorForName(name, fallback);
     });
     setColor(initialColors);
     setColorNames(Array.from({ length: numColors }, (_, i) => defaultColorName(i)));
@@ -181,6 +181,9 @@ function ColorPicker() {
           setThemeTokens(data.themeTokens);
           // 復元済みトークンが primary useEffect で上書きされるのを防ぐ
           prevPrimaryRef.current = data.colors[0];
+        }
+        if (data.contrastMode === 'auto' || data.contrastMode === 'white') {
+          setContrastMode(data.contrastMode);
         }
       }
     } catch { /* ignore */ }
@@ -211,10 +214,11 @@ function ColorPicker() {
         colors: color,
         names: colorNames,
         themeTokens,
+        contrastMode,
       }));
     }, 300);
     return () => clearTimeout(timer);
-  }, [numColors, color, colorNames, themeTokens]);
+  }, [numColors, color, colorNames, themeTokens, contrastMode]);
 
   function generateDistinctColorFromHues(existingHues: number[]): string {
     const count = existingHues.length;
@@ -741,10 +745,37 @@ function ColorPicker() {
         </Box>
       </Box>
 
-      {/* ===== Color Grid ===== */}
-      <Grid container spacing={2}>
+      {/* ===== Color Strip (horizontal scroll) ===== */}
+      <Box
+        sx={{
+          display: 'flex',
+          gap: 2,
+          overflowX: 'auto',
+          overflowY: 'visible',
+          pb: 2,
+          mx: -3,
+          px: 3,
+          scrollSnapType: 'x proximity',
+          scrollbarWidth: 'thin',
+          scrollBehavior: 'smooth',
+          '&::-webkit-scrollbar': { height: 8 },
+          '&::-webkit-scrollbar-track': { bgcolor: 'rgba(0,0,0,0.03)', borderRadius: 4 },
+          '&::-webkit-scrollbar-thumb': {
+            bgcolor: 'rgba(0,0,0,0.15)',
+            borderRadius: 4,
+            '&:hover': { bgcolor: 'rgba(0,0,0,0.25)' },
+          },
+        }}
+      >
         {color.map((c, index) => (
-          <Grid item xs={12} sm={6} md={4} lg={3} key={index}>
+          <Box
+            key={index}
+            sx={{
+              flex: '0 0 280px',
+              minWidth: 280,
+              scrollSnapAlign: 'start',
+            }}
+          >
             <TextField
               value={colorNames[index]}
               onChange={e => handleColorNameChange(index, e.target.value)}
@@ -785,9 +816,9 @@ function ColorPicker() {
                 />
               </Box>
             )}
-          </Grid>
+          </Box>
         ))}
-      </Grid>
+      </Box>
 
       {/* ===== Theme Tokens (grey + utility) ===== */}
       {themeTokens && (
@@ -816,29 +847,49 @@ function ColorPicker() {
               derived from {colorNames[0] ?? 'primary'}
             </Typography>
           </Typography>
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6} md={4} lg={3}>
+          <Box
+            sx={{
+              display: 'flex',
+              gap: 2,
+              overflowX: 'auto',
+              overflowY: 'visible',
+              pb: 2,
+              mx: -3,
+              px: 3,
+              scrollSnapType: 'x proximity',
+              scrollbarWidth: 'thin',
+              scrollBehavior: 'smooth',
+              '&::-webkit-scrollbar': { height: 8 },
+              '&::-webkit-scrollbar-track': { bgcolor: 'rgba(0,0,0,0.03)', borderRadius: 4 },
+              '&::-webkit-scrollbar-thumb': {
+                bgcolor: 'rgba(0,0,0,0.15)',
+                borderRadius: 4,
+                '&:hover': { bgcolor: 'rgba(0,0,0,0.25)' },
+              },
+            }}
+          >
+            <Box sx={{ flex: '0 0 280px', minWidth: 280, scrollSnapAlign: 'start' }}>
               <GreyScaleCard
                 grey={themeTokens.grey}
                 onUpdate={grey => setThemeTokens(prev => prev ? { ...prev, grey } : prev)}
               />
-            </Grid>
+            </Box>
             {Object.keys(themeTokens.utility.light).map(groupName => (
-              <Grid item xs={12} sm={6} md={4} lg={3} key={groupName}>
+              <Box key={groupName} sx={{ flex: '0 0 280px', minWidth: 280, scrollSnapAlign: 'start' }}>
                 <UtilityGroupCard
                   groupName={groupName}
                   utility={themeTokens.utility}
                   onUpdate={utility => setThemeTokens(prev => prev ? { ...prev, utility } : prev)}
                 />
-              </Grid>
+              </Box>
             ))}
-            <Grid item xs={12} sm={6} md={4} lg={3}>
+            <Box sx={{ flex: '0 0 280px', minWidth: 280, scrollSnapAlign: 'start' }}>
               <AddGroupCard
                 utility={themeTokens.utility}
                 onUpdate={utility => setThemeTokens(prev => prev ? { ...prev, utility } : prev)}
               />
-            </Grid>
-          </Grid>
+            </Box>
+          </Box>
         </Box>
       )}
 

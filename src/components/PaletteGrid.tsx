@@ -209,16 +209,6 @@ const EditCell = memo<{
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
       <Box
-        sx={{
-          width: 32,
-          height: 32,
-          borderRadius: '6px',
-          bgcolor: value,
-          border: '1px solid rgba(0,0,0,0.12)',
-          flexShrink: 0,
-        }}
-      />
-      <Box
         component='input'
         type='color'
         value={value}

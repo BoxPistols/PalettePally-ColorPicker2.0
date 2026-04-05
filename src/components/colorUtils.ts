@@ -46,6 +46,20 @@ export function defaultColorName(index: number): string {
   return DEFAULT_COLOR_NAMES[index] ?? `color${index + 1}`;
 }
 
+// MUI デフォルトカラー (セマンティック別)
+export const MUI_DEFAULT_COLORS: Record<string, string> = {
+  primary: '#1976d2',
+  secondary: '#9c27b0',
+  success: '#2e7d32',
+  warning: '#ed6c02',
+  info: '#0288d1',
+  error: '#d32f2f',
+};
+
+export function defaultColorForName(name: string, fallbackHex: string): string {
+  return MUI_DEFAULT_COLORS[name] ?? fallbackHex;
+}
+
 // ── Helpers ──
 
 export type ContrastMode = 'auto' | 'white';
@@ -112,14 +126,14 @@ export function generateColorScheme(hex: string, contrastMode: ContrastMode = 'a
       dark: hexFromArgb(p.tone(30)),
       light: hexFromArgb(p.tone(60)),
       lighter: hexFromArgb(p.tone(90)),
-      contrastText: getContrastText(lightMain),
+      contrastText: getContrastText(lightMain, contrastMode),
     },
     dark: {
       main: darkMain,
       dark: hexFromArgb(p.tone(60)),
       light: hexFromArgb(p.tone(90)),
       lighter: hexFromArgb(p.tone(30)),
-      contrastText: getContrastText(darkMain),
+      contrastText: getContrastText(darkMain, contrastMode),
     },
   };
 

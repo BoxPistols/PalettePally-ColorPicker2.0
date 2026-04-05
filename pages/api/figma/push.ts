@@ -48,19 +48,24 @@ export default async function handler(
       );
 
       const figmaPayload: Record<string, unknown> = {};
-
+      const tempColId = `:col-${col.name.replace(/\s+/g, '-')}`;
+      
       if (!existingCol) {
-        // Create collection with variables
-        figmaPayload.variableCollections = [{ action: 'CREATE', name: col.name }];
+        // Create collection with modes
+        figmaPayload.variableCollections = [{ 
+          action: 'CREATE', 
+          name: col.name, 
+          id: tempColId 
+        }];
       }
 
-      const collectionId = existingCol?.id ?? '';
+      const collectionId = existingCol?.id ?? tempColId;
       const lightModeId = existingCol?.modes.find((m: { name: string }) =>
         m.name.toLowerCase().includes('light')
-      )?.modeId ?? existingCol?.modes[0]?.modeId ?? '';
+      )?.modeId ?? 'light'; // Default to 'light' for new collection
       const darkModeId = existingCol?.modes.find((m: { name: string }) =>
         m.name.toLowerCase().includes('dark')
-      )?.modeId ?? existingCol?.modes[1]?.modeId ?? '';
+      )?.modeId ?? 'dark'; // Default to 'dark' for new collection
 
       // Create/update variables
       const variableActions: Record<string, unknown>[] = [];
@@ -72,28 +77,34 @@ export default async function handler(
           ev => ev.name === v.name && ev.variableCollectionId === collectionId
         );
 
-        if (existingVar) {
-          // Update existing
-          if (lightModeId && v.light.startsWith('#')) {
-            modeValues.push({
-              variableId: existingVar.id,
-              modeId: lightModeId,
-              value: hexToFigmaColor(v.light),
-            });
-          }
-          if (darkModeId && v.dark.startsWith('#')) {
-            modeValues.push({
-              variableId: existingVar.id,
-              modeId: darkModeId,
-              value: hexToFigmaColor(v.dark),
-            });
-          }
-        } else if (collectionId && v.light.startsWith('#')) {
+        let variableId = existingVar?.id;
+
+        if (!existingVar) {
+          // Create variable
+          const tempVarId = `:var-${v.name.replace(/\//g, '-')}`;
           variableActions.push({
             action: 'CREATE',
             name: v.name,
             variableCollectionId: collectionId,
             resolvedType: 'COLOR',
+            id: tempVarId,
+          });
+          variableId = tempVarId;
+        }
+
+        // Set/Update values for both modes
+        if (v.light.startsWith('#')) {
+          modeValues.push({
+            variableId,
+            modeId: lightModeId,
+            value: hexToFigmaColor(v.light),
+          });
+        }
+        if (v.dark.startsWith('#')) {
+          modeValues.push({
+            variableId,
+            modeId: darkModeId,
+            value: hexToFigmaColor(v.dark),
           });
         }
       }

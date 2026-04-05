@@ -174,17 +174,25 @@ export function toSCSS(data: PaletteData): string {
 
 // ── MUI Theme (TypeScript) ──
 
+const SEMANTIC_NAMES = ['primary', 'secondary', 'success', 'warning', 'info', 'error'];
+
 export function toMuiTheme(data: PaletteData): string {
+  const findVariant = (name: string, mode: 'light' | 'dark') => {
+    const idx = data.names?.findIndex(n => n.toLowerCase() === name);
+    if (idx === undefined || idx < 0) return null;
+    const entry = data.palette?.[idx];
+    if (!entry) return null;
+    return Object.values(entry)[0]?.[mode] ?? null;
+  };
+
   const buildPalette = (mode: 'light' | 'dark'): string => {
     const entries: string[] = [`    mode: '${mode}',`];
 
-    (data.palette ?? []).slice(0, 2).forEach((entry, idx) => {
-      const [, palette] = Object.entries(entry)[0] ?? [];
-      if (!palette) return;
-      const key = idx === 0 ? 'primary' : 'secondary';
-      const v = palette[mode];
+    SEMANTIC_NAMES.forEach(name => {
+      const v = findVariant(name, mode);
+      if (!v) return;
       entries.push(
-        `    ${key}: {`,
+        `    ${name}: {`,
         `      main: '${v.main}',`,
         `      dark: '${v.dark}',`,
         `      light: '${v.light}',`,

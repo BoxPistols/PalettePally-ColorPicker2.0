@@ -506,6 +506,35 @@ const UtilityEditDialog = memo<{
     onUpdate({ light: lightRest, dark: darkRest });
   };
 
+  const handleRenameGroup = (oldName: string, newName: string) => {
+    const trimmed = newName.trim();
+    if (!trimmed || trimmed === oldName || utility.light[trimmed]) return;
+    const rebuild = (obj: Record<string, Record<string, string>>) => {
+      const result: Record<string, Record<string, string>> = {};
+      for (const k of Object.keys(obj)) {
+        result[k === oldName ? trimmed : k] = obj[k];
+      }
+      return result;
+    };
+    onUpdate({ light: rebuild(utility.light), dark: rebuild(utility.dark) });
+  };
+
+  const handleRenameEntry = (group: string, oldKey: string, newKey: string) => {
+    const trimmed = newKey.trim();
+    if (!trimmed || trimmed === oldKey || utility.light[group][trimmed]) return;
+    const rebuild = (obj: Record<string, string>) => {
+      const result: Record<string, string> = {};
+      for (const k of Object.keys(obj)) {
+        result[k === oldKey ? trimmed : k] = obj[k];
+      }
+      return result;
+    };
+    onUpdate({
+      light: { ...utility.light, [group]: rebuild(utility.light[group]) },
+      dark: { ...utility.dark, [group]: rebuild(utility.dark[group]) },
+    });
+  };
+
   return (
     <Dialog open={open} onClose={onClose} maxWidth='md' fullWidth PaperProps={{ sx: { borderRadius: '16px' } }}>
       <DialogTitle sx={{ background: 'linear-gradient(135deg, #334155, #1e293b)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', py: 1.5, px: 2.5 }}>
@@ -521,8 +550,31 @@ const UtilityEditDialog = memo<{
           const entries = Object.keys(utility.light[group]);
           return (
             <Box key={group} sx={{ mb: 2.5 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                <Typography sx={{ fontWeight: 700, fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: 1, color: 'rgba(0,0,0,0.5)' }}>{group}</Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1, gap: 1 }}>
+                <TextField
+                  size='small'
+                  defaultValue={group}
+                  onBlur={e => handleRenameGroup(group, e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                  }}
+                  sx={{
+                    flex: 1,
+                    '& input': {
+                      fontWeight: 700,
+                      fontSize: '0.8rem',
+                      textTransform: 'uppercase',
+                      letterSpacing: 1,
+                      color: 'rgba(0,0,0,0.7)',
+                      py: 0.5,
+                    },
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '6px',
+                      '& fieldset': { borderColor: 'transparent' },
+                      '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.15)' },
+                    },
+                  }}
+                />
                 <DeleteBtn onClick={() => handleRemoveGroup(group)} title={`Remove ${group} group`} />
               </Box>
               <Box sx={{ display: 'grid', gridTemplateColumns: '100px 1fr 1fr 32px', gap: 1, alignItems: 'center' }}>
@@ -532,7 +584,28 @@ const UtilityEditDialog = memo<{
                 <Box />
                 {entries.map(key => (
                   <React.Fragment key={key}>
-                    <Typography sx={{ fontWeight: 500, fontSize: '0.8rem', fontFamily: '"JetBrains Mono", monospace', color: '#1a1a2e' }}>{key}</Typography>
+                    <TextField
+                      size='small'
+                      defaultValue={key}
+                      onBlur={e => handleRenameEntry(group, key, e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                      }}
+                      sx={{
+                        '& input': {
+                          fontWeight: 500,
+                          fontSize: '0.8rem',
+                          fontFamily: '"JetBrains Mono", monospace',
+                          color: '#1a1a2e',
+                          py: 0.5,
+                        },
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: '6px',
+                          '& fieldset': { borderColor: 'transparent' },
+                          '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.15)' },
+                        },
+                      }}
+                    />
                     <EditCell value={utility.light[group][key]} onChange={v => handleEdit('light', group, key, v)} />
                     <EditCell value={utility.dark[group][key]} onChange={v => handleEdit('dark', group, key, v)} />
                     <DeleteBtn onClick={() => handleRemoveEntry(group, key)} />

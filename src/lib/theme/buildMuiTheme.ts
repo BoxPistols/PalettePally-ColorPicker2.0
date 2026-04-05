@@ -33,9 +33,24 @@ export function buildMuiTheme(data: PaletteData, mode: 'light' | 'dark'): Theme 
   const grey = tokens?.grey[mode] ?? {};
   const utility = tokens?.utility[mode] ?? {};
 
+  const surfaceBg = utility.surface?.background ?? (mode === 'light' ? '#f8fafc' : '#1e1e22');
+  const surfaceBgDark = utility.surface?.backgroundDark ?? (mode === 'light' ? '#3f3f46' : '#09090b');
+  const surfaceBgDisabled = utility.surface?.backgroundDisabled ?? (mode === 'light' ? '#f1f5f9' : '#333338');
+  const iconColor = mode === 'light' ? '#64748b' : '#a1a1aa';
+  const iconDarkColor = mode === 'light' ? '#334155' : '#e4e4e7';
+
   const options: ThemeOptions = {
     palette: {
       mode,
+      // カスタム surface / icon (既存 theme.ts の declare module 必須項目)
+      surfaceBackground: surfaceBg,
+      surfaceBackgroundDark: surfaceBgDark,
+      surfaceBackgroundDisabled: surfaceBgDisabled,
+      iconWhite: '#ffffff',
+      iconLight: iconColor,
+      iconDark: iconDarkColor,
+      iconAction: '#ffc107',
+      iconDisabled: mode === 'light' ? '#cbd5e1' : '#52525b',
       primary: {
         main: primary.main,
         dark: primary.dark,
@@ -99,7 +114,7 @@ export function buildMuiTheme(data: PaletteData, mode: 'light' | 'dark'): Theme 
       },
     },
     shape: { borderRadius: 8 },
-  } as unknown as ThemeOptions;
+  };
   return createTheme(options);
 }
 
