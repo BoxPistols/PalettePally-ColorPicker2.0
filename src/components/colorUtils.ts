@@ -51,11 +51,12 @@ export function generateColorScheme(hex: string): ColorPalette {
 
   const inputChroma = chroma(key).lch()[1] || 0;
 
-  // 純粋な無彩色 (chroma < 4) は chroma-js で純粋なグレースケールを生成
-  // Material You の neutral palette はソース色の色相を微妙に保持するため使わない
+  // main は常に入力値をそのまま使用（Material You のアクセシビリティ補正を禁止）
+  const lightMain = hex;
+
+  // 純粋な無彩色 (chroma < 4) は chroma-js で純粋なグレースケール
   if (inputChroma < 4) {
     const grey = (l: number) => chroma.hsl(0, 0, l / 100).hex();
-    const lightMain = grey(40);
     const darkMain = grey(80);
     const result: ColorPalette = {
       light: {
@@ -80,8 +81,6 @@ export function generateColorScheme(hex: string): ColorPalette {
   const theme = themeFromSourceColor(argbFromHex(key));
   // 低彩度 (chroma 4-8) は neutral palette、有彩色は primary palette
   const p = inputChroma < 8 ? theme.palettes.neutral : theme.palettes.primary;
-  // Material Design 3: light=tone40, dark=tone80
-  const lightMain = hexFromArgb(p.tone(40));
   const darkMain = hexFromArgb(p.tone(80));
 
   const result: ColorPalette = {

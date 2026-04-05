@@ -26,13 +26,18 @@ const ColorInputField = memo(({ color, onChange }: ColorInputFieldProps) => {
           boxShadow: 'none !important',
           backgroundColor: 'transparent !important',
           padding: '0 !important',
+          // Saturation area (aspect ratio wrapper) を高さ制限
+          '> div:first-of-type': {
+            paddingBottom: '0 !important',
+            height: '120px !important',
+          },
           ' .saturation-white': {
             borderRadius: '6px',
           },
           ' input': {
             width: '100% !important',
-            padding: '0.2rem !important',
-            fontSize: '12px !important',
+            padding: '0.15rem !important',
+            fontSize: '11px !important',
             borderRadius: '3px !important',
             textAlign: 'center !important',
             '&:focus': {

@@ -85,6 +85,7 @@ function ColorPicker() {
   const figmaConnected = Boolean(figmaPat && figmaFileKey);
 
   const [numColors, setNumColors] = useState(4);
+  const [numColorsInput, setNumColorsInput] = useState('4');
   const [color, setColor] = useState<string[]>([]);
   const [palette, setPalette] = useState<
     { [colorName: string]: ColorPalette }[] | null
@@ -100,6 +101,7 @@ function ColorPicker() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const skipAutoResetRef = useRef(false);
+  const initializedRef = useRef(false);
   const prevPrimaryRef = useRef<string | undefined>(undefined);
 
   const isValidHex = (hex: never) => /^#([0-9A-F]{3}){1,2}$/i.test(hex);
@@ -108,9 +110,16 @@ function ColorPicker() {
   useEffect(() => {
     setColor(prev => {
       if (numColors > prev.length) {
+        // 既存色の hue を一度だけ計算（O(n) の chroma コールを削減）
+        const hues: number[] = [];
+        for (const c of prev) {
+          try { hues.push(chroma(c).hsl()[0] || 0); } catch { /* skip */ }
+        }
         const result = [...prev];
         for (let i = prev.length; i < numColors; i++) {
-          result.push(generateDistinctColor(result));
+          const newColor = generateDistinctColorFromHues(hues);
+          result.push(newColor);
+          try { hues.push(chroma(newColor).hsl()[0] || 0); } catch { /* skip */ }
         }
         return result;
       }
@@ -160,8 +169,19 @@ function ColorPicker() {
     } catch { /* ignore */ }
   }, []);
 
+  // numColors 入力のデバウンス（タイプ中の中間値で再計算しない）
   useEffect(() => {
-    if (skipAutoResetRef.current) return;
+    const num = parseInt(numColorsInput, 10);
+    if (isNaN(num) || num < 1 || num > 24) return;
+    if (num === numColors) return;
+    const timer = setTimeout(() => setNumColors(num), 250);
+    return () => clearTimeout(timer);
+  }, [numColorsInput, numColors]);
+
+  // 初回 mount のみ実行（numColors 変更時は再実行しない）
+  useEffect(() => {
+    if (skipAutoResetRef.current || initializedRef.current) return;
+    initializedRef.current = true;
     handleReset();
   }, [handleReset]);
 
@@ -179,21 +199,20 @@ function ColorPicker() {
     return () => clearTimeout(timer);
   }, [numColors, color, colorNames, themeTokens]);
 
-  function generateDistinctColor(existingColors: string[]): string {
-    const count = existingColors.length;
+  function generateDistinctColorFromHues(existingHues: number[]): string {
+    const count = existingHues.length;
     const minGap = Math.max(5, Math.floor(300 / Math.max(count, 1)));
     let bestHue = Math.floor(Math.random() * 360);
     let bestDist = 0;
 
-    for (let attempt = 0; attempt < 200; attempt++) {
+    for (let attempt = 0; attempt < 100; attempt++) {
       const hue = Math.floor(Math.random() * 360);
       let nearest = 360;
-      for (const c of existingColors) {
-        try {
-          const h = chroma(c).hsl()[0] || 0;
-          const diff = Math.abs(h - hue);
-          nearest = Math.min(nearest, diff, 360 - diff);
-        } catch { /* skip */ }
+      for (const h of existingHues) {
+        const diff = Math.abs(h - hue);
+        const d = Math.min(diff, 360 - diff);
+        if (d < nearest) nearest = d;
+        if (nearest < minGap) break;
       }
       if (nearest >= minGap) return chroma.hsl(hue, 0.9, 0.5).hex();
       if (nearest > bestDist) {
@@ -479,10 +498,9 @@ function ColorPicker() {
             </Typography>
             <TextField
               id='color-length'
-              value={numColors}
+              value={numColorsInput}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                const num = parseInt(e.target.value, 10);
-                if (!isNaN(num) && num > 0) setNumColors(num);
+                setNumColorsInput(e.target.value);
               }}
               type='number'
               inputProps={{ min: 1, max: 24 }}
