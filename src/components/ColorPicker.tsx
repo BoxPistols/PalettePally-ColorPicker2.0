@@ -100,6 +100,7 @@ function ColorPicker() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const skipAutoResetRef = useRef(false);
+  const prevPrimaryRef = useRef<string | undefined>(undefined);
 
   const isValidHex = (hex: never) => /^#([0-9A-F]{3}){1,2}$/i.test(hex);
 
@@ -150,7 +151,11 @@ function ColorPicker() {
         setNumColors(data.numColors ?? data.colors.length);
         setColor(data.colors);
         setColorNames(data.names ?? data.colors.map((_: string, i: number) => `color${i + 1}`));
-        if (data.themeTokens) setThemeTokens(data.themeTokens);
+        if (data.themeTokens) {
+          setThemeTokens(data.themeTokens);
+          // 復元済みトークンが primary useEffect で上書きされるのを防ぐ
+          prevPrimaryRef.current = data.colors[0];
+        }
       }
     } catch { /* ignore */ }
   }, []);
@@ -242,7 +247,6 @@ function ColorPicker() {
 
   // Primary から grey + utility tokens を生成（手動編集も可能）
   const primaryColor = color.length > 0 ? color[0] : undefined;
-  const prevPrimaryRef = useRef<string | undefined>(undefined);
   useEffect(() => {
     if (!primaryColor) return;
     // 初回生成 or primary カラー変更時のみ再生成（手動編集を保護）

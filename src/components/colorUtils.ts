@@ -50,7 +50,9 @@ export function generateColorScheme(hex: string): ColorPalette {
   if (cached) return cached;
 
   const theme = themeFromSourceColor(argbFromHex(key));
-  const p = theme.palettes.primary;
+  // 無彩色 (chroma < 8) は neutral palette、有彩色は primary palette
+  const inputChroma = chroma(key).lch()[1] || 0;
+  const p = inputChroma < 8 ? theme.palettes.neutral : theme.palettes.primary;
   // Material Design 3: light=tone40, dark=tone80
   const lightMain = hexFromArgb(p.tone(40));
   const darkMain = hexFromArgb(p.tone(80));
