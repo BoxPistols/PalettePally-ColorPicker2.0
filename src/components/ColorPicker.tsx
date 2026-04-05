@@ -17,6 +17,7 @@ import { useHistory } from '@/hooks/useHistory';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { HarmonyDialog } from './harmony/HarmonyDialog';
 import { WcagGridDialog } from './wcag/WcagGridDialog';
+import { CompareDialog } from './compare/CompareDialog';
 import { useAuthContext } from './auth/AuthProvider';
 import { LoginDialog } from './auth/LoginDialog';
 import { UserMenu } from './auth/UserMenu';
@@ -97,6 +98,7 @@ function ColorPicker() {
   // Harmony / WCAG Grid / Help / Example / Export / Import / Figma state
   const [harmonyOpen, setHarmonyOpen] = useState(false);
   const [wcagGridOpen, setWcagGridOpen] = useState(false);
+  const [compareOpen, setCompareOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [exampleOpen, setExampleOpen] = useState(false);
   const [exportHubOpen, setExportHubOpen] = useState(false);
@@ -661,6 +663,16 @@ function ColorPicker() {
               WCAG Grid
             </Button>
           </Tooltip>
+          <Tooltip title='Compare with another palette' arrow>
+            <Button
+              variant='text'
+              onClick={() => setCompareOpen(true)}
+              size='small'
+              sx={headerButtonSx}
+            >
+              Compare
+            </Button>
+          </Tooltip>
 
           <Tooltip title='Export (JSON/DTCG/CSS/SCSS/MUI/Tailwind/MCP)' arrow>
             <Button
@@ -1109,6 +1121,13 @@ function ColorPicker() {
         open={wcagGridOpen}
         onClose={() => setWcagGridOpen(false)}
         paletteData={buildPaletteData()}
+      />
+
+      {/* ===== Compare ===== */}
+      <CompareDialog
+        open={compareOpen}
+        onClose={() => setCompareOpen(false)}
+        current={buildPaletteData()}
       />
 
       {/* ===== Help Dialog ===== */}
