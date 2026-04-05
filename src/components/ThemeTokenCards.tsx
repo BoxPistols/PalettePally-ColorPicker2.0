@@ -6,6 +6,7 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
+  DialogActions,
   IconButton,
   TextField,
   Button,
@@ -659,3 +660,120 @@ export const UtilityGroupCard = memo<{
   );
 });
 UtilityGroupCard.displayName = 'UtilityGroupCard';
+
+// ══════════════════════════════════════
+// Add Group Card (empty placeholder)
+// ══════════════════════════════════════
+
+export const AddGroupCard = memo<{
+  utility: ThemeTokens['utility'];
+  onUpdate: (utility: ThemeTokens['utility']) => void;
+}>(({ utility, onUpdate }) => {
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [groupName, setGroupName] = useState('');
+  const [error, setError] = useState('');
+
+  const handleAdd = () => {
+    const name = groupName.trim();
+    if (!name) return;
+    if (utility.light[name]) {
+      setError('Group already exists');
+      return;
+    }
+    onUpdate({
+      light: { ...utility.light, [name]: { default: '#000000' } },
+      dark: { ...utility.dark, [name]: { default: '#ffffff' } },
+    });
+    setGroupName('');
+    setError('');
+    setDialogOpen(false);
+  };
+
+  return (
+    <>
+      <Box
+        onClick={() => setDialogOpen(true)}
+        sx={{
+          borderRadius: '12px',
+          border: '2px dashed rgba(0,0,0,0.15)',
+          bgcolor: 'transparent',
+          cursor: 'pointer',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: 180,
+          transition: 'all 0.2s ease',
+          '&:hover': {
+            borderColor: '#3f50b5',
+            bgcolor: 'rgba(63,80,181,0.04)',
+          },
+        }}
+      >
+        <Box
+          sx={{
+            width: 40,
+            height: 40,
+            borderRadius: '50%',
+            bgcolor: 'rgba(0,0,0,0.05)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            mb: 1,
+          }}
+        >
+          <svg width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='rgba(0,0,0,0.5)' strokeWidth='2.5' strokeLinecap='round'>
+            <line x1='12' y1='5' x2='12' y2='19' />
+            <line x1='5' y1='12' x2='19' y2='12' />
+          </svg>
+        </Box>
+        <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: 'rgba(0,0,0,0.6)' }}>
+          Add Token Group
+        </Typography>
+        <Typography sx={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.4)', mt: 0.25 }}>
+          e.g. icon, chart, status
+        </Typography>
+      </Box>
+
+      <Dialog
+        open={dialogOpen}
+        onClose={() => { setDialogOpen(false); setError(''); }}
+        maxWidth='xs'
+        fullWidth
+        PaperProps={{ sx: { borderRadius: '12px' } }}
+      >
+        <DialogTitle sx={{ fontWeight: 700, fontSize: '1rem' }}>
+          New Token Group
+        </DialogTitle>
+        <DialogContent>
+          <TextField
+            value={groupName}
+            onChange={e => { setGroupName(e.target.value); setError(''); }}
+            onKeyDown={e => { if (e.key === 'Enter') handleAdd(); }}
+            placeholder='e.g. icon, chart, status'
+            fullWidth
+            size='small'
+            autoFocus
+            error={!!error}
+            helperText={error}
+            sx={{ mt: 1 }}
+          />
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => { setDialogOpen(false); setError(''); }} sx={{ textTransform: 'none' }}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleAdd}
+            variant='contained'
+            disabled={!groupName.trim()}
+            sx={{ textTransform: 'none', fontWeight: 600 }}
+          >
+            Create
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
+  );
+});
+AddGroupCard.displayName = 'AddGroupCard';

@@ -11,7 +11,7 @@ import {
 import chroma from 'chroma-js';
 import ColorInputField from './ColorInputField';
 import { PaletteCard } from './PaletteGrid';
-import { GreyScaleCard, UtilityGroupCard } from './ThemeTokenCards';
+import { GreyScaleCard, UtilityGroupCard, AddGroupCard } from './ThemeTokenCards';
 import { ConfirmDialog } from './common/ConfirmDialog';
 import { useConfirmDialog } from '@/hooks/useConfirmDialog';
 import { useAuthContext } from './auth/AuthProvider';
@@ -608,6 +608,24 @@ function ColorPicker() {
             style={{ display: 'none' }}
           />
 
+          {/* Navigation */}
+          <Button
+            variant='text'
+            href='/example'
+            size='small'
+            sx={headerButtonSx}
+          >
+            Example
+          </Button>
+          <Button
+            variant='text'
+            href='/help'
+            size='small'
+            sx={headerButtonSx}
+          >
+            Help
+          </Button>
+
           {/* Divider */}
           <Box sx={{ width: '1px', height: 24, bgcolor: 'rgba(0,0,0,0.1)' }} />
 
@@ -779,6 +797,12 @@ function ColorPicker() {
                 />
               </Grid>
             ))}
+            <Grid item xs={12} sm={6} md={4} lg={3}>
+              <AddGroupCard
+                utility={themeTokens.utility}
+                onUpdate={utility => setThemeTokens(prev => prev ? { ...prev, utility } : prev)}
+              />
+            </Grid>
           </Grid>
         </Box>
       )}
