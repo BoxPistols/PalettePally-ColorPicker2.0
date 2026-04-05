@@ -31,25 +31,22 @@ import { FigmaExportDialog } from './figma/FigmaExportDialog';
 import { FigmaImportDialog } from './figma/FigmaImportDialog';
 import * as firestoreService from '@/lib/firebase/firestore';
 
-// "P" ロゴ: 文字 P + 仲間たちのカラフルドット (pally = party/friends)
+// "PP" ロゴ: Palette Pally の頭文字を2つ並べたミニマル構成
 const LogoMark = () => (
-  <svg width='40' height='40' viewBox='0 0 40 40' fill='none'>
-    <defs>
-      <linearGradient id='pally-p' x1='8' y1='6' x2='32' y2='34' gradientUnits='userSpaceOnUse'>
-        <stop offset='0' stopColor='#7B6BC4' />
-        <stop offset='0.6' stopColor='#4A90D9' />
-        <stop offset='1' stopColor='#3EBD6E' />
-      </linearGradient>
-    </defs>
-    {/* 周りの仲間ドット */}
-    <circle cx='33' cy='6' r='3.5' fill='#E07A5F' />
-    <circle cx='36' cy='19' r='2.5' fill='#F2C94C' />
-    <circle cx='5' cy='33' r='3' fill='#3EBD6E' />
-    <circle cx='22' cy='37' r='2.5' fill='#E07A5F' />
-    {/* 文字 P */}
+  <svg width='44' height='36' viewBox='0 0 44 36' fill='none'>
+    {/* P1 — indigo */}
     <path
-      d='M 8 5 L 8 35 L 13 35 L 13 24 L 21 24 C 28 24, 33 19.5, 33 14.5 C 33 9.5, 28 5, 21 5 Z M 13 10 L 21 10 C 24.5 10, 27.5 12, 27.5 14.5 C 27.5 17, 24.5 19, 21 19 L 13 19 Z'
-      fill='url(#pally-p)'
+      fillRule='evenodd'
+      clipRule='evenodd'
+      d='M 2 3 L 2 33 L 6.5 33 L 6.5 22 L 13 22 C 18.5 22, 22 18, 22 12.5 C 22 7, 18.5 3, 13 3 Z M 6.5 7.5 L 13 7.5 C 15.8 7.5, 17.5 9.5, 17.5 12.5 C 17.5 15.5, 15.8 17.5, 13 17.5 L 6.5 17.5 Z'
+      fill='#4A5EC4'
+    />
+    {/* P2 — coral */}
+    <path
+      fillRule='evenodd'
+      clipRule='evenodd'
+      d='M 22 3 L 22 33 L 26.5 33 L 26.5 22 L 33 22 C 38.5 22, 42 18, 42 12.5 C 42 7, 38.5 3, 33 3 Z M 26.5 7.5 L 33 7.5 C 35.8 7.5, 37.5 9.5, 37.5 12.5 C 37.5 15.5, 35.8 17.5, 33 17.5 L 26.5 17.5 Z'
+      fill='#E07A5F'
     />
   </svg>
 );
