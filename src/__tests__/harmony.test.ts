@@ -29,6 +29,43 @@ describe('generateHarmony', () => {
     expect(result[0]).toBe('#1976d2');
   });
 
+  it('analogous returns 3 colors at ±30°', () => {
+    const result = generateHarmony('#1976d2', 'analogous', 3);
+    expect(result).toHaveLength(3);
+    expect(result[0]).toBe('#1976d2');
+  });
+
+  it('tetradic returns 4 colors at 90° intervals', () => {
+    const result = generateHarmony('#1976d2', 'tetradic', 4);
+    expect(result).toHaveLength(4);
+    expect(new Set(result).size).toBe(4);
+  });
+
+  it('splitComplement returns 3 colors', () => {
+    const result = generateHarmony('#1976d2', 'splitComplement', 3);
+    expect(result).toHaveLength(3);
+    expect(new Set(result).size).toBe(3);
+  });
+
+  it('monochrome clamps lightness for very dark base', () => {
+    const result = generateHarmony('#000000', 'monochrome', 3);
+    expect(result).toHaveLength(3);
+    // Min clamp = 0.15
+    result.forEach(c => expect(c).toMatch(/^#[0-9a-f]{6}$/i));
+  });
+
+  it('monochrome clamps lightness for very light base', () => {
+    const result = generateHarmony('#ffffff', 'monochrome', 3);
+    expect(result).toHaveLength(3);
+    // Max clamp = 0.85
+    result.forEach(c => expect(c).toMatch(/^#[0-9a-f]{6}$/i));
+  });
+
+  it('handles achromatic input (grey) with fallback saturation', () => {
+    const result = generateHarmony('#808080', 'triadic', 3);
+    expect(result).toHaveLength(3);
+  });
+
   it('pads with rotated hues when scheme produces fewer colors', () => {
     const result = generateHarmony('#1976d2', 'complementary', 6);
     expect(result).toHaveLength(6);

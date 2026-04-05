@@ -1,9 +1,11 @@
 import {
   generateColorScheme,
+  generateThemeTokens,
   defaultColorName,
   defaultColorForName,
   DEFAULT_COLOR_NAMES,
   MUI_DEFAULT_COLORS,
+  DEFAULT_GREY_KEYS,
   clearColorSchemeCache,
 } from '@/components/colorUtils';
 
@@ -114,5 +116,69 @@ describe('generateColorScheme', () => {
       expect(result.light[shade as keyof typeof result.light]).toMatch(/^#[0-9a-f]{6}$/i);
       expect(result.dark[shade as keyof typeof result.dark]).toMatch(/^#[0-9a-f]{6}$/i);
     });
+  });
+});
+
+describe('generateThemeTokens', () => {
+  it('generates all 10 default grey shades', () => {
+    const result = generateThemeTokens('#1976d2');
+    DEFAULT_GREY_KEYS.forEach(k => {
+      expect(result.grey.light[k]).toMatch(/^#[0-9a-f]{6}$/i);
+      expect(result.grey.dark[k]).toMatch(/^#[0-9a-f]{6}$/i);
+    });
+  });
+
+  it('generates utility tokens with all required groups', () => {
+    const result = generateThemeTokens('#1976d2');
+    ['text', 'background', 'surface', 'action', 'divider', 'common'].forEach(
+      group => {
+        expect(result.utility.light[group]).toBeDefined();
+        expect(result.utility.dark[group]).toBeDefined();
+      }
+    );
+  });
+
+  it('text utility has primary/secondary/disabled', () => {
+    const result = generateThemeTokens('#1976d2');
+    expect(result.utility.light.text).toHaveProperty('primary');
+    expect(result.utility.light.text).toHaveProperty('secondary');
+    expect(result.utility.light.text).toHaveProperty('disabled');
+  });
+
+  it('background utility has default/paper', () => {
+    const result = generateThemeTokens('#1976d2');
+    expect(result.utility.light.background).toHaveProperty('default');
+    expect(result.utility.light.background).toHaveProperty('paper');
+  });
+
+  it('action utility uses rgba values', () => {
+    const result = generateThemeTokens('#1976d2');
+    expect(result.utility.light.action.hover).toMatch(/^rgba\(/);
+    expect(result.utility.dark.action.hover).toMatch(/^rgba\(/);
+  });
+
+  it('divider utility has default key (rgba)', () => {
+    const result = generateThemeTokens('#1976d2');
+    expect(result.utility.light.divider.default).toMatch(/^rgba\(/);
+    expect(result.utility.dark.divider.default).toMatch(/^rgba\(/);
+  });
+
+  it('common has black/white', () => {
+    const result = generateThemeTokens('#1976d2');
+    expect(result.utility.light.common).toHaveProperty('black');
+    expect(result.utility.light.common).toHaveProperty('white');
+    expect(result.utility.light.common.white).toBe('#ffffff');
+  });
+
+  it('caches results per hex', () => {
+    const a = generateThemeTokens('#1976d2');
+    const b = generateThemeTokens('#1976d2');
+    expect(a).toBe(b);
+  });
+
+  it('derives different tokens for different primary colors', () => {
+    const blue = generateThemeTokens('#1976d2');
+    const red = generateThemeTokens('#d32f2f');
+    expect(blue.grey.light['500']).not.toBe(red.grey.light['500']);
   });
 });

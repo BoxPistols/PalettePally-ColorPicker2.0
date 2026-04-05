@@ -138,6 +138,40 @@ describe('dtcgToPalette', () => {
     expect(restored.numColors).toBe(restored.colors?.length);
   });
 
+  it('ignores $description and non-color values', () => {
+    const dtcg = {
+      grey: {
+        $description: 'Grey scale',
+        light: {
+          $description: 'nested desc',
+          '50': { $value: '#fafafa', $type: 'color' as const },
+          invalid: 'not-a-token-object' as never, // non-object
+        },
+        dark: {
+          '50': { $value: '#121212', $type: 'color' as const },
+        },
+      },
+    };
+    const restored = dtcgToPalette(dtcg);
+    expect(restored.themeTokens?.grey.light['50']).toBe('#fafafa');
+    expect(restored.themeTokens?.grey.light['invalid']).toBeUndefined();
+  });
+
+  it('skips action-colors entry missing light/dark modes', () => {
+    const dtcg = {
+      'action-colors': {
+        primary: {
+          // only light, no dark → should be skipped
+          light: {
+            main: { $value: '#ff0000', $type: 'color' as const },
+          },
+        },
+      },
+    };
+    const restored = dtcgToPalette(dtcg);
+    expect(restored.colors).toEqual([]);
+  });
+
   it('handles DTCG with only action-colors (no themeTokens)', () => {
     const dtcg = {
       'action-colors': {

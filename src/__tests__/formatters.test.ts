@@ -246,6 +246,98 @@ describe('detectAndParse edge cases', () => {
   });
 });
 
+describe('Branch coverage edge cases', () => {
+  const emptyEntryData: PaletteData = {
+    numColors: 1,
+    colors: ['#ff0000'],
+    names: ['primary'],
+    palette: [{ primary: undefined as never }], // entry with falsy palette
+    themeTokens: null,
+  };
+
+  it('forEachAction skips entries with undefined palette', () => {
+    // toCSS uses forEachAction internally
+    expect(() => toCSS(emptyEntryData)).not.toThrow();
+  });
+
+  it('toTailwind skips entries with undefined palette', () => {
+    expect(() => toTailwind(emptyEntryData)).not.toThrow();
+  });
+
+  it('findVariant returns null for unknown name', () => {
+    const noNames: PaletteData = {
+      numColors: 0, colors: [], names: [], palette: [], themeTokens: null,
+    };
+    const result = toMuiTheme(noNames);
+    expect(result).not.toContain('primary: {');
+  });
+
+  it('findVariant handles empty palette entry', () => {
+    const badData: PaletteData = {
+      numColors: 1,
+      colors: ['#ff0000'],
+      names: ['primary'],
+      palette: [{}], // empty object
+      themeTokens: null,
+    };
+    expect(() => toMuiTheme(badData)).not.toThrow();
+  });
+
+  it('toMCPPrompt handles missing colors array', () => {
+    const noColors: PaletteData = {
+      numColors: 0,
+      colors: [],
+      names: [],
+      palette: [],
+      themeTokens: null,
+    };
+    const result = toMCPPrompt(noColors);
+    expect(result).toContain('N/A');
+  });
+
+  it('parseTokensStudio skips non-object groups', () => {
+    const input = JSON.stringify({
+      global: {
+        color: {
+          primary: 'not-an-object', // invalid
+          secondary: null,           // null
+          tertiary: {
+            light: {
+              main: {}, // no .value
+            },
+          },
+          valid: {
+            light: {
+              main: { value: '#123456' },
+            },
+          },
+        },
+      },
+    });
+    const result = detectAndParse(input);
+    expect(result.format).toBe('tokensStudio');
+    if (result.format === 'tokensStudio') {
+      expect(result.data.colors).toEqual(['#123456']);
+      expect(result.data.names).toEqual(['valid']);
+    }
+  });
+
+  it('parseTokensStudio handles missing light mode', () => {
+    const input = JSON.stringify({
+      global: {
+        color: {
+          primary: { dark: { main: { value: '#000000' } } }, // no light
+        },
+      },
+    });
+    const result = detectAndParse(input);
+    expect(result.format).toBe('tokensStudio');
+    if (result.format === 'tokensStudio') {
+      expect(result.data.colors).toEqual([]);
+    }
+  });
+});
+
 describe('Round-trip: Export → Import', () => {
   it('JSON: export then import restores same data', () => {
     const exported = toJSON(sampleData);

@@ -16,10 +16,17 @@ export function useHistory(
   const [past, setPast] = useState<Snapshot[]>([]);
   const [future, setFuture] = useState<Snapshot[]>([]);
   const skipNextPush = useRef(false);
+  const initializedRef = useRef(false);
   const prevRef = useRef<Snapshot>({ colors, names });
 
   // state 変更を検出して past にプッシュ
   useEffect(() => {
+    // 初回マウント時の localStorage 復元などを履歴から除外
+    if (!initializedRef.current) {
+      initializedRef.current = true;
+      prevRef.current = { colors, names };
+      return;
+    }
     if (skipNextPush.current) {
       skipNextPush.current = false;
       prevRef.current = { colors, names };

@@ -17,14 +17,24 @@ export const HARMONY_LABELS: Record<HarmonyScheme, string> = {
   monochrome: 'Monochrome',
 };
 
+// 無彩色入力のフォールバック値
+const FALLBACK_SATURATION = 0.7;
+const FALLBACK_LIGHTNESS = 0.5;
+// Monochrome の明度 clamp
+const MONOCHROME_LIGHTNESS_DELTA = 0.3;
+const MONOCHROME_MIN_LIGHTNESS = 0.15;
+const MONOCHROME_MAX_LIGHTNESS = 0.85;
+
 // base の色相から harmony scheme に基づく色を生成
 export function generateHarmony(baseHex: string, scheme: HarmonyScheme, count: number): string[] {
   const base = chroma(baseHex);
   const [h, s, l] = base.hsl();
   const hue = h || 0;
+  const sat = s || FALLBACK_SATURATION;
+  const light = l || FALLBACK_LIGHTNESS;
   const result: string[] = [baseHex];
 
-  const rotate = (offset: number) => chroma.hsl((hue + offset + 360) % 360, s || 0.7, l || 0.5).hex();
+  const rotate = (offset: number) => chroma.hsl((hue + offset + 360) % 360, sat, light).hex();
 
   switch (scheme) {
     case 'complementary':
@@ -44,10 +54,9 @@ export function generateHarmony(baseHex: string, scheme: HarmonyScheme, count: n
       break;
     case 'monochrome': {
       // 明度を変化させた monochrome
-      const baseLightness = l || 0.5;
       result.push(
-        chroma.hsl(hue, s || 0.7, Math.max(0.15, baseLightness - 0.3)).hex(),
-        chroma.hsl(hue, s || 0.7, Math.min(0.85, baseLightness + 0.3)).hex(),
+        chroma.hsl(hue, sat, Math.max(MONOCHROME_MIN_LIGHTNESS, light - MONOCHROME_LIGHTNESS_DELTA)).hex(),
+        chroma.hsl(hue, sat, Math.min(MONOCHROME_MAX_LIGHTNESS, light + MONOCHROME_LIGHTNESS_DELTA)).hex(),
       );
       break;
     }

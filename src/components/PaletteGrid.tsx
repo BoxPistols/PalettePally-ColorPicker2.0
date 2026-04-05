@@ -7,6 +7,7 @@ import {
   DialogTitle,
   DialogContent,
   IconButton,
+  Tooltip,
 } from '@mui/material';
 import chroma from 'chroma-js';
 import { ColorPalette, MuiColorVariant } from './colorUtils';
@@ -271,27 +272,29 @@ const WcagBadge = memo<{ ratio: number }>(({ ratio }) => {
   const level = wcagLevel(ratio);
   const color = WCAG_COLOR[level];
   return (
-    <Box
-      title={`${ratio.toFixed(2)}:1 (${level})`}
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 0.25,
-        py: 0.5,
-        borderRadius: '6px',
-        bgcolor: `${color}1a`,
-        border: `1px solid ${color}`,
-      }}
-    >
-      <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color, lineHeight: 1, fontFamily: 'monospace' }}>
-        {ratio.toFixed(1)}
-      </Typography>
-      <Typography sx={{ fontSize: '0.55rem', fontWeight: 600, color, lineHeight: 1, letterSpacing: 0.3 }}>
-        {level}
-      </Typography>
-    </Box>
+    <Tooltip title={`${ratio.toFixed(2)}:1 — ${level}`} arrow placement='top'>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 0.25,
+          py: 0.5,
+          borderRadius: '6px',
+          bgcolor: `${color}1a`,
+          border: `1px solid ${color}`,
+          cursor: 'help',
+        }}
+      >
+        <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color, lineHeight: 1, fontFamily: 'monospace' }}>
+          {ratio.toFixed(1)}
+        </Typography>
+        <Typography sx={{ fontSize: '0.55rem', fontWeight: 600, color, lineHeight: 1, letterSpacing: 0.3 }}>
+          {level}
+        </Typography>
+      </Box>
+    </Tooltip>
   );
 });
 WcagBadge.displayName = 'WcagBadge';
