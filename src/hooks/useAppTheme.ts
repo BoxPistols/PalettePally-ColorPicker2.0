@@ -1,32 +1,31 @@
 import { useState, useEffect } from 'react';
 
-export type AppThemeMode = 'light' | 'dark';
-
-// アプリ UI 自体のテーマ (localStorage 永続化)
+// 画面モノクロモード (色覚シミュレーション) — CSS filter ベース
+// 全ハードコード色を自動的にグレースケール化する
 export function useAppTheme() {
-  const [mode, setMode] = useState<AppThemeMode>('light');
+  const [greyscale, setGreyscale] = useState(false);
 
   // Mount 時に localStorage から復元
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('palettePallyAppTheme');
-      if (saved === 'light' || saved === 'dark') {
-        setMode(saved);
-        document.documentElement.setAttribute('data-theme', saved);
+      const saved = localStorage.getItem('palettePallyGreyscale');
+      if (saved === 'true') {
+        setGreyscale(true);
+        document.documentElement.style.filter = 'grayscale(100%)';
       }
     } catch { /* ignore */ }
   }, []);
 
   const toggle = () => {
-    setMode(prev => {
-      const next = prev === 'light' ? 'dark' : 'light';
+    setGreyscale(prev => {
+      const next = !prev;
       try {
-        localStorage.setItem('palettePallyAppTheme', next);
-        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('palettePallyGreyscale', String(next));
+        document.documentElement.style.filter = next ? 'grayscale(100%)' : '';
       } catch { /* ignore */ }
       return next;
     });
   };
 
-  return { mode, toggle };
+  return { greyscale, toggle };
 }

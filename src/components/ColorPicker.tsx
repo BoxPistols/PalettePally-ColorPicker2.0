@@ -16,7 +16,6 @@ import { useConfirmDialog } from '@/hooks/useConfirmDialog';
 import { useHistory } from '@/hooks/useHistory';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { HarmonyDialog } from './harmony/HarmonyDialog';
-import { WcagGridDialog } from './wcag/WcagGridDialog';
 import { CompareDialog } from './compare/CompareDialog';
 import { useAuthContext } from './auth/AuthProvider';
 import { LoginDialog } from './auth/LoginDialog';
@@ -97,7 +96,6 @@ function ColorPicker() {
 
   // Harmony / WCAG Grid / Help / Example / Export / Import / Figma state
   const [harmonyOpen, setHarmonyOpen] = useState(false);
-  const [wcagGridOpen, setWcagGridOpen] = useState(false);
   const [compareOpen, setCompareOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [exampleOpen, setExampleOpen] = useState(false);
@@ -381,8 +379,8 @@ function ColorPicker() {
     });
   }, [confirm]);
 
-  // アプリ UI のライト/ダークモード
-  const { mode: appTheme, toggle: toggleAppTheme } = useAppTheme();
+  // 画面モノクロモード (色覚シミュレーション)
+  const { greyscale, toggle: toggleGreyscale } = useAppTheme();
 
   // Undo/Redo (Cmd+Z / Cmd+Shift+Z)
   const { undo, redo, canUndo, canRedo } = useHistory(color, colorNames, (c, n) => {
@@ -653,16 +651,6 @@ function ColorPicker() {
               Harmony
             </Button>
           </Tooltip>
-          <Tooltip title='WCAG Contrast Grid' arrow>
-            <Button
-              variant='text'
-              onClick={() => setWcagGridOpen(true)}
-              size='small'
-              sx={headerButtonSx}
-            >
-              WCAG Grid
-            </Button>
-          </Tooltip>
           <Tooltip title='Compare with another palette' arrow>
             <Button
               variant='text'
@@ -792,26 +780,22 @@ function ColorPicker() {
           >
             Help
           </Button>
-          <Tooltip title={`App theme: ${appTheme} (toggle)`} arrow>
+          <Tooltip title={greyscale ? 'Greyscale ON (click to disable)' : 'Greyscale mode (monochrome preview)'} arrow>
             <IconButton
-              onClick={toggleAppTheme}
+              onClick={toggleGreyscale}
               size='small'
               sx={{
                 width: 34, height: 34, borderRadius: '8px',
-                border: '1px solid rgba(0,0,0,0.12)', bgcolor: '#f5f5f5', color: '#1a1a2e',
-                '&:hover': { bgcolor: '#eaeaea' },
+                border: '1px solid rgba(0,0,0,0.12)',
+                bgcolor: greyscale ? '#1a1a2e' : '#f5f5f5',
+                color: greyscale ? '#fff' : '#1a1a2e',
+                '&:hover': { bgcolor: greyscale ? '#2c2c44' : '#eaeaea' },
               }}
             >
-              {appTheme === 'light' ? (
-                <svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
-                  <path d='M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z' />
-                </svg>
-              ) : (
-                <svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
-                  <circle cx='12' cy='12' r='5' />
-                  <path d='M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42' />
-                </svg>
-              )}
+              <svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
+                <circle cx='12' cy='12' r='10' />
+                <path d='M12 2a10 10 0 0 0 0 20z' fill='currentColor' />
+              </svg>
             </IconButton>
           </Tooltip>
 
@@ -1114,13 +1098,6 @@ function ColorPicker() {
         baseColor={color[0] ?? '#1976d2'}
         count={numColors}
         onApply={newColors => setColor(newColors)}
-      />
-
-      {/* ===== WCAG Grid ===== */}
-      <WcagGridDialog
-        open={wcagGridOpen}
-        onClose={() => setWcagGridOpen(false)}
-        paletteData={buildPaletteData()}
       />
 
       {/* ===== Compare ===== */}
