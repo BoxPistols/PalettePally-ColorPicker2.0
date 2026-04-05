@@ -18,6 +18,7 @@ import {
   FORMAT_LABELS,
   FORMAT_EXTENSIONS,
 } from '@/lib/formatters';
+import { downloadPalettePNG } from '@/lib/imageExport';
 
 type ExportHubDialogProps = {
   open: boolean;
@@ -132,6 +133,20 @@ export const ExportHubDialog = memo<ExportHubDialogProps>(
               {lineCount} lines · .{FORMAT_EXTENSIONS[format]}
             </Typography>
             <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button
+                size='small'
+                onClick={() => downloadPalettePNG(paletteData, { mode: 'light' })}
+                sx={{ textTransform: 'none', fontWeight: 600 }}
+              >
+                PNG (Light)
+              </Button>
+              <Button
+                size='small'
+                onClick={() => downloadPalettePNG(paletteData, { mode: 'dark' })}
+                sx={{ textTransform: 'none', fontWeight: 600 }}
+              >
+                PNG (Dark)
+              </Button>
               <Button
                 size='small'
                 onClick={handleCopy}

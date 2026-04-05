@@ -246,6 +246,49 @@ describe('detectAndParse edge cases', () => {
   });
 });
 
+describe('Defensive null checks', () => {
+  it('forEachAction handles missing palette field (undefined)', () => {
+    const noPalette = { numColors: 0, colors: [], names: [], themeTokens: null } as unknown as PaletteData;
+    expect(() => toCSS(noPalette)).not.toThrow();
+  });
+
+  it('forEachAction handles empty entry object', () => {
+    const emptyEntry: PaletteData = {
+      numColors: 1, colors: [], names: [], palette: [{}], themeTokens: null,
+    };
+    expect(() => toCSS(emptyEntry)).not.toThrow();
+  });
+
+  it('toTailwind handles missing palette field', () => {
+    const noPalette = { numColors: 0, colors: [], names: [], themeTokens: null } as unknown as PaletteData;
+    expect(() => toTailwind(noPalette)).not.toThrow();
+  });
+
+  it('toTailwind handles empty entry', () => {
+    const emptyEntry: PaletteData = {
+      numColors: 1, colors: [], names: [], palette: [{}], themeTokens: null,
+    };
+    expect(() => toTailwind(emptyEntry)).not.toThrow();
+  });
+
+  it('toMCPPrompt handles missing palette field', () => {
+    const noPalette = { numColors: 0, colors: [], names: [], themeTokens: null } as unknown as PaletteData;
+    const result = toMCPPrompt(noPalette);
+    expect(result).toContain('0 色'); // palette.length ?? 0
+  });
+
+  it('findVariant handles missing names field', () => {
+    const noNames = { numColors: 0, colors: [], palette: [], themeTokens: null } as unknown as PaletteData;
+    expect(() => toMuiTheme(noNames)).not.toThrow();
+  });
+
+  it('parseTokensStudio handles missing global.color field', () => {
+    const input = JSON.stringify({ global: {} });
+    const result = detectAndParse(input);
+    expect(result.format).toBe('unknown'); // not detected as tokensStudio without color
+  });
+});
+
 describe('Branch coverage edge cases', () => {
   const emptyEntryData: PaletteData = {
     numColors: 1,

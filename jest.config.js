@@ -8,7 +8,7 @@ module.exports = {
   testMatch: ['**/__tests__/**/*.test.ts', '**/__tests__/**/*.test.tsx'],
   transform: {
     '^.+\\.tsx?$': ['ts-jest', {
-      tsconfig: { jsx: 'react', esModuleInterop: true, module: 'commonjs' },
+      tsconfig: { jsx: 'react-jsx', esModuleInterop: true, module: 'commonjs' },
     }],
     '^.+\\.js$': ['ts-jest', {
       tsconfig: { allowJs: true, esModuleInterop: true, module: 'commonjs' },

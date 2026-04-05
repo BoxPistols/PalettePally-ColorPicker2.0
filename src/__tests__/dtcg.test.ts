@@ -172,6 +172,96 @@ describe('dtcgToPalette', () => {
     expect(restored.colors).toEqual([]);
   });
 
+  it('skips string values at action-colors top level ($description)', () => {
+    const dtcg = {
+      'action-colors': {
+        $description: 'group description' as never,
+        primary: {
+          light: {
+            main: { $value: '#ff0000', $type: 'color' as const },
+            dark: { $value: '#cc0000', $type: 'color' as const },
+            light: { $value: '#ff6666', $type: 'color' as const },
+            lighter: { $value: '#ffcccc', $type: 'color' as const },
+            contrastText: { $value: '#ffffff', $type: 'color' as const },
+          },
+          dark: {
+            main: { $value: '#ff3333', $type: 'color' as const },
+            dark: { $value: '#ff0000', $type: 'color' as const },
+            light: { $value: '#ff9999', $type: 'color' as const },
+            lighter: { $value: '#cc0000', $type: 'color' as const },
+            contrastText: { $value: '#000000', $type: 'color' as const },
+          },
+        },
+      },
+    };
+    const restored = dtcgToPalette(dtcg);
+    expect(restored.names).toEqual(['primary']);
+  });
+
+  it('uses fallback colors for missing shade tokens', () => {
+    const dtcg = {
+      'action-colors': {
+        primary: {
+          light: {
+            // only main provided — others fall back
+            main: { $value: '#123456', $type: 'color' as const },
+          },
+          dark: {
+            main: { $value: '#abcdef', $type: 'color' as const },
+          },
+        },
+      },
+    };
+    const restored = dtcgToPalette(dtcg);
+    const entry = restored.palette?.[0];
+    expect(entry).toBeDefined();
+    const primary = Object.values(entry!)[0];
+    expect(primary.light.main).toBe('#123456');
+    expect(primary.light.dark).toBe('#000000');
+    expect(primary.light.contrastText).toBe('#ffffff');
+  });
+
+  it('handles grey with only light mode (no dark)', () => {
+    const dtcg = {
+      grey: {
+        light: { '50': { $value: '#fafafa', $type: 'color' as const } },
+        // no dark
+      },
+    };
+    const restored = dtcgToPalette(dtcg);
+    expect(restored.themeTokens?.grey.light['50']).toBe('#fafafa');
+    expect(restored.themeTokens?.grey.dark).toEqual({});
+  });
+
+  it('handles utility with only one mode (light or dark missing)', () => {
+    const dtcg = {
+      utility: {
+        light: { text: { primary: { $value: '#000', $type: 'color' as const } } },
+        // no dark → utility returns with grey fallback
+      },
+    };
+    const restored = dtcgToPalette(dtcg);
+    // When either mode missing, we skip to fallback (grey only)
+    expect(restored.themeTokens).toBeNull();
+  });
+
+  it('skips $description at utility group level', () => {
+    const dtcg = {
+      utility: {
+        light: {
+          $description: 'all utility' as never,
+          text: { primary: { $value: '#000', $type: 'color' as const } },
+        },
+        dark: {
+          text: { primary: { $value: '#fff', $type: 'color' as const } },
+        },
+      },
+    };
+    const restored = dtcgToPalette(dtcg);
+    expect(restored.themeTokens?.utility.light).toHaveProperty('text');
+    expect(restored.themeTokens?.utility.light).not.toHaveProperty('$description');
+  });
+
   it('handles DTCG with only action-colors (no themeTokens)', () => {
     const dtcg = {
       'action-colors': {
