@@ -32,20 +32,42 @@ export type ThemeTokens = {
 
 export const DEFAULT_GREY_KEYS = ['50', '100', '200', '300', '400', '500', '600', '700', '800', '900'];
 
+// MUI セマンティックカラー名（デフォルト）
+export const DEFAULT_COLOR_NAMES = [
+  'primary',
+  'secondary',
+  'success',
+  'warning',
+  'info',
+  'error',
+];
+
+export function defaultColorName(index: number): string {
+  return DEFAULT_COLOR_NAMES[index] ?? `color${index + 1}`;
+}
+
 // ── Helpers ──
 
-const getContrastText = (mainHex: string): string =>
-  chroma(mainHex).luminance() > 0.179 ? '#000000' : '#ffffff';
+export type ContrastMode = 'auto' | 'white';
+
+const getContrastText = (mainHex: string, mode: ContrastMode = 'auto'): string => {
+  if (mode === 'white') return '#ffffff';
+  return chroma(mainHex).luminance() > 0.179 ? '#000000' : '#ffffff';
+};
 
 // ── Module-level caches ──
 
 const colorSchemeCache = new Map<string, ColorPalette>();
 const themeTokensCache = new Map<string, ThemeTokens>();
 
+export function clearColorSchemeCache() {
+  colorSchemeCache.clear();
+}
+
 // ── Action Color Generator (cached) ──
 
-export function generateColorScheme(hex: string): ColorPalette {
-  const key = hex.toLowerCase();
+export function generateColorScheme(hex: string, contrastMode: ContrastMode = 'auto'): ColorPalette {
+  const key = `${hex.toLowerCase()}|${contrastMode}`;
   const cached = colorSchemeCache.get(key);
   if (cached) return cached;
 
@@ -64,14 +86,14 @@ export function generateColorScheme(hex: string): ColorPalette {
         dark: grey(30),
         light: grey(60),
         lighter: grey(90),
-        contrastText: getContrastText(lightMain),
+        contrastText: getContrastText(lightMain, contrastMode),
       },
       dark: {
         main: darkMain,
         dark: grey(60),
         light: grey(90),
         lighter: grey(30),
-        contrastText: getContrastText(darkMain),
+        contrastText: getContrastText(darkMain, contrastMode),
       },
     };
     colorSchemeCache.set(key, result);

@@ -27,7 +27,7 @@ export async function signOut(): Promise<void> {
 export function onAuthChange(callback: (user: User | null) => void): () => void {
   if (!auth) {
     callback(null);
-    return () => {};
+    return () => undefined;
   }
   return onAuthStateChanged(auth, callback);
 }

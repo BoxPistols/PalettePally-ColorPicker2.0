@@ -5,7 +5,6 @@ import {
   FigmaVariablesResponse,
   FigmaColor,
   ParsedVariable,
-  hexToFigmaColor,
   figmaColorToHex,
 } from './types';
 

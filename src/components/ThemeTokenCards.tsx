@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useState, useRef, useEffect } from 'react';
+import React, { memo, useCallback, useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -367,8 +367,8 @@ const GreyEditDialog = memo<{
   };
 
   const handleRemove = (shade: string) => {
-    const { [shade]: _l, ...lightRest } = grey.light;
-    const { [shade]: _d, ...darkRest } = grey.dark;
+    const lightRest = { ...grey.light }; delete lightRest[shade];
+    const darkRest = { ...grey.dark }; delete darkRest[shade];
     onUpdate({ light: lightRest, dark: darkRest });
   };
 
@@ -484,8 +484,8 @@ const UtilityEditDialog = memo<{
   };
 
   const handleRemoveEntry = (group: string, key: string) => {
-    const { [key]: _l, ...lightRest } = utility.light[group];
-    const { [key]: _d, ...darkRest } = utility.dark[group];
+    const lightRest = { ...utility.light[group] }; delete lightRest[key];
+    const darkRest = { ...utility.dark[group] }; delete darkRest[key];
     onUpdate({
       light: { ...utility.light, [group]: lightRest },
       dark: { ...utility.dark, [group]: darkRest },
@@ -501,8 +501,8 @@ const UtilityEditDialog = memo<{
   };
 
   const handleRemoveGroup = (group: string) => {
-    const { [group]: _l, ...lightRest } = utility.light;
-    const { [group]: _d, ...darkRest } = utility.dark;
+    const lightRest = { ...utility.light }; delete lightRest[group];
+    const darkRest = { ...utility.dark }; delete darkRest[group];
     onUpdate({ light: lightRest, dark: darkRest });
   };
 

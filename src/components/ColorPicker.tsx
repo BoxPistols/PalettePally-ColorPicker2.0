@@ -21,9 +21,7 @@ import { SavePaletteDialog } from './palette/SavePaletteDialog';
 import { PaletteListDrawer } from './palette/PaletteListDrawer';
 import { ShareDialog } from './palette/ShareDialog';
 import { PaletteVersionHistory } from './palette/PaletteVersionHistory';
-import DialogBox from './DialogBox';
-import { downloadJSON } from './utils';
-import { generateColorScheme, generateThemeTokens, ColorPalette, MuiColorVariant, ThemeTokens } from './colorUtils';
+import { generateColorScheme, generateThemeTokens, defaultColorName, ColorPalette, MuiColorVariant, ThemeTokens, ContrastMode } from './colorUtils';
 import { PaletteData, PaletteDocument } from '@/lib/types/palette';
 import { ParsedVariable } from '@/lib/figma/types';
 import { HelpDialog } from './help/HelpDialog';
@@ -90,6 +88,9 @@ function ColorPicker() {
   const [currentPaletteName, setCurrentPaletteName] = useState('');
   const [currentShareId, setCurrentShareId] = useState<string | null>(null);
 
+  // contrastText 戦略 ('auto' = WCAG準拠, 'white' = 常に白)
+  const [contrastMode, setContrastMode] = useState<ContrastMode>('auto');
+
   // Help / Example / Export / Import / Figma state
   const [helpOpen, setHelpOpen] = useState(false);
   const [exampleOpen, setExampleOpen] = useState(false);
@@ -102,20 +103,18 @@ function ColorPicker() {
   const [figmaFileKey, setFigmaFileKey] = useState('');
   const figmaConnected = Boolean(figmaPat && figmaFileKey);
 
-  const [numColors, setNumColors] = useState(4);
-  const [numColorsInput, setNumColorsInput] = useState('4');
+  const [numColors, setNumColors] = useState(6);
+  const [numColorsInput, setNumColorsInput] = useState('6');
   const [color, setColor] = useState<string[]>([]);
   const [palette, setPalette] = useState<
     { [colorName: string]: ColorPalette }[] | null
   >(null);
   const [colorNames, setColorNames] = useState(
-    Array.from({ length: numColors }, (_, i) => `color${i + 1}`)
+    Array.from({ length: numColors }, (_, i) => defaultColorName(i))
   );
 
   const [themeTokens, setThemeTokens] = useState<ThemeTokens | null>(null);
 
-  const [showDialog, setShowDialog] = useState(false);
-  const [dialogContent, setDialogContent] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const skipAutoResetRef = useRef(false);
@@ -149,7 +148,7 @@ function ColorPicker() {
           ...prev,
           ...Array.from(
             { length: numColors - prev.length },
-            (_, i) => `color${prev.length + i + 1}`
+            (_, i) => defaultColorName(prev.length + i)
           ),
         ];
       }
@@ -164,7 +163,7 @@ function ColorPicker() {
       return chroma.hsl(hue, 0.8, 0.5).hex();
     });
     setColor(initialColors);
-    setColorNames(Array.from({ length: numColors }, (_, i) => `color${i + 1}`));
+    setColorNames(Array.from({ length: numColors }, (_, i) => defaultColorName(i)));
   }, [numColors]);
 
   // localStorage から復元
@@ -177,7 +176,7 @@ function ColorPicker() {
         skipAutoResetRef.current = true;
         setNumColors(data.numColors ?? data.colors.length);
         setColor(data.colors);
-        setColorNames(data.names ?? data.colors.map((_: string, i: number) => `color${i + 1}`));
+        setColorNames(data.names ?? data.colors.map((_: string, i: number) => defaultColorName(i)));
         if (data.themeTokens) {
           setThemeTokens(data.themeTokens);
           // 復元済みトークンが primary useEffect で上書きされるのを防ぐ
@@ -243,10 +242,10 @@ function ColorPicker() {
 
   useEffect(() => {
     const newPalette = color.map((c, idx) => ({
-      [colorNames[idx]]: generateColorScheme(c),
+      [colorNames[idx]]: generateColorScheme(c, contrastMode),
     }));
     setPalette(newPalette);
-  }, [color, colorNames]);
+  }, [color, colorNames, contrastMode]);
 
   const handleColorNameChange = (index: number, newName: string) => {
     const newNames = [...colorNames];
@@ -414,12 +413,6 @@ function ColorPicker() {
       severity: 'warning',
     });
   }, [confirm]);
-
-  const exportToJson = () => {
-    const data = { colors: color, names: colorNames, palette, themeTokens };
-    setDialogContent(JSON.stringify(data, null, 2));
-    setShowDialog(true);
-  };
 
   const importFromJson = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files ? event.target.files[0] : null;
@@ -617,6 +610,39 @@ function ColorPicker() {
             style={{ display: 'none' }}
           />
 
+          {/* Contrast Mode Toggle */}
+          <Tooltip title='Contrast text: A11y (WCAG) or White (brand)' arrow>
+            <Box sx={{ display: 'flex', bgcolor: '#f5f5f5', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', p: '2px' }}>
+              {(['auto', 'white'] as ContrastMode[]).map(m => (
+                <Box
+                  key={m}
+                  component='button'
+                  onClick={() => setContrastMode(m)}
+                  sx={{
+                    border: 0,
+                    px: 1.25,
+                    py: 0.5,
+                    fontSize: '0.7rem',
+                    fontWeight: 600,
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    bgcolor: contrastMode === m ? '#fff' : 'transparent',
+                    color: contrastMode === m ? '#1a1a2e' : 'rgba(0,0,0,0.5)',
+                    boxShadow: contrastMode === m ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.03em',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  {m === 'auto' ? 'A11y' : 'White'}
+                </Box>
+              ))}
+            </Box>
+          </Tooltip>
+
+          {/* Divider */}
+          <Box sx={{ width: '1px', height: 24, bgcolor: 'rgba(0,0,0,0.1)' }} />
+
           {/* Navigation */}
           <Button
             variant='text'
@@ -725,7 +751,7 @@ function ColorPicker() {
               size='small'
               fullWidth
               aria-label={`Color ${index + 1} name`}
-              placeholder={`color${index + 1}`}
+              placeholder={defaultColorName(index)}
               sx={{
                 mb: 1,
                 '& .MuiOutlinedInput-root': {
@@ -816,12 +842,6 @@ function ColorPicker() {
         </Box>
       )}
 
-      <DialogBox
-        showDialog={showDialog}
-        closeDialog={() => setShowDialog(false)}
-        dialogContent={dialogContent}
-        downloadJSON={() => downloadJSON(JSON.parse(dialogContent))}
-      />
 
       {/* ===== Cloud Dialogs ===== */}
       <LoginDialog open={loginOpen} onClose={() => setLoginOpen(false)} />

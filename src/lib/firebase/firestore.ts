@@ -1,9 +1,7 @@
 import {
   collection,
   doc,
-  addDoc,
   updateDoc,
-  deleteDoc,
   getDoc,
   getDocs,
   query,
@@ -12,7 +10,6 @@ import {
   limit,
   serverTimestamp,
   writeBatch,
-  Timestamp,
 } from 'firebase/firestore';
 import { db } from './config';
 import { PaletteData, PaletteDocument, PaletteVersion } from '@/lib/types/palette';

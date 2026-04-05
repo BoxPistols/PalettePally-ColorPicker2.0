@@ -29,16 +29,42 @@ export function ExampleShowcase() {
         <Typography variant='caption' color='text.disabled'>Caption — disabled text</Typography>
       </Section>
 
-      {/* Buttons */}
-      <Section title='Buttons'>
+      {/* Buttons — Contained */}
+      <Section title='Buttons (Contained)'>
         <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
           <Button variant='contained' color='primary'>Primary</Button>
           <Button variant='contained' color='secondary'>Secondary</Button>
-          <Button variant='outlined' color='primary'>Outlined</Button>
-          <Button variant='text' color='primary'>Text</Button>
+          <Button variant='contained' color='success'>Success</Button>
+          <Button variant='contained' color='warning'>Warning</Button>
+          <Button variant='contained' color='info'>Info</Button>
+          <Button variant='contained' color='error'>Error</Button>
           <Button variant='contained' disabled>Disabled</Button>
+        </Box>
+      </Section>
+
+      {/* Buttons — Outlined */}
+      <Section title='Buttons (Outlined)'>
+        <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
+          <Button variant='outlined' color='primary'>Primary</Button>
+          <Button variant='outlined' color='secondary'>Secondary</Button>
+          <Button variant='outlined' color='success'>Success</Button>
+          <Button variant='outlined' color='warning'>Warning</Button>
+          <Button variant='outlined' color='info'>Info</Button>
+          <Button variant='outlined' color='error'>Error</Button>
+        </Box>
+      </Section>
+
+      {/* Buttons — Text */}
+      <Section title='Buttons (Text)'>
+        <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', alignItems: 'center' }}>
+          <Button variant='text' color='primary'>Primary</Button>
+          <Button variant='text' color='secondary'>Secondary</Button>
+          <Button variant='text' color='success'>Success</Button>
+          <Button variant='text' color='warning'>Warning</Button>
+          <Button variant='text' color='info'>Info</Button>
+          <Button variant='text' color='error'>Error</Button>
           <IconButton color='primary'><IconBell /></IconButton>
-          <IconButton color='secondary'><IconHeart /></IconButton>
+          <IconButton color='error'><IconHeart /></IconButton>
         </Box>
       </Section>
 
@@ -48,12 +74,15 @@ export function ExampleShowcase() {
           <Chip label='Default' />
           <Chip label='Primary' color='primary' />
           <Chip label='Secondary' color='secondary' />
-          <Chip label='Outlined' variant='outlined' />
-          <Chip label='Deletable' onDelete={() => {}} color='primary' />
+          <Chip label='Success' color='success' />
+          <Chip label='Warning' color='warning' />
+          <Chip label='Info' color='info' />
+          <Chip label='Error' color='error' />
+          <Chip label='Outlined' variant='outlined' color='primary' />
           <Badge badgeContent={4} color='primary'>
             <IconBell />
           </Badge>
-          <Badge badgeContent={99} color='secondary'>
+          <Badge badgeContent={99} color='error'>
             <IconHeart />
           </Badge>
         </Box>
