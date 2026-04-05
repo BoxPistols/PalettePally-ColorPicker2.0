@@ -25,6 +25,10 @@ import DialogBox from './DialogBox';
 import { downloadJSON } from './utils';
 import { generateColorScheme, generateThemeTokens, ColorPalette, MuiColorVariant, ThemeTokens } from './colorUtils';
 import { PaletteData, PaletteDocument } from '@/lib/types/palette';
+import { ParsedVariable } from '@/lib/figma/types';
+import { FigmaConnectDialog } from './figma/FigmaConnectDialog';
+import { FigmaExportDialog } from './figma/FigmaExportDialog';
+import { FigmaImportDialog } from './figma/FigmaImportDialog';
 import * as firestoreService from '@/lib/firebase/firestore';
 
 // バウハウス風ロゴ: 多色ドットの構造的配置
@@ -71,6 +75,14 @@ function ColorPicker() {
   const [currentPaletteId, setCurrentPaletteId] = useState<string | null>(null);
   const [currentPaletteName, setCurrentPaletteName] = useState('');
   const [currentShareId, setCurrentShareId] = useState<string | null>(null);
+
+  // Figma state
+  const [figmaConnectOpen, setFigmaConnectOpen] = useState(false);
+  const [figmaExportOpen, setFigmaExportOpen] = useState(false);
+  const [figmaImportOpen, setFigmaImportOpen] = useState(false);
+  const [figmaPat, setFigmaPat] = useState('');
+  const [figmaFileKey, setFigmaFileKey] = useState('');
+  const figmaConnected = Boolean(figmaPat && figmaFileKey);
 
   const [numColors, setNumColors] = useState(4);
   const [color, setColor] = useState<string[]>([]);
@@ -327,6 +339,41 @@ function ColorPicker() {
     if (ok) handleReset();
   }, [confirm, handleReset]);
 
+  const handleFigmaConnect = useCallback((pat: string, fileKey: string) => {
+    setFigmaPat(pat);
+    setFigmaFileKey(fileKey);
+  }, []);
+
+  const handleFigmaImport = useCallback((variables: ParsedVariable[]) => {
+    // Group variables by collection/path into palette-compatible structure
+    const imported = variables.filter(v => v.lightValue.startsWith('#'));
+    if (imported.length === 0) return;
+
+    const newColors = imported.slice(0, 24).map(v => v.lightValue);
+    const newNames = imported.slice(0, 24).map(v => v.name.replace(/\//g, '-'));
+    setNumColors(newColors.length);
+    setColor(newColors);
+    setColorNames(newNames);
+  }, []);
+
+  const handleFigmaExportConfirm = useCallback(async (): Promise<boolean> => {
+    return confirm({
+      title: 'Push to Figma',
+      message: 'Figma Variables を上書きします。この操作は取り消せません。',
+      confirmLabel: 'Push',
+      severity: 'warning',
+    });
+  }, [confirm]);
+
+  const handleFigmaImportConfirm = useCallback(async (): Promise<boolean> => {
+    return confirm({
+      title: 'Import from Figma',
+      message: '現在のパレットが Figma の Variables で置き換えられます。',
+      confirmLabel: 'Import',
+      severity: 'warning',
+    });
+  }, [confirm]);
+
   const exportToJson = () => {
     const data = { colors: color, names: colorNames, palette, themeTokens };
     setDialogContent(JSON.stringify(data, null, 2));
@@ -533,6 +580,31 @@ function ColorPicker() {
           {/* Divider */}
           <Box sx={{ width: '1px', height: 24, bgcolor: 'rgba(0,0,0,0.1)' }} />
 
+          {/* Figma */}
+          {figmaConnected ? (
+            <>
+              <Tooltip title='Import from Figma' arrow>
+                <Button variant='text' onClick={() => setFigmaImportOpen(true)} size='small' sx={headerButtonSx}>
+                  Figma Import
+                </Button>
+              </Tooltip>
+              <Tooltip title='Push to Figma' arrow>
+                <Button variant='text' onClick={() => setFigmaExportOpen(true)} size='small' sx={headerButtonSx}>
+                  Figma Push
+                </Button>
+              </Tooltip>
+            </>
+          ) : (
+            <Tooltip title='Connect Figma' arrow>
+              <Button variant='text' onClick={() => setFigmaConnectOpen(true)} size='small' sx={headerButtonSx}>
+                Figma
+              </Button>
+            </Tooltip>
+          )}
+
+          {/* Divider */}
+          <Box sx={{ width: '1px', height: 24, bgcolor: 'rgba(0,0,0,0.1)' }} />
+
           {/* Cloud / Auth */}
           {user ? (
             <>
@@ -721,6 +793,35 @@ function ColorPicker() {
           />
         </>
       )}
+      {/* ===== Figma Dialogs ===== */}
+      <FigmaConnectDialog
+        open={figmaConnectOpen}
+        onClose={() => setFigmaConnectOpen(false)}
+        onConnect={handleFigmaConnect}
+        savedPat={figmaPat}
+        savedFileKey={figmaFileKey}
+      />
+      {figmaConnected && (
+        <>
+          <FigmaExportDialog
+            open={figmaExportOpen}
+            onClose={() => setFigmaExportOpen(false)}
+            paletteData={buildPaletteData()}
+            fileKey={figmaFileKey}
+            pat={figmaPat}
+            onConfirm={handleFigmaExportConfirm}
+          />
+          <FigmaImportDialog
+            open={figmaImportOpen}
+            onClose={() => setFigmaImportOpen(false)}
+            fileKey={figmaFileKey}
+            pat={figmaPat}
+            onImport={handleFigmaImport}
+            onConfirm={handleFigmaImportConfirm}
+          />
+        </>
+      )}
+
       <ConfirmDialog
         state={confirmState}
         onConfirm={handleConfirm}
