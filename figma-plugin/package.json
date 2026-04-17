@@ -1,0 +1,15 @@
+{
+  "name": "palettepally-figma-plugin",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Figma plugin bridging PalettePally DTCG tokens to Figma Variable Collections (works on all plans).",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "watch": "tsc -w -p tsconfig.json",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@figma/plugin-typings": "^1.103.0",
+    "typescript": "^5.4.0"
+  }
+}

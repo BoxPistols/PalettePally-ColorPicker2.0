@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<title>PalettePally Bridge</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #ffffff;
+    --fg: #1a1a2e;
+    --fg-muted: rgba(0, 0, 0, 0.55);
+    --border: rgba(0, 0, 0, 0.12);
+    --accent: #3f50b5;
+    --accent-fg: #ffffff;
+    --error: #d32f2f;
+    --success: #2e7d32;
+    --surface: #f7f7fa;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1a1a1a;
+      --fg: #f0f0f0;
+      --fg-muted: rgba(255, 255, 255, 0.6);
+      --border: rgba(255, 255, 255, 0.14);
+      --surface: #252525;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 14px;
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 12px;
+    background: var(--bg);
+    color: var(--fg);
+  }
+  h1 {
+    font-size: 13px;
+    font-weight: 700;
+    margin: 0 0 4px 0;
+    letter-spacing: 0.2px;
+  }
+  p.lead {
+    margin: 0 0 14px 0;
+    color: var(--fg-muted);
+    line-height: 1.5;
+  }
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .tab {
+    padding: 7px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    color: var(--fg-muted);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+  }
+  .tab.active {
+    color: var(--fg);
+    border-bottom-color: var(--accent);
+  }
+  textarea {
+    width: 100%;
+    min-height: 220px;
+    font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+    font-size: 11px;
+    line-height: 1.45;
+    padding: 8px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--fg);
+    resize: vertical;
+  }
+  textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  .actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 10px;
+    justify-content: flex-end;
+  }
+  button.primary {
+    background: var(--accent);
+    color: var(--accent-fg);
+    border: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  button.primary:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+  button.secondary {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--fg);
+    padding: 7px 12px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .status {
+    margin-top: 10px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    font-size: 11.5px;
+    line-height: 1.5;
+  }
+  .status.error { background: rgba(211, 47, 47, 0.1); color: var(--error); }
+  .status.success { background: rgba(46, 125, 50, 0.1); color: var(--success); }
+  .hint {
+    margin-top: 8px;
+    color: var(--fg-muted);
+    font-size: 11px;
+    line-height: 1.45;
+  }
+  code {
+    background: var(--surface);
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-size: 10.5px;
+  }
+  .panel { display: none; }
+  .panel.active { display: block; }
+</style>
+</head>
+<body>
+  <h1>PalettePally ⇄ Figma Variables</h1>
+  <p class="lead">
+    全プランで動作する Plugin API 経由で Variable Collections を読み書きします。
+    PalettePally の Export/Import Hub とシームレスに往復できます。
+  </p>
+
+  <div class="tabs">
+    <button class="tab active" data-panel="import">📥 Import</button>
+    <button class="tab" data-panel="export">📤 Export</button>
+  </div>
+
+  <!-- Import panel -->
+  <div class="panel active" id="panel-import">
+    <p class="hint">
+      PalettePally の <strong>Export Hub → DTCG</strong> からコピーした JSON
+      を貼り付けてください。<code>action-colors</code> / <code>grey</code> /
+      <code>utility</code> の各 Collection が light/dark モード付きで作成・更新されます。
+    </p>
+    <textarea id="import-input" placeholder='{\n  "action-colors": { ... },\n  "grey": { ... }\n}'></textarea>
+    <div class="actions">
+      <button class="secondary" id="btn-cancel-import">キャンセル</button>
+      <button class="primary" id="btn-import">Variables に反映</button>
+    </div>
+    <div id="import-status"></div>
+  </div>
+
+  <!-- Export panel -->
+  <div class="panel" id="panel-export">
+    <p class="hint">
+      現在の File の Variable Collections を DTCG JSON として書き出します。
+      PalettePally の <strong>Import Hub → DTCG</strong> にペーストしてください。
+    </p>
+    <div class="actions" style="justify-content: flex-start;">
+      <button class="primary" id="btn-export">書き出す</button>
+      <button class="secondary" id="btn-copy" disabled>JSON をコピー</button>
+    </div>
+    <textarea id="export-output" placeholder="「書き出す」で DTCG JSON がここに表示されます"></textarea>
+    <div id="export-status"></div>
+  </div>
+
+<script>
+  const tabs = document.querySelectorAll('.tab');
+  const panels = document.querySelectorAll('.panel');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const target = tab.getAttribute('data-panel');
+      tabs.forEach(t => t.classList.toggle('active', t === tab));
+      panels.forEach(p => p.classList.toggle('active', p.id === `panel-${target}`));
+    });
+  });
+
+  const importInput = document.getElementById('import-input');
+  const importStatus = document.getElementById('import-status');
+  const exportOutput = document.getElementById('export-output');
+  const exportStatus = document.getElementById('export-status');
+  const btnCopy = document.getElementById('btn-copy');
+
+  function setStatus(el, kind, text) {
+    el.className = `status ${kind}`;
+    el.textContent = text;
+  }
+  function clearStatus(el) {
+    el.className = '';
+    el.textContent = '';
+  }
+
+  document.getElementById('btn-import').addEventListener('click', () => {
+    const json = importInput.value.trim();
+    if (!json) {
+      setStatus(importStatus, 'error', 'JSON を貼り付けてください');
+      return;
+    }
+    clearStatus(importStatus);
+    parent.postMessage({ pluginMessage: { type: 'import-dtcg', json } }, '*');
+  });
+
+  document.getElementById('btn-cancel-import').addEventListener('click', () => {
+    parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
+  });
+
+  document.getElementById('btn-export').addEventListener('click', () => {
+    clearStatus(exportStatus);
+    exportOutput.value = '';
+    btnCopy.disabled = true;
+    parent.postMessage({ pluginMessage: { type: 'export-dtcg' } }, '*');
+  });
+
+  btnCopy.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(exportOutput.value);
+      setStatus(exportStatus, 'success', 'クリップボードにコピーしました');
+    } catch {
+      exportOutput.select();
+      document.execCommand('copy');
+      setStatus(exportStatus, 'success', 'コピーしました');
+    }
+  });
+
+  window.addEventListener('message', event => {
+    const msg = event.data.pluginMessage;
+    if (!msg) return;
+    if (msg.type === 'import-done') {
+      const { collections, variables, updated } = msg.stats;
+      setStatus(
+        importStatus,
+        'success',
+        `完了: Collection ${collections} 件新規 / Variable ${variables} 件新規 / ${updated} 件更新`
+      );
+    } else if (msg.type === 'export-done') {
+      exportOutput.value = msg.json;
+      btnCopy.disabled = false;
+      setStatus(exportStatus, 'success', 'DTCG JSON を生成しました');
+    } else if (msg.type === 'error') {
+      const panel = document.querySelector('.panel.active');
+      const statusEl = panel.querySelector('[id$="-status"]');
+      setStatus(statusEl, 'error', msg.message);
+    }
+  });
+</script>
+</body>
+</html>

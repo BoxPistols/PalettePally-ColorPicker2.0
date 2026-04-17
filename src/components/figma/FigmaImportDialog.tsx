@@ -154,7 +154,14 @@ export const FigmaImportDialog = memo<FigmaImportDialogProps>(
               </List>
 
               <Alert severity='warning' sx={{ mt: 2, borderRadius: '8px', fontSize: '0.8rem' }}>
-                Import will replace current palette data.
+                現在のパレットが Figma の Variables で上書きされます。
+                命名規則 <code>{'{name}/{light|dark}/{shade}'}</code> に従う Variables は
+                MUI 5 シェード構造 (main/dark/light/lighter/contrastText) に自動復元されます。
+              </Alert>
+              <Alert severity='info' sx={{ mt: 1, borderRadius: '8px', fontSize: '0.78rem' }}>
+                REST API Import は Enterprise プラン限定です。非 Enterprise では
+                <strong> PalettePally Figma Plugin </strong>
+                から DTCG JSON をエクスポートし、Import Hub でペーストしてください。
               </Alert>
             </>
           )}

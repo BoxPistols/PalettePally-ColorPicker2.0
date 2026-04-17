@@ -129,9 +129,24 @@ export const FigmaExportDialog = memo<FigmaExportDialogProps>(
                 </Box>
               </Box>
 
-              <Alert severity='warning' sx={{ borderRadius: '8px', fontSize: '0.8rem' }}>
-                Existing variables with the same names will be overwritten.
-                Figma Enterprise/Organization plan required for Variables API.
+              <Alert severity='warning' sx={{ borderRadius: '8px', fontSize: '0.8rem', mb: 1.5 }}>
+                既存の同名 Variables は上書きされます。
+              </Alert>
+              <Alert severity='info' sx={{ borderRadius: '8px', fontSize: '0.78rem' }}>
+                <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, mb: 0.5 }}>
+                  Figma Variables REST API は Enterprise プラン限定
+                </Typography>
+                非 Enterprise プランの場合は以下のいずれかを使用してください：
+                <Box component='ul' sx={{ m: 0, pl: 2.5, mt: 0.5 }}>
+                  <li>
+                    <strong>PalettePally Figma Plugin</strong>（全プランで利用可）
+                    — Export Hub から DTCG JSON をコピーしてプラグインにペースト
+                  </li>
+                  <li>
+                    <strong>Tokens Studio for Figma</strong> — Export Hub の
+                    &quot;Tokens Studio&quot; タブの JSON を取り込む
+                  </li>
+                </Box>
               </Alert>
             </>
           )}

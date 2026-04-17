@@ -27,6 +27,7 @@ import { PaletteVersionHistory } from './palette/PaletteVersionHistory';
 import { generateColorScheme, generateThemeTokens, defaultColorName, defaultColorForName, ColorPalette, MuiColorVariant, ThemeTokens, ContrastMode } from './colorUtils';
 import { PaletteData, PaletteDocument } from '@/lib/types/palette';
 import { ParsedVariable } from '@/lib/figma/types';
+import { parsedVariablesToPalette } from '@/lib/figma/variableMapper';
 import { HelpDialog } from './help/HelpDialog';
 import { ExampleDialog } from './example/ExampleDialog';
 import { ExportHubDialog } from './export/ExportHubDialog';
@@ -420,15 +421,33 @@ function ColorPicker() {
   }, []);
 
   const handleFigmaImport = useCallback((variables: ParsedVariable[]) => {
-    // Group variables by collection/path into palette-compatible structure
-    const imported = variables.filter(v => v.lightValue.startsWith('#'));
-    if (imported.length === 0) return;
+    // action-colors / grey / utility コレクションのパス規約 (name/mode/shade) を
+    // そのまま逆変換して MUI 5シェード構造に復元する。
+    const restored = parsedVariablesToPalette(variables);
 
-    const newColors = imported.slice(0, 24).map(v => v.lightValue);
-    const newNames = imported.slice(0, 24).map(v => v.name.replace(/\//g, '-'));
-    setNumColors(newColors.length);
-    setColor(newColors);
-    setColorNames(newNames);
+    if (restored.names && restored.names.length > 0 && restored.colors) {
+      skipAutoResetRef.current = true;
+      setNumColors(restored.numColors ?? restored.colors.length);
+      setColor(restored.colors);
+      setColorNames(restored.names);
+
+      // 5シェード完全復元：palette state に流し込んで再計算を抑止
+      if (restored.palette) {
+        setPalette(restored.palette);
+      }
+    } else {
+      // action-colors 規約に合致しない場合はフラットな色リストとして取り込む
+      const flat = variables.filter(v => v.lightValue.startsWith('#')).slice(0, 24);
+      if (flat.length === 0) return;
+      skipAutoResetRef.current = true;
+      setNumColors(flat.length);
+      setColor(flat.map(v => v.lightValue));
+      setColorNames(flat.map(v => v.name.replace(/\//g, '-')));
+    }
+
+    if (restored.themeTokens) {
+      setThemeTokens(restored.themeTokens);
+    }
   }, []);
 
   const handleFigmaExportConfirm = useCallback(async (): Promise<boolean> => {

@@ -46,27 +46,30 @@ const isValidHex = (hex: string) => /^#([0-9A-F]{3}){1,2}$/i.test(hex);
 const ColorSwatch = memo<{
   shade: keyof MuiColorVariant;
   colorValue: string;
+  mainColor: string;
+  contrastText: string;
   isDark: boolean;
   onCopy: (text: string) => void;
-}>(({ shade, colorValue, isDark, onCopy }) => {
+}>(({ shade, colorValue, mainColor, contrastText, isDark, onCopy }) => {
   const isLight = shade === 'light';
-  const luminance = chroma(colorValue).luminance();
-  const textColor =
-    luminance > 0.35 ? 'rgba(0,0,0,0.85)' : 'rgba(255,255,255,0.95)';
+  const isContrast = shade === 'contrastText';
+  // contrastText は文字色として使う色。スウォッチでは main 背景に重ねて実運用と同じ見え方にする
+  const swatchBg = isContrast ? mainColor : colorValue;
+  const swatchFg = isContrast ? colorValue : contrastText;
 
   return (
     <Box
       onClick={() => onCopy(colorValue)}
       title={`${shade}: ${colorValue} — click to copy`}
       sx={{
-        background: colorValue,
+        background: swatchBg,
         borderRadius: '6px',
         fontFamily: '"JetBrains Mono", "Fira Code", monospace',
-        color: textColor,
+        color: swatchFg,
         mb: 0.5,
         transition: 'transform 0.15s ease, box-shadow 0.15s ease',
         cursor: 'pointer',
-        border: isLight
+        border: isLight || isContrast
           ? `1.5px solid ${isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)'}`
           : '1.5px solid transparent',
         boxShadow:
@@ -104,7 +107,7 @@ const ColorSwatch = memo<{
         <Box
           component='span'
           sx={{
-            opacity: 0.75,
+            opacity: 0.85,
             fontSize: '0.75rem',
             fontWeight: 400,
             overflow: 'hidden',
@@ -121,6 +124,125 @@ const ColorSwatch = memo<{
 });
 
 ColorSwatch.displayName = 'ColorSwatch';
+
+// ── Contrast Preview (text + buttons on each shade) ──
+
+const PREVIEW_SHADES: (keyof MuiColorVariant)[] = ['main', 'dark', 'light', 'lighter'];
+
+const ContrastPreview = memo<{
+  variant: MuiColorVariant;
+  isDark: boolean;
+}>(({ variant, isDark }) => {
+  const ct = variant.contrastText;
+
+  return (
+    <Box
+      sx={{
+        mt: 0.75,
+        p: 0.75,
+        borderRadius: '8px',
+        border: '1px dashed',
+        borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 0.5,
+      }}
+    >
+      <Typography
+        sx={{
+          fontSize: '0.6rem',
+          fontWeight: 700,
+          letterSpacing: 0.8,
+          textTransform: 'uppercase',
+          color: isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.4)',
+          mb: 0.25,
+        }}
+      >
+        contrastText preview
+      </Typography>
+      {PREVIEW_SHADES.map(shade => {
+        const bg = variant[shade];
+        const ratio = contrastRatio(ct, bg);
+        const level = wcagLevel(ratio);
+        return (
+          <Box
+            key={shade}
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: '44px 1fr auto',
+              alignItems: 'center',
+              gap: 0.5,
+              background: bg,
+              borderRadius: '6px',
+              px: 0.75,
+              py: 0.5,
+              border: shade === 'light' || shade === 'lighter'
+                ? `1px solid ${isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.08)'}`
+                : '1px solid transparent',
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: '0.6rem',
+                fontWeight: 700,
+                letterSpacing: 0.5,
+                textTransform: 'uppercase',
+                color: ct,
+                opacity: 0.75,
+              }}
+            >
+              {shade}
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}>
+              <Typography
+                sx={{
+                  color: ct,
+                  fontSize: '0.85rem',
+                  fontWeight: 600,
+                  lineHeight: 1.2,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                Aa テキスト
+              </Typography>
+              <Box
+                component='span'
+                sx={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  border: `1px solid ${ct}`,
+                  color: ct,
+                  borderRadius: '999px',
+                  fontSize: '0.65rem',
+                  fontWeight: 600,
+                  px: 0.75,
+                  py: 0.125,
+                  lineHeight: 1.4,
+                }}
+              >
+                Button
+              </Box>
+            </Box>
+            <Typography
+              sx={{
+                fontSize: '0.6rem',
+                fontWeight: 700,
+                fontFamily: 'monospace',
+                color: ct,
+                opacity: 0.85,
+                whiteSpace: 'nowrap',
+              }}
+              title={`${ratio.toFixed(2)}:1 — ${level}`}
+            >
+              {ratio.toFixed(1)} {level}
+            </Typography>
+          </Box>
+        );
+      })}
+    </Box>
+  );
+});
+ContrastPreview.displayName = 'ContrastPreview';
 
 // ── Scheme Column (light / dark) ──
 
@@ -176,10 +298,15 @@ const SchemeColumn = memo<{
           key={shade}
           shade={shade}
           colorValue={variant[shade]}
+          mainColor={variant.main}
+          contrastText={variant.contrastText}
           isDark={isDark}
           onCopy={onCopy}
         />
       ))}
+
+      {/* contrastText を実運用シーンで確認するためのサンプル（ボタン / テキスト） */}
+      <ContrastPreview variant={variant} isDark={isDark} />
     </Box>
   );
 });

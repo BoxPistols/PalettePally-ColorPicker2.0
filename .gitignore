@@ -5,6 +5,11 @@
 /.pnp
 .pnp.js
 
+# figma plugin build artifacts
+/figma-plugin/node_modules
+/figma-plugin/dist
+/figma-plugin/package-lock.json
+
 # testing
 /coverage
 
