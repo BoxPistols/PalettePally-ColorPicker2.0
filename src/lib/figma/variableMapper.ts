@@ -49,13 +49,16 @@ export function parseFigmaVariables(
 }
 
 // ── Build Figma push payload from palette data ──
-// Returns operations array for the Figma Variables REST API
+//
+// 命名規則（mode は Figma の Variable Mode で表現し、変数名には含めない）:
+//   action-colors: "{name}/{shade}"          例: "primary/main"
+//   grey:          "{tone}"                  例: "50"
+//   utility:       "{group}/{key}"           例: "text/primary"
 
 type PushOperation = {
   collections: { name: string; variables: { name: string; light: string; dark: string }[] }[];
 };
 
-// 指定グループ配下のリーフトークンを `{prefix}/{shade}` 形式でフラット化
 function flattenTokens(
   g: DTCGGroup,
   prefix: string
@@ -75,6 +78,35 @@ function flattenTokens(
   return items;
 }
 
+// light/dark の 2 グループを path 単位でペアにして variable に束ねる
+function pairLightDark(
+  lightItems: { path: string; value: string }[],
+  darkItems: { path: string; value: string }[],
+  namePrefix: string
+): { name: string; light: string; dark: string }[] {
+  const darkMap = new Map(darkItems.map(d => [d.path, d.value]));
+  const lightMap = new Map(lightItems.map(l => [l.path, l.value]));
+  const paths = new Set<string>();
+  lightMap.forEach((_, k) => paths.add(k));
+  darkMap.forEach((_, k) => paths.add(k));
+
+  const out: { name: string; light: string; dark: string }[] = [];
+  paths.forEach(path => {
+    const light = lightMap.get(path);
+    const dark = darkMap.get(path);
+    // どちらかのモードにしか存在しない場合、もう片方にフォールバック
+    const lightVal = light ?? dark;
+    const darkVal = dark ?? light;
+    if (!lightVal || !darkVal) return;
+    out.push({
+      name: namePrefix ? `${namePrefix}/${path}` : path,
+      light: lightVal,
+      dark: darkVal,
+    });
+  });
+  return out;
+}
+
 export function buildPushPayload(paletteData: PaletteData): PushOperation {
   const dtcg = paletteToDTCG(paletteData);
   const collections: PushOperation['collections'] = [];
@@ -83,32 +115,16 @@ export function buildPushPayload(paletteData: PaletteData): PushOperation {
     const variables: { name: string; light: string; dark: string }[] = [];
     const g = group as DTCGGroup;
 
-    // action-colors は {name}.{mode}.{shade} 構造、grey/utility は {mode}.{shade} 構造
-    // 直下に light/dark がある → 後者
     const topLight = g['light'] as DTCGGroup | undefined;
     const topDark = g['dark'] as DTCGGroup | undefined;
 
     if (topLight && topDark) {
-      // grey / utility: 直下が mode
+      // grey / utility: collection.{mode}.{shade-or-path}
       const lightItems = flattenTokens(topLight, '');
       const darkItems = flattenTokens(topDark, '');
-      const darkMap = new Map(darkItems.map(d => [d.path, d.value]));
-      for (const item of lightItems) {
-        variables.push({
-          name: `light/${item.path}`,
-          light: item.value,
-          dark: item.value,
-        });
-      }
-      for (const item of darkItems) {
-        variables.push({
-          name: `dark/${item.path}`,
-          light: darkMap.get(item.path) ?? item.value,
-          dark: item.value,
-        });
-      }
+      variables.push(...pairLightDark(lightItems, darkItems, ''));
     } else {
-      // action-colors: {name}/{mode}/{shade}
+      // action-colors: collection.{name}.{mode}.{shade}
       for (const [name, child] of Object.entries(g)) {
         if (name.startsWith('$')) continue;
         if (!child || typeof child !== 'object' || '$value' in child) continue;
@@ -119,22 +135,7 @@ export function buildPushPayload(paletteData: PaletteData): PushOperation {
 
         const lightItems = flattenTokens(light, '');
         const darkItems = flattenTokens(dark, '');
-        const darkMap = new Map(darkItems.map(d => [d.path, d.value]));
-
-        for (const item of lightItems) {
-          variables.push({
-            name: `${name}/light/${item.path}`,
-            light: item.value,
-            dark: darkMap.get(item.path) ?? item.value,
-          });
-        }
-        for (const item of darkItems) {
-          variables.push({
-            name: `${name}/dark/${item.path}`,
-            light: item.value,
-            dark: item.value,
-          });
-        }
+        variables.push(...pairLightDark(lightItems, darkItems, name));
       }
     }
 
@@ -148,18 +149,18 @@ export function buildPushPayload(paletteData: PaletteData): PushOperation {
 
 // ── Import adapter: ParsedVariable[] → PaletteData (MUI 5-shade 構造に復元) ──
 //
-// push.ts が出力する命名規則をそのまま逆変換する:
-//   action-colors: "{name}/light/{shade}" / "{name}/dark/{shade}"
-//   grey:          "light/{tone}" / "dark/{tone}"
-//   utility:       "light/{group}/{key}" / "dark/{group}/{key}"
+// 新命名規則（mode は Figma Variable Mode 側）:
+//   action-colors: "{name}/{shade}"   例: "primary/main"
+//   grey:          "{tone}"           例: "50"
+//   utility:       "{group}/{key}"    例: "text/primary"
 
-const SHADE_KEYS: (keyof MuiColorVariant)[] = [
+const SHADE_KEYS: readonly (keyof MuiColorVariant)[] = [
   'main',
   'dark',
   'light',
   'lighter',
   'contrastText',
-];
+] as const;
 
 const emptyVariant = (): MuiColorVariant => ({
   main: '#000000',
@@ -188,37 +189,28 @@ export function parsedVariablesToPalette(
   for (const v of parsed) {
     if (!v.lightValue.startsWith('#')) continue;
     const segments = v.name.split('/').filter(Boolean);
+    const darkHex = v.darkValue.startsWith('#') ? v.darkValue : v.lightValue;
 
-    if (v.collection === 'action-colors' && segments.length === 3) {
-      const [name, mode, shade] = segments;
-      if (mode !== 'light' && mode !== 'dark') continue;
+    if (v.collection === 'action-colors' && segments.length === 2) {
+      const [name, shade] = segments;
       if (!SHADE_KEYS.includes(shade as keyof MuiColorVariant)) continue;
 
       if (!actionByName.has(name)) {
         actionByName.set(name, { light: emptyVariant(), dark: emptyVariant() });
       }
       const pair = actionByName.get(name)!;
-      pair[mode][shade as keyof MuiColorVariant] = v.lightValue;
-      // dark モード値は darkValue から取る
-      if (mode === 'dark' && v.darkValue.startsWith('#')) {
-        pair.dark[shade as keyof MuiColorVariant] = v.darkValue;
-      }
-      if (mode === 'light' && v.darkValue.startsWith('#')) {
-        // light モードに dark 値が紐付いていた場合は dark pair にも反映（後勝ち回避）
-        if (pair.dark[shade as keyof MuiColorVariant] === '#000000') {
-          pair.dark[shade as keyof MuiColorVariant] = v.darkValue;
-        }
-      }
-    } else if (v.collection === 'grey' && segments.length === 2) {
-      const [mode, tone] = segments;
-      if (mode === 'light') grey.light[tone] = v.lightValue;
-      if (mode === 'dark') grey.dark[tone] = v.darkValue.startsWith('#') ? v.darkValue : v.lightValue;
-    } else if (v.collection === 'utility' && segments.length === 3) {
-      const [mode, group, key] = segments;
-      if (mode !== 'light' && mode !== 'dark') continue;
-      const target = utility[mode];
-      if (!target[group]) target[group] = {};
-      target[group][key] = mode === 'dark' && v.darkValue.startsWith('#') ? v.darkValue : v.lightValue;
+      pair.light[shade as keyof MuiColorVariant] = v.lightValue;
+      pair.dark[shade as keyof MuiColorVariant] = darkHex;
+    } else if (v.collection === 'grey' && segments.length === 1) {
+      const [tone] = segments;
+      grey.light[tone] = v.lightValue;
+      grey.dark[tone] = darkHex;
+    } else if (v.collection === 'utility' && segments.length === 2) {
+      const [groupName, key] = segments;
+      if (!utility.light[groupName]) utility.light[groupName] = {};
+      if (!utility.dark[groupName]) utility.dark[groupName] = {};
+      utility.light[groupName][key] = v.lightValue;
+      utility.dark[groupName][key] = darkHex;
     }
   }
 

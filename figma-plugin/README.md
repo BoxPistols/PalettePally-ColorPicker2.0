@@ -9,11 +9,11 @@ Figma Variables REST API は **Enterprise プラン限定** ですが、Plugin A
 ### Import（PalettePally → Figma）
 PalettePally の `Export Hub → DTCG` からコピーした JSON を貼り付けると、以下を自動生成します：
 
-- `action-colors` Collection（`primary/light/main`, `primary/dark/contrastText` など）
-- `grey` Collection（`light/50`, `dark/900` など）
-- `utility` Collection（`light/text/primary` など）
+- `action-colors` Collection（`primary/main`, `primary/contrastText` など）
+- `grey` Collection（`50`, `900` など）
+- `utility` Collection（`text/primary`, `background/default` など）
 
-各 Collection に `light` / `dark` の 2 モードを作成し、`valuesByMode` を設定します。既存の同名 Variable は値のみ更新、新規は追加されます。
+各 Collection に `light` / `dark` の 2 モードを作成し、Variable ごとに両モードの値を設定します。既存の同名 Variable は値のみ更新、新規は追加されます。
 
 ### Export（Figma → PalettePally）
 現在の File のローカル Variable Collections を DTCG JSON 形式で書き出します。PalettePally の `Import Hub → DTCG` にペーストすれば、MUI 5 シェード構造（main/dark/light/lighter/contrastText）に自動復元されます。
@@ -33,21 +33,29 @@ npm run watch      # 監視モード
 2. `Plugins` → `Development` → `Import plugin from manifest...`
 3. `figma-plugin/manifest.json` を選択
 
-## パス命名規則
+## 命名規則
 
-Import で期待する DTCG 構造：
+**設計方針**: `light` / `dark` は **Figma の Variable Mode** 側で表現し、変数名には含めない（Figma Variables の本来の使い方）。結果として Variable 数が半減し、モード切替が Figma 標準機能でそのまま使える。
+
+| Collection | 変数名 | 例 |
+| --- | --- | --- |
+| `action-colors` | `{name}/{shade}` | `primary/main`, `secondary/contrastText` |
+| `grey` | `{tone}` | `50`, `500`, `900` |
+| `utility` | `{group}/{key}` | `text/primary`, `background/default` |
+
+Import で期待する DTCG 構造（いずれも `light` / `dark` を DTCG 側でも保持）：
 
 ```json
 {
   "action-colors": {
     "primary": {
-      "light": { "main": { "$value": "#1976d2" }, "contrastText": { "$value": "#ffffff" }, ... },
-      "dark":  { "main": { "$value": "#64b5f6" }, ... }
+      "light": { "main": { "$value": "#1976d2" }, "contrastText": { "$value": "#ffffff" } },
+      "dark":  { "main": { "$value": "#64b5f6" }, "contrastText": { "$value": "#000000" } }
     }
   },
   "grey": {
-    "light": { "50": { "$value": "#fafafa" }, ... },
-    "dark":  { "50": { "$value": "#121212" }, ... }
+    "light": { "50": { "$value": "#fafafa" } },
+    "dark":  { "50": { "$value": "#121212" } }
   },
   "utility": {
     "light": { "text": { "primary": { "$value": "#1a1a2e" } } },
@@ -56,15 +64,15 @@ Import で期待する DTCG 構造：
 }
 ```
 
-ネスト階層はスラッシュ連結した Variable 名（例: `primary/light/main`）として Figma に保存されるので、PalettePally の import アダプタが同じ規約でパースして MUI 構造に戻します。
+Import では DTCG の `light` / `dark` サブツリーを抽出し、それぞれを Figma Mode に格納します（変数名には mode セグメントを含めません）。Export はこの逆変換を行います。
 
 ## 往復の保証
 
-- Export が書く変数名は `{group}/{mode}/{shade}`（3 階層）
-- Import が復元する構造も同じ 3 階層を前提
-- PalettePally 側の `src/lib/figma/variableMapper.ts` の `parsedVariablesToPalette` が同じ規約を使う
+- DTCG の `{collection}.{...}.light.{shade}` / `{collection}.{...}.dark.{shade}` を 1 つの Variable に畳み込む
+- 変数名は `{name}/{shade}` / `{tone}` / `{group}/{key}` の 2 階層以下
+- PalettePally の `parsedVariablesToPalette` も同じ規約で逆変換
 
-この 3 点が揃っていれば、PalettePally ↔ Figma の双方向で色情報が失われません。
+3 点が揃っており、`buildPushPayload` → Figma → Export → `parsedVariablesToPalette` の往復でも値が保持されます（`variableMapper.test.ts` の round-trip ケースで検証済み）。
 
 ## 制約
 
