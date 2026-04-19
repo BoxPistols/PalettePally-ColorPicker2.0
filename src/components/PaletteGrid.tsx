@@ -206,8 +206,7 @@ const ContrastPreview = memo<{
       <Box
         sx={{
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
+          flexDirection: 'column',
           gap: 0.5,
           background: bg,
           borderRadius: '6px',
@@ -216,38 +215,79 @@ const ContrastPreview = memo<{
           minWidth: 0,
         }}
       >
-        <Box
-          component='span'
-          sx={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            border: `1px solid ${ct}`,
-            color: ct,
-            borderRadius: '999px',
-            fontSize: '0.65rem',
-            fontWeight: 600,
-            px: 0.75,
-            py: 0.125,
-            lineHeight: 1.4,
-            flexShrink: 0,
-          }}
-        >
-          text
+        {/* Row 1: 見出しテキスト + 本文テキストの a11y サンプル */}
+        <Box sx={{ minWidth: 0 }}>
+          <Typography
+            sx={{
+              color: ct,
+              fontSize: '0.8rem',
+              fontWeight: 700,
+              lineHeight: 1.2,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            Aa 見出し
+          </Typography>
+          <Typography
+            sx={{
+              color: ct,
+              fontSize: '0.65rem',
+              fontWeight: 400,
+              lineHeight: 1.3,
+              opacity: 0.92,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            本文テキスト
+          </Typography>
         </Box>
-        <Typography
+        {/* Row 2: pill button + コントラスト比 */}
+        <Box
           sx={{
-            fontSize: '0.65rem',
-            fontWeight: 700,
-            fontFamily: 'monospace',
-            color: ct,
-            opacity: 0.85,
-            whiteSpace: 'nowrap',
-            flexShrink: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 0.5,
+            minWidth: 0,
           }}
-          title={`${ratio.toFixed(2)}:1 — ${level}`}
         >
-          {ratio.toFixed(1)} {level}
-        </Typography>
+          <Box
+            component='span'
+            sx={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              border: `1px solid ${ct}`,
+              color: ct,
+              borderRadius: '999px',
+              fontSize: '0.65rem',
+              fontWeight: 600,
+              px: 0.75,
+              py: 0.125,
+              lineHeight: 1.4,
+              flexShrink: 0,
+            }}
+          >
+            Button
+          </Box>
+          <Typography
+            sx={{
+              fontSize: '0.65rem',
+              fontWeight: 700,
+              fontFamily: 'monospace',
+              color: ct,
+              opacity: 0.85,
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
+            }}
+            title={`${ratio.toFixed(2)}:1 — ${level}`}
+          >
+            {ratio.toFixed(1)} {level}
+          </Typography>
+        </Box>
       </Box>
     </Box>
   );
