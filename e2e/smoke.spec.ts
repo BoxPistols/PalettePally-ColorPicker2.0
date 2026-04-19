@@ -3,12 +3,10 @@ import { test, expect } from '@playwright/test';
 test.describe('PalettePally smoke', () => {
   test('home page loads and shows generator UI', async ({ page }) => {
     await page.goto('/');
-    // 重要 UI のいずれかが表示されること（厳密な文言は変わる可能性があるため
-    // 複数の候補で確認）
+    // aria-label="Export palette" は現状単一要素。`.or()` は両マッチで
+    // strict mode violation になるため、具体的なラベルで直接 assert する。
     await expect(
-      page.getByRole('button', { name: /export/i }).or(
-        page.getByRole('button', { name: /import/i })
-      )
+      page.getByRole('button', { name: /export palette/i })
     ).toBeVisible();
   });
 

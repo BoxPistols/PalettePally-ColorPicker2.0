@@ -45,3 +45,4 @@ yarn-error.log*
 # Claude Code
 .claude/skills/ui-ux-pro-max/
 .claude/settings.local.json
+.claude/scheduled_tasks.lock
