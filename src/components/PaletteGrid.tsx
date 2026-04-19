@@ -149,6 +149,10 @@ const ContrastPreview = memo<{
   const bg = variant.main;
   const ratio = contrastRatio(ct, bg);
   const level = wcagLevel(ratio);
+  // main を純粋な text color として使うケース: 背景は SchemeColumn と同じサイト背景
+  const pageBg = isDark ? '#121212' : '#fafafa';
+  const mainOnPageRatio = contrastRatio(bg, pageBg);
+  const mainOnPageLevel = wcagLevel(mainOnPageRatio);
   const thresholdActive = threshold !== 'none';
   const passes = !thresholdActive || meetsThreshold(ratio, threshold);
 
@@ -250,25 +254,24 @@ const ContrastPreview = memo<{
           {ratio.toFixed(1)} {level}
         </Typography>
       </Box>
-      {/* 枠 2: bg=contrastText / fg=main — main をテキスト色として使うケース */}
+      {/* 枠 2: main を純粋な text color として使うケース（背景はサイト/カラム背景のまま） */}
       <Box
         sx={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           gap: 0.5,
-          background: ct,
+          background: 'transparent',
           borderRadius: '6px',
           px: 0.75,
-          py: 0.75,
+          py: 0.5,
           minWidth: 0,
-          border: `1px solid ${isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.08)'}`,
         }}
       >
         <Typography
           sx={{
             color: bg,
-            fontSize: '0.75rem',
+            fontSize: '0.8rem',
             fontWeight: 700,
             lineHeight: 1.2,
             whiteSpace: 'nowrap',
@@ -290,9 +293,9 @@ const ContrastPreview = memo<{
             whiteSpace: 'nowrap',
             flexShrink: 0,
           }}
-          title={`${ratio.toFixed(2)}:1 — ${level}`}
+          title={`main on page bg: ${mainOnPageRatio.toFixed(2)}:1 — ${mainOnPageLevel}`}
         >
-          {ratio.toFixed(1)} {level}
+          {mainOnPageRatio.toFixed(1)} {mainOnPageLevel}
         </Typography>
       </Box>
     </Box>
