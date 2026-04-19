@@ -47,15 +47,20 @@ const ColorSwatch = memo<{
   shade: keyof MuiColorVariant;
   colorValue: string;
   mainColor: string;
-  contrastText: string;
   isDark: boolean;
   onCopy: (text: string) => void;
-}>(({ shade, colorValue, mainColor, contrastText, isDark, onCopy }) => {
+}>(({ shade, colorValue, mainColor, isDark, onCopy }) => {
   const isLight = shade === 'light';
   const isContrast = shade === 'contrastText';
-  // contrastText は文字色として使う色。スウォッチでは main 背景に重ねて実運用と同じ見え方にする
+  // main/dark/light/lighter は背景が独立しているため、各シェードごとに
+  // 輝度ベースで文字色を決定する（contrastText を一律使うと低コントラスト化する）。
+  // contrastText 行だけは main 背景に contrastText を重ねた実運用プレビュー。
   const swatchBg = isContrast ? mainColor : colorValue;
-  const swatchFg = isContrast ? colorValue : contrastText;
+  const swatchFg = isContrast
+    ? colorValue
+    : chroma(colorValue).luminance() > 0.35
+      ? 'rgba(0,0,0,0.85)'
+      : 'rgba(255,255,255,0.95)';
 
   return (
     <Box
@@ -266,7 +271,6 @@ const SchemeColumn = memo<{
           shade={shade}
           colorValue={variant[shade]}
           mainColor={variant.main}
-          contrastText={variant.contrastText}
           isDark={isDark}
           onCopy={onCopy}
         />
