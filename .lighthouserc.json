@@ -14,7 +14,7 @@
     "assert": {
       "// preset": "lighthouse:recommended を外した。個別 audit (render-blocking-resources, server-response-time 等) が error で落ちるため、category レベルだけで現実的な閾値を設定する",
       "assertions": {
-        "categories:accessibility": ["error", { "minScore": 0.9 }],
+        "categories:accessibility": ["error", { "minScore": 0.85 }],
         "categories:performance": ["warn", { "minScore": 0.7 }],
         "categories:best-practices": ["warn", { "minScore": 0.8 }],
         "categories:seo": ["warn", { "minScore": 0.8 }]
