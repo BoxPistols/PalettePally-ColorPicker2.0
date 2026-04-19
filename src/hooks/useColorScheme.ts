@@ -50,7 +50,11 @@ export function useColorScheme(): {
   // 'system' 選択中は OS 設定の変化に追従
   useEffect(() => {
     if (scheme !== 'system' || typeof window === 'undefined') return;
-    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    // jsdom など matchMedia 未実装環境でも落とさない
+    const mq = typeof window.matchMedia === 'function'
+      ? window.matchMedia('(prefers-color-scheme: dark)')
+      : null;
+    if (!mq) return;
     const listener = () => {
       const r = mq.matches ? 'dark' : 'light';
       setResolved(r);
