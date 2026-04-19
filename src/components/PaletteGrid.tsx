@@ -11,7 +11,7 @@ import {
 } from '@mui/material';
 import chroma from 'chroma-js';
 import { ColorPalette, MuiColorVariant } from './colorUtils';
-import { contrastRatio, wcagLevel, WCAG_COLOR, A11yThreshold, THRESHOLD_RATIO, meetsThreshold } from '@/lib/wcag';
+import { contrastRatio, wcagLevel, wcagDisplayLevel, WCAG_COLOR, A11yThreshold, THRESHOLD_RATIO, meetsThreshold } from '@/lib/wcag';
 
 const THRESHOLD_LABEL: Record<A11yThreshold, string> = {
   none: '—',
@@ -55,20 +55,24 @@ const ColorSwatch = memo<{
   shade: keyof MuiColorVariant;
   colorValue: string;
   mainColor: string;
+  contrastText: string;
   isDark: boolean;
   onCopy: (text: string) => void;
-}>(({ shade, colorValue, mainColor, isDark, onCopy }) => {
+}>(({ shade, colorValue, mainColor, contrastText, isDark, onCopy }) => {
   const isLight = shade === 'light';
+  const isMain = shade === 'main';
   const isContrast = shade === 'contrastText';
-  // main/dark/light/lighter は背景が独立しているため、各シェードごとに
-  // 輝度ベースで文字色を決定する（contrastText を一律使うと低コントラスト化する）。
-  // contrastText 行だけは main 背景に contrastText を重ねた実運用プレビュー。
+  // main は A11y/White/Black toggle で決まる contrastText を直結。
+  // dark/light/lighter は背景が独立なので各自の輝度で自動選択。
+  // contrastText 行は main 背景 + contrastText を重ねた実運用プレビュー。
   const swatchBg = isContrast ? mainColor : colorValue;
   const swatchFg = isContrast
     ? colorValue
-    : chroma(colorValue).luminance() > 0.35
-      ? 'rgba(0,0,0,0.85)'
-      : 'rgba(255,255,255,0.95)';
+    : isMain
+      ? contrastText
+      : chroma(colorValue).luminance() > 0.35
+        ? 'rgba(0,0,0,0.85)'
+        : 'rgba(255,255,255,0.95)';
 
   return (
     <Box
@@ -149,11 +153,11 @@ const ContrastPreview = memo<{
   const bg = variant.main;
   const pageBg = isDark ? '#121212' : '#fafafa';
 
-  // 2 ケースのコントラスト比と level
+  // 2 ケースのコントラスト比と level（表示は通常テキスト 14-16px 想定で AA-Large → Fail）
   const ratio1 = contrastRatio(ct, bg);
-  const level1 = wcagLevel(ratio1);
+  const level1 = wcagDisplayLevel(ratio1);
   const ratio2 = contrastRatio(bg, pageBg);
-  const level2 = wcagLevel(ratio2);
+  const level2 = wcagDisplayLevel(ratio2);
 
   const thresholdActive = threshold !== 'none';
   const pass1 = !thresholdActive || meetsThreshold(ratio1, threshold);
@@ -404,6 +408,7 @@ const SchemeColumn = memo<{
           shade={shade}
           colorValue={variant[shade]}
           mainColor={variant.main}
+          contrastText={variant.contrastText}
           isDark={isDark}
           onCopy={onCopy}
         />

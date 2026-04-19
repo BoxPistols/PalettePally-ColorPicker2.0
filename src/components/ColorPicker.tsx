@@ -752,7 +752,7 @@ function ColorPicker() {
           </Tooltip>
 
           {/* A11y Threshold Toggle */}
-          <Tooltip title='A11y 許容しきい値: None (無効) / A (≥3:1) / AA (≥4.5:1) / AAA (≥7:1)' arrow>
+          <Tooltip title='A11y 許容しきい値（通常テキスト 14-16px 想定）: None (無効) / A (≥3:1, 大きい文字向け) / AA (≥4.5:1, WCAG 標準) / AAA (≥7:1, 強化)' arrow>
             <Box sx={{ display: 'flex', bgcolor: '#f5f5f5', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', p: '2px' }}>
               {(['none', 'A', 'AA', 'AAA'] as A11yThreshold[]).map(t => (
                 <Box

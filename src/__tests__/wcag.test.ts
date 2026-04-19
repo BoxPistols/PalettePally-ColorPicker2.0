@@ -1,4 +1,4 @@
-import { contrastRatio, wcagLevel, meetsThreshold, THRESHOLD_RATIO } from '@/lib/wcag';
+import { contrastRatio, wcagLevel, wcagDisplayLevel, meetsThreshold, THRESHOLD_RATIO } from '@/lib/wcag';
 
 describe('contrastRatio', () => {
   it('returns 21 for white on black', () => {
@@ -33,6 +33,24 @@ describe('wcagLevel', () => {
   it('returns Fail for ratio < 3', () => {
     expect(wcagLevel(2.9)).toBe('Fail');
     expect(wcagLevel(1)).toBe('Fail');
+  });
+});
+
+describe('wcagDisplayLevel (通常テキスト 14-16px 想定)', () => {
+  it('7 以上は AAA', () => {
+    expect(wcagDisplayLevel(7)).toBe('AAA');
+    expect(wcagDisplayLevel(21)).toBe('AAA');
+  });
+
+  it('4.5 以上 7 未満は AA', () => {
+    expect(wcagDisplayLevel(4.5)).toBe('AA');
+    expect(wcagDisplayLevel(6.9)).toBe('AA');
+  });
+
+  it('4.5 未満は Fail（AA-Large は通常テキストでは不合格扱い）', () => {
+    expect(wcagDisplayLevel(4.4)).toBe('Fail');
+    expect(wcagDisplayLevel(3)).toBe('Fail');
+    expect(wcagDisplayLevel(1)).toBe('Fail');
   });
 });
 
