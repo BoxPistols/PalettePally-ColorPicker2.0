@@ -722,65 +722,89 @@ function ColorPicker() {
           )}
 
           {/* Contrast Mode / A11y Threshold Toggles — ツールバー内で横幅を
-              圧迫していたため縦 stack に変更。全体高さは他のヘッダーボタン
-              1 行分に合わせて padding を詰める。 */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.375 }}>
+              圧迫していたため縦 stack に変更。タッチターゲットを確保するため
+              py は最低限残し (~28px)、角丸は既存 UI の 6px / 4px に揃える */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
             <Tooltip title='Contrast text 戦略 (light mode のみ適用 / dark mode は常に A11y 自動選択)' arrow>
-              <Box sx={{ display: 'flex', bgcolor: '#f5f5f5', borderRadius: '7px', border: '1px solid rgba(0,0,0,0.1)', p: '2px' }}>
-                {(['auto', 'white', 'black'] as ContrastMode[]).map(m => (
-                  <Box
-                    key={m}
-                    component='button'
-                    onClick={() => setContrastMode(m)}
-                    sx={{
-                      border: 0,
-                      flex: 1,
-                      px: 1,
-                      py: 0.25,
-                      fontSize: '0.65rem',
-                      fontWeight: 600,
-                      borderRadius: '5px',
-                      cursor: 'pointer',
-                      bgcolor: contrastMode === m ? '#fff' : 'transparent',
-                      color: contrastMode === m ? '#1a1a2e' : 'rgba(0,0,0,0.5)',
-                      boxShadow: contrastMode === m ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.03em',
-                      transition: 'all 0.15s ease',
-                    }}
-                  >
-                    {m === 'auto' ? 'A11y' : m === 'white' ? 'White' : 'Black'}
-                  </Box>
-                ))}
+              <Box
+                role='radiogroup'
+                aria-label='Contrast text strategy'
+                sx={{ display: 'flex', bgcolor: '#f5f5f5', borderRadius: '6px', border: '1px solid rgba(0,0,0,0.1)', p: '2px' }}
+              >
+                {(['auto', 'white', 'black'] as ContrastMode[]).map(m => {
+                  const label = m === 'auto' ? 'A11y' : m === 'white' ? 'White' : 'Black';
+                  const selected = contrastMode === m;
+                  return (
+                    <Box
+                      key={m}
+                      component='button'
+                      type='button'
+                      role='radio'
+                      aria-checked={selected}
+                      aria-label={`Contrast: ${label}`}
+                      onClick={() => setContrastMode(m)}
+                      sx={{
+                        border: 0,
+                        flex: 1,
+                        px: 1,
+                        py: 0.4,
+                        fontSize: '0.68rem',
+                        fontWeight: 600,
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        bgcolor: selected ? '#fff' : 'transparent',
+                        color: selected ? '#1a1a2e' : 'rgba(0,0,0,0.5)',
+                        boxShadow: selected ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.03em',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      {label}
+                    </Box>
+                  );
+                })}
               </Box>
             </Tooltip>
 
             <Tooltip title='A11y 許容しきい値（通常テキスト 14-16px 想定）: None (無効) / A (≥3:1, 大きい文字向け) / AA (≥4.5:1, WCAG 標準) / AAA (≥7:1, 強化)' arrow>
-              <Box sx={{ display: 'flex', bgcolor: '#f5f5f5', borderRadius: '7px', border: '1px solid rgba(0,0,0,0.1)', p: '2px' }}>
-                {(['none', 'A', 'AA', 'AAA'] as A11yThreshold[]).map(t => (
-                  <Box
-                    key={t}
-                    component='button'
-                    onClick={() => setA11yThreshold(t)}
-                    sx={{
-                      border: 0,
-                      flex: 1,
-                      px: 0.75,
-                      py: 0.25,
-                      fontSize: '0.65rem',
-                      fontWeight: 600,
-                      borderRadius: '5px',
-                      cursor: 'pointer',
-                      bgcolor: a11yThreshold === t ? '#fff' : 'transparent',
-                      color: a11yThreshold === t ? '#1a1a2e' : 'rgba(0,0,0,0.5)',
-                      boxShadow: a11yThreshold === t ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
-                      letterSpacing: '0.03em',
-                      transition: 'all 0.15s ease',
-                    }}
-                  >
-                    {t === 'none' ? 'None' : t}
-                  </Box>
-                ))}
+              <Box
+                role='radiogroup'
+                aria-label='A11y contrast threshold'
+                sx={{ display: 'flex', bgcolor: '#f5f5f5', borderRadius: '6px', border: '1px solid rgba(0,0,0,0.1)', p: '2px' }}
+              >
+                {(['none', 'A', 'AA', 'AAA'] as A11yThreshold[]).map(t => {
+                  const label = t === 'none' ? 'None' : t;
+                  const selected = a11yThreshold === t;
+                  return (
+                    <Box
+                      key={t}
+                      component='button'
+                      type='button'
+                      role='radio'
+                      aria-checked={selected}
+                      aria-label={`A11y threshold: ${label}`}
+                      onClick={() => setA11yThreshold(t)}
+                      sx={{
+                        border: 0,
+                        flex: 1,
+                        px: 0.75,
+                        py: 0.4,
+                        fontSize: '0.68rem',
+                        fontWeight: 600,
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        bgcolor: selected ? '#fff' : 'transparent',
+                        color: selected ? '#1a1a2e' : 'rgba(0,0,0,0.5)',
+                        boxShadow: selected ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
+                        letterSpacing: '0.03em',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      {label}
+                    </Box>
+                  );
+                })}
               </Box>
             </Tooltip>
           </Box>
