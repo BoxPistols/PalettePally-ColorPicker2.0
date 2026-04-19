@@ -160,19 +160,23 @@ const ContrastPreview = memo<{
   const level2 = wcagDisplayLevel(ratio2);
 
   const thresholdActive = threshold !== 'none';
+  // 枠 1 (main 背景 + contrastText): A11y/White/Black toggle が直接制御する領域
+  //   → 全体の ✓/✗ 判定はこちらだけで行う
+  // 枠 2 (main を text として使うケース): main カラー自体の性質で決まる
+  //   → 情報表示のみ。fail してもしきい値バッジや外枠色には影響させない
   const pass1 = !thresholdActive || meetsThreshold(ratio1, threshold);
   const pass2 = !thresholdActive || meetsThreshold(ratio2, threshold);
-  const anyFail = thresholdActive && (!pass1 || !pass2);
 
   const failColor = WCAG_COLOR.Fail;
   const neutralBorder = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)';
 
-  const makeTitle = (fg: string, bgHex: string, r: number, lvl: string, pass: boolean, label: string) =>
+  const makeTitle = (fg: string, bgHex: string, r: number, lvl: string, pass: boolean, label: string, extra?: string) =>
     `${label}\n文字色: ${fg}\n背景色: ${bgHex}\nコントラスト比: ${r.toFixed(2)}:1 (${lvl})\n` +
     (thresholdActive
       ? (pass ? `✓ ${threshold} 基準 (${THRESHOLD_LABEL[threshold]}) を満たしています`
               : `✗ ${threshold} 基準 (${THRESHOLD_LABEL[threshold]}) 未満です`)
-      : 'しきい値: none (チェック無効)');
+      : 'しきい値: none (チェック無効)') +
+    (extra ? `\n\n${extra}` : '');
 
   return (
     <Box
@@ -180,8 +184,8 @@ const ContrastPreview = memo<{
         mt: 0.75,
         p: 0.75,
         borderRadius: '8px',
-        border: anyFail ? '1.5px solid' : '1px dashed',
-        borderColor: anyFail ? failColor : neutralBorder,
+        border: thresholdActive && !pass1 ? '1.5px solid' : '1px dashed',
+        borderColor: thresholdActive && !pass1 ? failColor : neutralBorder,
         display: 'flex',
         flexDirection: 'column',
         gap: 0.5,
@@ -203,25 +207,26 @@ const ContrastPreview = memo<{
           <Tooltip
             arrow
             placement='top'
-            title={anyFail
-              ? `いずれかのケースが ${threshold} 基準 (${THRESHOLD_LABEL[threshold]}) 未満です`
-              : `両ケースとも ${threshold} 基準 (${THRESHOLD_LABEL[threshold]}) を満たしています`}
+            title={pass1
+              ? `main + contrastText は ${threshold} 基準 (${THRESHOLD_LABEL[threshold]}) を満たしています。\n※ 枠 2 の "main をテキスト色として使うケース" は main カラー自体の特性で決まり、A11y toggle の対象外です。`
+              : `main + contrastText が ${threshold} 基準 (${THRESHOLD_LABEL[threshold]}) 未満です`}
           >
             <Typography
               sx={{
                 fontSize: '0.55rem',
                 fontWeight: 700,
                 letterSpacing: 0.4,
-                color: anyFail ? failColor : WCAG_COLOR.AAA,
+                color: pass1 ? WCAG_COLOR.AAA : failColor,
                 px: 0.5,
                 py: 0.125,
                 borderRadius: '4px',
-                border: `1px solid ${anyFail ? failColor : WCAG_COLOR.AAA}`,
+                border: `1px solid ${pass1 ? WCAG_COLOR.AAA : failColor}`,
                 lineHeight: 1.3,
                 cursor: 'help',
+                whiteSpace: 'pre-line',
               }}
             >
-              {anyFail ? `✗ ${threshold}` : `✓ ${threshold}`}
+              {pass1 ? `✓ ${threshold}` : `✗ ${threshold}`}
             </Typography>
           </Tooltip>
         )}
@@ -289,12 +294,20 @@ const ContrastPreview = memo<{
         </Box>
       </Tooltip>
 
-      {/* 枠 2: main を純粋な text color として使うケース（背景はサイト/カラム背景のまま） */}
+      {/* 枠 2: main を純粋な text color として使うケース（情報表示のみ・A11y toggle の対象外） */}
       <Tooltip
         arrow
         placement='left'
         title={<Box sx={{ whiteSpace: 'pre-line', fontSize: '0.75rem' }}>{
-          makeTitle(bg, pageBg, ratio2, level2, pass2, `main をテキスト色として使うケース（ページ背景 ${pageBg}）`)
+          makeTitle(
+            bg,
+            pageBg,
+            ratio2,
+            level2,
+            pass2,
+            `main をテキスト色として使うケース（ページ背景 ${pageBg}）`,
+            'この枠は main カラー自体の特性を表す情報表示です。A11y / White / Black toggle は contrastText (枠 1) を制御する設定なので、この値は toggle で変化しません。'
+          )
         }</Box>}
       >
         <Box
@@ -308,8 +321,6 @@ const ContrastPreview = memo<{
             px: 0.75,
             py: 0.5,
             minWidth: 0,
-            outline: thresholdActive && !pass2 ? `2px solid ${failColor}` : 'none',
-            outlineOffset: thresholdActive && !pass2 ? '-2px' : 0,
             cursor: 'help',
           }}
         >
@@ -337,13 +348,14 @@ const ContrastPreview = memo<{
               fontSize: '0.65rem',
               fontWeight: 700,
               fontFamily: 'monospace',
-              color: thresholdActive && !pass2 ? failColor : bg,
-              opacity: thresholdActive && !pass2 ? 1 : 0.85,
+              // 情報表示なので fail でも赤くせず muted amber のみに留める
+              color: thresholdActive && !pass2 ? WCAG_COLOR['AA-Large'] : bg,
+              opacity: 0.85,
               whiteSpace: 'nowrap',
               flexShrink: 0,
             }}
           >
-            {thresholdActive && !pass2 ? '⚠ ' : ''}{ratio2.toFixed(1)} {level2}
+            {ratio2.toFixed(1)} {level2}
           </Box>
         </Box>
       </Tooltip>
