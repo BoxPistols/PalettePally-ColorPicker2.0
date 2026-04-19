@@ -125,15 +125,16 @@ const ColorSwatch = memo<{
 
 ColorSwatch.displayName = 'ColorSwatch';
 
-// ── Contrast Preview (text + buttons on each shade) ──
-
-const PREVIEW_SHADES: (keyof MuiColorVariant)[] = ['main', 'dark', 'light', 'lighter'];
+// ── Contrast Preview (main 背景に contrastText を重ねた実運用サンプル) ──
 
 const ContrastPreview = memo<{
   variant: MuiColorVariant;
   isDark: boolean;
 }>(({ variant, isDark }) => {
   const ct = variant.contrastText;
+  const bg = variant.main;
+  const ratio = contrastRatio(ct, bg);
+  const level = wcagLevel(ratio);
 
   return (
     <Box
@@ -155,90 +156,71 @@ const ContrastPreview = memo<{
           letterSpacing: 0.8,
           textTransform: 'uppercase',
           color: isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.4)',
-          mb: 0.25,
         }}
       >
         contrastText preview
       </Typography>
-      {PREVIEW_SHADES.map(shade => {
-        const bg = variant[shade];
-        const ratio = contrastRatio(ct, bg);
-        const level = wcagLevel(ratio);
-        return (
-          <Box
-            key={shade}
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 0.75,
+          background: bg,
+          borderRadius: '6px',
+          px: 1,
+          py: 0.75,
+          minWidth: 0,
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, minWidth: 0, flex: 1 }}>
+          <Typography
             sx={{
-              display: 'grid',
-              gridTemplateColumns: '44px 1fr auto',
-              alignItems: 'center',
-              gap: 0.5,
-              background: bg,
-              borderRadius: '6px',
-              px: 0.75,
-              py: 0.5,
-              border: shade === 'light' || shade === 'lighter'
-                ? `1px solid ${isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.08)'}`
-                : '1px solid transparent',
+              color: ct,
+              fontSize: '0.85rem',
+              fontWeight: 600,
+              lineHeight: 1.2,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
             }}
           >
-            <Typography
-              sx={{
-                fontSize: '0.6rem',
-                fontWeight: 700,
-                letterSpacing: 0.5,
-                textTransform: 'uppercase',
-                color: ct,
-                opacity: 0.75,
-              }}
-            >
-              {shade}
-            </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}>
-              <Typography
-                sx={{
-                  color: ct,
-                  fontSize: '0.85rem',
-                  fontWeight: 600,
-                  lineHeight: 1.2,
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                Aa テキスト
-              </Typography>
-              <Box
-                component='span'
-                sx={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  border: `1px solid ${ct}`,
-                  color: ct,
-                  borderRadius: '999px',
-                  fontSize: '0.65rem',
-                  fontWeight: 600,
-                  px: 0.75,
-                  py: 0.125,
-                  lineHeight: 1.4,
-                }}
-              >
-                Button
-              </Box>
-            </Box>
-            <Typography
-              sx={{
-                fontSize: '0.6rem',
-                fontWeight: 700,
-                fontFamily: 'monospace',
-                color: ct,
-                opacity: 0.85,
-                whiteSpace: 'nowrap',
-              }}
-              title={`${ratio.toFixed(2)}:1 — ${level}`}
-            >
-              {ratio.toFixed(1)} {level}
-            </Typography>
+            Aa テキスト
+          </Typography>
+          <Box
+            component='span'
+            sx={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              border: `1px solid ${ct}`,
+              color: ct,
+              borderRadius: '999px',
+              fontSize: '0.65rem',
+              fontWeight: 600,
+              px: 0.75,
+              py: 0.125,
+              lineHeight: 1.4,
+              flexShrink: 0,
+            }}
+          >
+            Button
           </Box>
-        );
-      })}
+        </Box>
+        <Typography
+          sx={{
+            fontSize: '0.65rem',
+            fontWeight: 700,
+            fontFamily: 'monospace',
+            color: ct,
+            opacity: 0.85,
+            whiteSpace: 'nowrap',
+            flexShrink: 0,
+          }}
+          title={`${ratio.toFixed(2)}:1 — ${level}`}
+        >
+          {ratio.toFixed(1)} {level}
+        </Typography>
+      </Box>
     </Box>
   );
 });
