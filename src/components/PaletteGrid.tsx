@@ -11,7 +11,26 @@ import {
 } from '@mui/material';
 import chroma from 'chroma-js';
 import { ColorPalette, MuiColorVariant } from './colorUtils';
-import { contrastRatio, wcagLevel, wcagDisplayLevel, WCAG_COLOR, A11yThreshold, THRESHOLD_RATIO, meetsThreshold } from '@/lib/wcag';
+import { contrastRatio, wcagLevel, WCAG_COLOR, A11yThreshold, THRESHOLD_RATIO, meetsThreshold } from '@/lib/wcag';
+
+// Preview に表示するレベル: ユーザが選んだ threshold の枠内でのラベル。
+// AA-Large (3-4.5:1) は threshold が A か None のときだけ "A" として出し、
+// AA / AAA のときは "Fail" にする（勝手に "AA" を名乗らない）。
+type DisplayLabel = 'AAA' | 'AA' | 'A' | 'Fail';
+
+function formatLevel(ratio: number, threshold: A11yThreshold): DisplayLabel {
+  if (ratio >= 7) return 'AAA';
+  if (ratio >= 4.5) return 'AA';
+  if (ratio >= 3) return threshold === 'A' || threshold === 'none' ? 'A' : 'Fail';
+  return 'Fail';
+}
+
+const DISPLAY_COLOR: Record<DisplayLabel, string> = {
+  AAA: WCAG_COLOR.AAA,
+  AA: WCAG_COLOR.AA,
+  A: WCAG_COLOR['AA-Large'],
+  Fail: WCAG_COLOR.Fail,
+};
 
 const THRESHOLD_LABEL: Record<A11yThreshold, string> = {
   none: '—',
@@ -153,11 +172,11 @@ const ContrastPreview = memo<{
   const bg = variant.main;
   const pageBg = isDark ? '#121212' : '#fafafa';
 
-  // 2 ケースのコントラスト比と level（表示は通常テキスト 14-16px 想定で AA-Large → Fail）
+  // 2 ケースのコントラスト比。ラベルは threshold に沿った表示用 (AAA/AA/A/Fail)
   const ratio1 = contrastRatio(ct, bg);
-  const level1 = wcagDisplayLevel(ratio1);
+  const label1 = formatLevel(ratio1, threshold);
   const ratio2 = contrastRatio(bg, pageBg);
-  const level2 = wcagDisplayLevel(ratio2);
+  const label2 = formatLevel(ratio2, threshold);
 
   const thresholdActive = threshold !== 'none';
   // 枠 1 (main 背景 + contrastText): A11y/White/Black toggle が直接制御する領域
@@ -216,11 +235,11 @@ const ContrastPreview = memo<{
                 fontSize: '0.55rem',
                 fontWeight: 700,
                 letterSpacing: 0.4,
-                color: pass1 ? WCAG_COLOR.AAA : failColor,
+                color: pass1 ? DISPLAY_COLOR[label1] : failColor,
                 px: 0.5,
                 py: 0.125,
                 borderRadius: '4px',
-                border: `1px solid ${pass1 ? WCAG_COLOR.AAA : failColor}`,
+                border: `1px solid ${pass1 ? DISPLAY_COLOR[label1] : failColor}`,
                 lineHeight: 1.3,
                 cursor: 'help',
                 whiteSpace: 'pre-line',
@@ -237,7 +256,7 @@ const ContrastPreview = memo<{
         arrow
         placement='left'
         title={<Box sx={{ whiteSpace: 'pre-line', fontSize: '0.75rem' }}>{
-          makeTitle(ct, bg, ratio1, level1, pass1, 'main 背景 + contrastText 文字')
+          makeTitle(ct, bg, ratio1, label1, pass1, 'main 背景 + contrastText 文字')
         }</Box>}
       >
         <Box
@@ -289,7 +308,7 @@ const ContrastPreview = memo<{
               flexShrink: 0,
             }}
           >
-            {thresholdActive && !pass1 ? '⚠ ' : ''}{ratio1.toFixed(1)} {level1}
+            {thresholdActive && !pass1 ? '⚠ ' : ''}{ratio1.toFixed(1)} {label1}
           </Box>
         </Box>
       </Tooltip>
@@ -303,7 +322,7 @@ const ContrastPreview = memo<{
             bg,
             pageBg,
             ratio2,
-            level2,
+            label2,
             pass2,
             `main をテキスト色として使うケース（ページ背景 ${pageBg}）`,
             'この枠は main カラー自体の特性を表す情報表示です。A11y / White / Black toggle は contrastText (枠 1) を制御する設定なので、この値は toggle で変化しません。'
@@ -355,7 +374,7 @@ const ContrastPreview = memo<{
               flexShrink: 0,
             }}
           >
-            {ratio2.toFixed(1)} {level2}
+            {ratio2.toFixed(1)} {label2}
           </Box>
         </Box>
       </Tooltip>

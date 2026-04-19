@@ -722,7 +722,7 @@ function ColorPicker() {
           )}
 
           {/* Contrast Mode Toggle */}
-          <Tooltip title='Contrast text: A11y (WCAG) or White (brand)' arrow>
+          <Tooltip title='Contrast text 戦略 (light mode のみ適用 / dark mode は常に A11y 自動選択)' arrow>
             <Box sx={{ display: 'flex', bgcolor: '#f5f5f5', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', p: '2px' }}>
               {(['auto', 'white', 'black'] as ContrastMode[]).map(m => (
                 <Box
