@@ -41,6 +41,10 @@ figma.ui.onmessage = async (msg: UIMessage) => {
 
 function hexToRgb(hex: string): { r: number; g: number; b: number } {
   const h = hex.replace('#', '');
+  // 3/6 桁のみ受理。4/8 桁（alpha 付き）は Figma Variables の COLOR 型と不整合なので拒否。
+  if (!/^([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(h)) {
+    throw new Error(`Unsupported hex color: "${hex}" (expected #rgb or #rrggbb; alpha channels are not supported)`);
+  }
   const full = h.length === 3
     ? h.split('').map(c => c + c).join('')
     : h;

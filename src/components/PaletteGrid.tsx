@@ -11,21 +11,9 @@ import {
 } from '@mui/material';
 import chroma from 'chroma-js';
 import { ColorPalette, MuiColorVariant } from './colorUtils';
-import { contrastRatio, wcagLevel, WCAG_COLOR, A11yThreshold, THRESHOLD_RATIO, meetsThreshold } from '@/lib/wcag';
+import { contrastRatio, wcagLevel, WCAG_COLOR, A11yThreshold, THRESHOLD_RATIO, meetsThreshold, formatPreviewLevel, PreviewLabel } from '@/lib/wcag';
 
-// Preview に表示するレベル: ユーザが選んだ threshold の枠内でのラベル。
-// AA-Large (3-4.5:1) は threshold が A か None のときだけ "A" として出し、
-// AA / AAA のときは "Fail" にする（勝手に "AA" を名乗らない）。
-type DisplayLabel = 'AAA' | 'AA' | 'A' | 'Fail';
-
-function formatLevel(ratio: number, threshold: A11yThreshold): DisplayLabel {
-  if (ratio >= 7) return 'AAA';
-  if (ratio >= 4.5) return 'AA';
-  if (ratio >= 3) return threshold === 'A' || threshold === 'none' ? 'A' : 'Fail';
-  return 'Fail';
-}
-
-const DISPLAY_COLOR: Record<DisplayLabel, string> = {
+const DISPLAY_COLOR: Record<PreviewLabel, string> = {
   AAA: WCAG_COLOR.AAA,
   AA: WCAG_COLOR.AA,
   A: WCAG_COLOR['AA-Large'],
@@ -174,9 +162,9 @@ const ContrastPreview = memo<{
 
   // 2 ケースのコントラスト比。ラベルは threshold に沿った表示用 (AAA/AA/A/Fail)
   const ratio1 = contrastRatio(ct, bg);
-  const label1 = formatLevel(ratio1, threshold);
+  const label1 = formatPreviewLevel(ratio1, threshold);
   const ratio2 = contrastRatio(bg, pageBg);
-  const label2 = formatLevel(ratio2, threshold);
+  const label2 = formatPreviewLevel(ratio2, threshold);
 
   const thresholdActive = threshold !== 'none';
   // 枠 1 (main 背景 + contrastText): A11y/White/Black toggle が直接制御する領域

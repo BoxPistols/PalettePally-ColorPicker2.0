@@ -117,7 +117,7 @@ export function generateColorScheme(hex: string, contrastMode: ContrastMode = 'a
         light: grey(90),
         lighter: grey(30),
         // dark モードは WHITE / BLACK 強制の対象外。常に A11y (輝度ベース) で決定。
-      contrastText: getContrastText(darkMain, 'auto'),
+        contrastText: getContrastText(darkMain, 'auto'),
       },
     };
     colorSchemeCache.set(cacheKey, result);

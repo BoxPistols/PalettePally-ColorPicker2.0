@@ -1,7 +1,7 @@
 import { PaletteData } from '@/lib/types/palette';
 import { paletteToDTCG } from './dtcg';
 import { DTCGToken, DTCGGroup } from '@/lib/types/dtcg';
-import { MuiColorVariant } from '@/components/colorUtils';
+import { MuiColorVariant, generateColorScheme } from '@/components/colorUtils';
 import {
   FigmaVariablesResponse,
   FigmaColor,
@@ -162,20 +162,19 @@ const SHADE_KEYS: readonly (keyof MuiColorVariant)[] = [
   'contrastText',
 ] as const;
 
-const emptyVariant = (): MuiColorVariant => ({
-  main: '#000000',
-  dark: '#000000',
-  light: '#000000',
-  lighter: '#000000',
-  contrastText: '#ffffff',
-});
+// 各シェードの値とセット済みフラグを追跡するための内部構造
+type PartialVariant = {
+  values: Partial<MuiColorVariant>;
+  set: Set<keyof MuiColorVariant>;
+};
+const emptyPartial = (): PartialVariant => ({ values: {}, set: new Set() });
 
 export function parsedVariablesToPalette(
   parsed: ParsedVariable[]
 ): Partial<PaletteData> {
   const actionByName = new Map<
     string,
-    { light: MuiColorVariant; dark: MuiColorVariant }
+    { light: PartialVariant; dark: PartialVariant }
   >();
   const grey: { light: Record<string, string>; dark: Record<string, string> } = {
     light: {},
@@ -196,11 +195,14 @@ export function parsedVariablesToPalette(
       if (!SHADE_KEYS.includes(shade as keyof MuiColorVariant)) continue;
 
       if (!actionByName.has(name)) {
-        actionByName.set(name, { light: emptyVariant(), dark: emptyVariant() });
+        actionByName.set(name, { light: emptyPartial(), dark: emptyPartial() });
       }
       const pair = actionByName.get(name)!;
-      pair.light[shade as keyof MuiColorVariant] = v.lightValue;
-      pair.dark[shade as keyof MuiColorVariant] = darkHex;
+      const key = shade as keyof MuiColorVariant;
+      pair.light.values[key] = v.lightValue;
+      pair.light.set.add(key);
+      pair.dark.values[key] = darkHex;
+      pair.dark.set.add(key);
     } else if (v.collection === 'grey' && segments.length === 1) {
       const [tone] = segments;
       grey.light[tone] = v.lightValue;
@@ -214,9 +216,33 @@ export function parsedVariablesToPalette(
     }
   }
 
-  const names = Array.from(actionByName.keys());
-  const colors = names.map(n => actionByName.get(n)!.light.main);
-  const palette = names.map(n => ({ [n]: actionByName.get(n)! }));
+  // main が欠けているエントリは action-colors として扱わない。
+  // 他のシェードが欠けているものは main から generateColorScheme で補完する
+  // （emptyVariant() の #000000 ダミーが PaletteData に残らないようにする）。
+  const resolvedByName = new Map<
+    string,
+    { light: MuiColorVariant; dark: MuiColorVariant }
+  >();
+  // 注: tsconfig target=es5 + downlevelIteration 未設定のため、
+  // Map の for-of は Array.from(.entries()) を経由する必要がある
+  Array.from(actionByName.entries()).forEach(([name, pair]) => {
+    if (!pair.light.set.has('main')) return;
+    const mainHex = pair.light.values.main!;
+    const defaults = generateColorScheme(mainHex, 'auto');
+    const resolved = {
+      light: { ...defaults.light } as MuiColorVariant,
+      dark: { ...defaults.dark } as MuiColorVariant,
+    };
+    for (const key of SHADE_KEYS) {
+      if (pair.light.set.has(key)) resolved.light[key] = pair.light.values[key]!;
+      if (pair.dark.set.has(key)) resolved.dark[key] = pair.dark.values[key]!;
+    }
+    resolvedByName.set(name, resolved);
+  });
+
+  const names = Array.from(resolvedByName.keys());
+  const colors = names.map(n => resolvedByName.get(n)!.light.main);
+  const palette = names.map(n => ({ [n]: resolvedByName.get(n)! }));
 
   const hasGrey = Object.keys(grey.light).length > 0 || Object.keys(grey.dark).length > 0;
   const hasUtility = Object.keys(utility.light).length > 0 || Object.keys(utility.dark).length > 0;

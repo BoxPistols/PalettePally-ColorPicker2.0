@@ -49,3 +49,17 @@ export function meetsThreshold(ratio: number, threshold: A11yThreshold): boolean
   if (threshold === 'none') return true;
   return ratio >= THRESHOLD_RATIO[threshold];
 }
+
+// Preview に表示する pass/fail ラベル。threshold を超えても上位ランクは名乗らない
+// （A を選んだのに AAA バッジが出る…を防ぐ）。'none' のときだけ実ランク表示。
+export type PreviewLabel = 'AAA' | 'AA' | 'A' | 'Fail';
+
+export function formatPreviewLevel(ratio: number, threshold: A11yThreshold): PreviewLabel {
+  if (threshold === 'none') {
+    if (ratio >= THRESHOLD_RATIO.AAA) return 'AAA';
+    if (ratio >= THRESHOLD_RATIO.AA) return 'AA';
+    if (ratio >= THRESHOLD_RATIO.A) return 'A';
+    return 'Fail';
+  }
+  return meetsThreshold(ratio, threshold) ? threshold : 'Fail';
+}
