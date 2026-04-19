@@ -147,19 +147,28 @@ const ContrastPreview = memo<{
 }>(({ variant, isDark, threshold }) => {
   const ct = variant.contrastText;
   const bg = variant.main;
-  const ratio = contrastRatio(ct, bg);
-  const level = wcagLevel(ratio);
-  // main を純粋な text color として使うケース: 背景は SchemeColumn と同じサイト背景
   const pageBg = isDark ? '#121212' : '#fafafa';
-  const mainOnPageRatio = contrastRatio(bg, pageBg);
-  const mainOnPageLevel = wcagLevel(mainOnPageRatio);
+
+  // 2 ケースのコントラスト比と level
+  const ratio1 = contrastRatio(ct, bg);
+  const level1 = wcagLevel(ratio1);
+  const ratio2 = contrastRatio(bg, pageBg);
+  const level2 = wcagLevel(ratio2);
+
   const thresholdActive = threshold !== 'none';
-  const passes = !thresholdActive || meetsThreshold(ratio, threshold);
+  const pass1 = !thresholdActive || meetsThreshold(ratio1, threshold);
+  const pass2 = !thresholdActive || meetsThreshold(ratio2, threshold);
+  const anyFail = thresholdActive && (!pass1 || !pass2);
 
   const failColor = WCAG_COLOR.Fail;
-  const frameBorderColor = thresholdActive && !passes
-    ? failColor
-    : isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)';
+  const neutralBorder = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)';
+
+  const makeTitle = (fg: string, bgHex: string, r: number, lvl: string, pass: boolean, label: string) =>
+    `${label}\n文字色: ${fg}\n背景色: ${bgHex}\nコントラスト比: ${r.toFixed(2)}:1 (${lvl})\n` +
+    (thresholdActive
+      ? (pass ? `✓ ${threshold} 基準 (${THRESHOLD_LABEL[threshold]}) を満たしています`
+              : `✗ ${threshold} 基準 (${THRESHOLD_LABEL[threshold]}) 未満です`)
+      : 'しきい値: none (チェック無効)');
 
   return (
     <Box
@@ -167,8 +176,8 @@ const ContrastPreview = memo<{
         mt: 0.75,
         p: 0.75,
         borderRadius: '8px',
-        border: thresholdActive && !passes ? '1.5px solid' : '1px dashed',
-        borderColor: frameBorderColor,
+        border: anyFail ? '1.5px solid' : '1px dashed',
+        borderColor: anyFail ? failColor : neutralBorder,
         display: 'flex',
         flexDirection: 'column',
         gap: 0.5,
@@ -187,117 +196,153 @@ const ContrastPreview = memo<{
           Preview
         </Typography>
         {thresholdActive && (
-          <Typography
-            sx={{
-              fontSize: '0.55rem',
-              fontWeight: 700,
-              letterSpacing: 0.4,
-              color: passes ? WCAG_COLOR[level] : failColor,
-              px: 0.5,
-              py: 0.125,
-              borderRadius: '4px',
-              border: `1px solid ${passes ? WCAG_COLOR[level] : failColor}`,
-              lineHeight: 1.3,
-            }}
-            title={passes
-              ? `Meets ${threshold} (${ratio.toFixed(2)}:1 ≥ ${THRESHOLD_LABEL[threshold]})`
-              : `Below ${threshold} threshold (${ratio.toFixed(2)}:1 < ${THRESHOLD_LABEL[threshold]})`}
+          <Tooltip
+            arrow
+            placement='top'
+            title={anyFail
+              ? `いずれかのケースが ${threshold} 基準 (${THRESHOLD_LABEL[threshold]}) 未満です`
+              : `両ケースとも ${threshold} 基準 (${THRESHOLD_LABEL[threshold]}) を満たしています`}
           >
-            {passes ? `✓ ${threshold}` : `✗ ${threshold}`}
-          </Typography>
+            <Typography
+              sx={{
+                fontSize: '0.55rem',
+                fontWeight: 700,
+                letterSpacing: 0.4,
+                color: anyFail ? failColor : WCAG_COLOR.AAA,
+                px: 0.5,
+                py: 0.125,
+                borderRadius: '4px',
+                border: `1px solid ${anyFail ? failColor : WCAG_COLOR.AAA}`,
+                lineHeight: 1.3,
+                cursor: 'help',
+              }}
+            >
+              {anyFail ? `✗ ${threshold}` : `✓ ${threshold}`}
+            </Typography>
+          </Tooltip>
         )}
       </Box>
+
       {/* 枠 1: bg=main / fg=contrastText — 通常使用ケース */}
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 0.5,
-          background: bg,
-          borderRadius: '6px',
-          px: 0.75,
-          py: 0.75,
-          minWidth: 0,
-        }}
+      <Tooltip
+        arrow
+        placement='left'
+        title={<Box sx={{ whiteSpace: 'pre-line', fontSize: '0.75rem' }}>{
+          makeTitle(ct, bg, ratio1, level1, pass1, 'main 背景 + contrastText 文字')
+        }</Box>}
       >
         <Box
-          component='span'
           sx={{
-            display: 'inline-flex',
+            display: 'flex',
             alignItems: 'center',
-            border: `1px solid ${ct}`,
-            color: ct,
-            borderRadius: '999px',
-            fontSize: '0.65rem',
-            fontWeight: 600,
+            justifyContent: 'space-between',
+            gap: 0.5,
+            background: bg,
+            borderRadius: '6px',
             px: 0.75,
-            py: 0.125,
-            lineHeight: 1.4,
-            flexShrink: 0,
-          }}
-        >
-          text
-        </Box>
-        <Typography
-          sx={{
-            fontSize: '0.65rem',
-            fontWeight: 700,
-            fontFamily: 'monospace',
-            color: ct,
-            opacity: 0.85,
-            whiteSpace: 'nowrap',
-            flexShrink: 0,
-          }}
-          title={`${ratio.toFixed(2)}:1 — ${level}`}
-        >
-          {ratio.toFixed(1)} {level}
-        </Typography>
-      </Box>
-      {/* 枠 2: main を純粋な text color として使うケース（背景はサイト/カラム背景のまま） */}
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 0.5,
-          background: 'transparent',
-          borderRadius: '6px',
-          px: 0.75,
-          py: 0.5,
-          minWidth: 0,
-        }}
-      >
-        <Typography
-          sx={{
-            color: bg,
-            fontSize: '0.8rem',
-            fontWeight: 700,
-            lineHeight: 1.2,
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            flexShrink: 1,
+            py: 0.75,
             minWidth: 0,
+            outline: thresholdActive && !pass1 ? `2px solid ${failColor}` : 'none',
+            outlineOffset: thresholdActive && !pass1 ? '-2px' : 0,
+            cursor: 'help',
           }}
         >
-          main text
-        </Typography>
-        <Typography
+          <Box
+            component='span'
+            sx={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              border: `1px solid ${ct}`,
+              color: ct,
+              borderRadius: '999px',
+              fontSize: '0.65rem',
+              fontWeight: 600,
+              px: 0.75,
+              py: 0.125,
+              lineHeight: 1.4,
+              flexShrink: 0,
+            }}
+          >
+            text
+          </Box>
+          <Box
+            component='span'
+            sx={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 0.25,
+              fontSize: '0.65rem',
+              fontWeight: 700,
+              fontFamily: 'monospace',
+              color: thresholdActive && !pass1 ? failColor : ct,
+              opacity: thresholdActive && !pass1 ? 1 : 0.85,
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
+            }}
+          >
+            {thresholdActive && !pass1 ? '⚠ ' : ''}{ratio1.toFixed(1)} {level1}
+          </Box>
+        </Box>
+      </Tooltip>
+
+      {/* 枠 2: main を純粋な text color として使うケース（背景はサイト/カラム背景のまま） */}
+      <Tooltip
+        arrow
+        placement='left'
+        title={<Box sx={{ whiteSpace: 'pre-line', fontSize: '0.75rem' }}>{
+          makeTitle(bg, pageBg, ratio2, level2, pass2, `main をテキスト色として使うケース（ページ背景 ${pageBg}）`)
+        }</Box>}
+      >
+        <Box
           sx={{
-            fontSize: '0.65rem',
-            fontWeight: 700,
-            fontFamily: 'monospace',
-            color: bg,
-            opacity: 0.85,
-            whiteSpace: 'nowrap',
-            flexShrink: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 0.5,
+            background: 'transparent',
+            borderRadius: '6px',
+            px: 0.75,
+            py: 0.5,
+            minWidth: 0,
+            outline: thresholdActive && !pass2 ? `2px solid ${failColor}` : 'none',
+            outlineOffset: thresholdActive && !pass2 ? '-2px' : 0,
+            cursor: 'help',
           }}
-          title={`main on page bg: ${mainOnPageRatio.toFixed(2)}:1 — ${mainOnPageLevel}`}
         >
-          {mainOnPageRatio.toFixed(1)} {mainOnPageLevel}
-        </Typography>
-      </Box>
+          <Typography
+            sx={{
+              color: bg,
+              fontSize: '0.8rem',
+              fontWeight: 700,
+              lineHeight: 1.2,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              flexShrink: 1,
+              minWidth: 0,
+            }}
+          >
+            main text
+          </Typography>
+          <Box
+            component='span'
+            sx={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 0.25,
+              fontSize: '0.65rem',
+              fontWeight: 700,
+              fontFamily: 'monospace',
+              color: thresholdActive && !pass2 ? failColor : bg,
+              opacity: thresholdActive && !pass2 ? 1 : 0.85,
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
+            }}
+          >
+            {thresholdActive && !pass2 ? '⚠ ' : ''}{ratio2.toFixed(1)} {level2}
+          </Box>
+        </Box>
+      </Tooltip>
     </Box>
   );
 });
