@@ -1,5 +1,12 @@
 # Firebase Setup Guide - Palette Pally
 
+> **Firebase は opt-in 機能です。** env 未設定のままでもアプリ本体（ColorPicker / Palette 生成 / Export / Import Hub）は動作します。Firebase を設定しない場合の挙動:
+>
+> - 本番 (`NODE_ENV=production`): `/api/figma/*` ルートのみ **503 Service Unavailable** を返す。他の UI / API は通常動作
+> - 開発 (`yarn dev`): `/api/figma/*` も fail-open で動く（警告ログは出る）
+>
+> 以下の手順は「将来的に Firebase で認証 + パレット保存 + Figma API 中継を有効化する」ときの導入ガイドです。
+
 ## 1. Firebase Project Creation
 
 1. Open [Firebase Console](https://console.firebase.google.com/)
