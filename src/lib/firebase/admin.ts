@@ -1,9 +1,15 @@
 // Firebase Admin SDK – server-only。API ルートで ID トークンを検証する。
-// env 未設定時の挙動:
-//   - dev (NODE_ENV !== 'production'): 認証スキップ + 警告ログ
-//   - prod: 起動時に throw して fail-closed
+// Firebase は opt-in 機能。env 未設定でもアプリ全体は動き、Firebase 依存 API
+// （現状 /api/figma/*）だけが無効化される。
 //
-// 必要 env:
+// 挙動マトリクス:
+//   | NODE_ENV   | env 設定 | 挙動                                              |
+//   | prod       | 有      | Bearer トークン検証                               |
+//   | prod       | 無      | 503 Service Unavailable（機能自体が opt-in のため） |
+//   | 非 prod    | 有      | Bearer トークン検証                               |
+//   | 非 prod    | 無      | 認証スキップ + 警告ログ（dev escape hatch）       |
+//
+// 必要 env (すべて有効化する場合):
 //   FIREBASE_ADMIN_CLIENT_EMAIL
 //   FIREBASE_ADMIN_PRIVATE_KEY  （JSON 由来の \n を含むため改行のエスケープに注意）
 //   FIREBASE_ADMIN_PROJECT_ID   （省略時は NEXT_PUBLIC_FIREBASE_PROJECT_ID にフォールバック）
@@ -20,16 +26,10 @@ const privateKey = rawPrivateKey?.replace(/\\n/g, '\n');
 const projectId =
   process.env.FIREBASE_ADMIN_PROJECT_ID ?? process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
 
-const isConfigured = Boolean(clientEmail && privateKey && projectId);
-
-if (!isConfigured && isProd) {
-  throw new Error(
-    'firebase-admin: required env not set (FIREBASE_ADMIN_CLIENT_EMAIL / FIREBASE_ADMIN_PRIVATE_KEY / FIREBASE_ADMIN_PROJECT_ID)'
-  );
-}
+export const isAdminConfigured = Boolean(clientEmail && privateKey && projectId);
 
 let app: App | null = null;
-if (isConfigured) {
+if (isAdminConfigured) {
   app = getApps()[0] ?? initializeApp({
     credential: cert({ projectId, clientEmail, privateKey }),
   });
@@ -40,8 +40,15 @@ export type AuthResult =
   | { ok: false; status: number; error: string };
 
 export async function verifyAuth(req: NextApiRequest): Promise<AuthResult> {
-  if (!isConfigured) {
-    // dev escape hatch — fail-open のみ
+  if (!isAdminConfigured) {
+    if (isProd) {
+      return {
+        ok: false,
+        status: 503,
+        error:
+          'Firebase-backed API is not enabled on this deployment. Set FIREBASE_ADMIN_CLIENT_EMAIL / FIREBASE_ADMIN_PRIVATE_KEY / FIREBASE_ADMIN_PROJECT_ID to activate.',
+      };
+    }
     // eslint-disable-next-line no-console
     console.warn('[verifyAuth] firebase-admin not configured — bypassing in non-production');
     return { ok: true, uid: 'dev-anonymous', token: {} as DecodedIdToken };
