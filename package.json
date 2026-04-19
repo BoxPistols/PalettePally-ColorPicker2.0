@@ -11,10 +11,14 @@
     "lint-fix": "eslint . --fix",
     "format-fix": "prettier . --write",
     "fix": "yarn lint-fix && yarn format-fix",
-    "test": "jest",
+    "test": "jest --maxWorkers=50%",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
+    "test:coverage": "jest --coverage --maxWorkers=50%",
+    "typecheck": "tsc --noEmit",
     "size": "size-limit"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   },
   "size-limit": [
     {
@@ -80,6 +84,6 @@
     ]
   },
   "volta": {
-    "node": "16.20.2"
+    "node": "20.19.0"
   }
 }
