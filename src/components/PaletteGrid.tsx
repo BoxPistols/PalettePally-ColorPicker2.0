@@ -203,10 +203,12 @@ const ContrastPreview = memo<{
           </Typography>
         )}
       </Box>
+      {/* 枠 1: bg=main / fg=contrastText — 通常使用ケース */}
       <Box
         sx={{
           display: 'flex',
-          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'space-between',
           gap: 0.5,
           background: bg,
           borderRadius: '6px',
@@ -215,79 +217,83 @@ const ContrastPreview = memo<{
           minWidth: 0,
         }}
       >
-        {/* Row 1: 見出しテキスト + 本文テキストの a11y サンプル */}
-        <Box sx={{ minWidth: 0 }}>
-          <Typography
-            sx={{
-              color: ct,
-              fontSize: '0.8rem',
-              fontWeight: 700,
-              lineHeight: 1.2,
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            Aa 見出し
-          </Typography>
-          <Typography
-            sx={{
-              color: ct,
-              fontSize: '0.65rem',
-              fontWeight: 400,
-              lineHeight: 1.3,
-              opacity: 0.92,
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            本文テキスト
-          </Typography>
-        </Box>
-        {/* Row 2: pill button + コントラスト比 */}
         <Box
+          component='span'
           sx={{
-            display: 'flex',
+            display: 'inline-flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 0.5,
+            border: `1px solid ${ct}`,
+            color: ct,
+            borderRadius: '999px',
+            fontSize: '0.65rem',
+            fontWeight: 600,
+            px: 0.75,
+            py: 0.125,
+            lineHeight: 1.4,
+            flexShrink: 0,
+          }}
+        >
+          text
+        </Box>
+        <Typography
+          sx={{
+            fontSize: '0.65rem',
+            fontWeight: 700,
+            fontFamily: 'monospace',
+            color: ct,
+            opacity: 0.85,
+            whiteSpace: 'nowrap',
+            flexShrink: 0,
+          }}
+          title={`${ratio.toFixed(2)}:1 — ${level}`}
+        >
+          {ratio.toFixed(1)} {level}
+        </Typography>
+      </Box>
+      {/* 枠 2: bg=contrastText / fg=main — main をテキスト色として使うケース */}
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 0.5,
+          background: ct,
+          borderRadius: '6px',
+          px: 0.75,
+          py: 0.75,
+          minWidth: 0,
+          border: `1px solid ${isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.08)'}`,
+        }}
+      >
+        <Typography
+          sx={{
+            color: bg,
+            fontSize: '0.75rem',
+            fontWeight: 700,
+            lineHeight: 1.2,
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            flexShrink: 1,
             minWidth: 0,
           }}
         >
-          <Box
-            component='span'
-            sx={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              border: `1px solid ${ct}`,
-              color: ct,
-              borderRadius: '999px',
-              fontSize: '0.65rem',
-              fontWeight: 600,
-              px: 0.75,
-              py: 0.125,
-              lineHeight: 1.4,
-              flexShrink: 0,
-            }}
-          >
-            Button
-          </Box>
-          <Typography
-            sx={{
-              fontSize: '0.65rem',
-              fontWeight: 700,
-              fontFamily: 'monospace',
-              color: ct,
-              opacity: 0.85,
-              whiteSpace: 'nowrap',
-              flexShrink: 0,
-            }}
-            title={`${ratio.toFixed(2)}:1 — ${level}`}
-          >
-            {ratio.toFixed(1)} {level}
-          </Typography>
-        </Box>
+          main text
+        </Typography>
+        <Typography
+          sx={{
+            fontSize: '0.65rem',
+            fontWeight: 700,
+            fontFamily: 'monospace',
+            color: bg,
+            opacity: 0.85,
+            whiteSpace: 'nowrap',
+            flexShrink: 0,
+          }}
+          title={`${ratio.toFixed(2)}:1 — ${level}`}
+        >
+          {ratio.toFixed(1)} {level}
+        </Typography>
       </Box>
     </Box>
   );
