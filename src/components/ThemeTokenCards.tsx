@@ -740,7 +740,11 @@ export const UtilityGroupCard = memo<{
           {onUpdate && <EditButton onClick={() => setDialogOpen(true)} />}
         </Box>
       </Box>
-      <Box sx={{ display: 'flex', gap: 0.75, p: 1, bgcolor: '#fff' }}>
+      {/* UtilityGroupCard は LIGHT / DARK を縦 stack で表示し、各 swatch の
+          横幅を最大化して rgba() 等の長い値が省略されないようにする。
+          Grey (GreyScaleCard) は 50-900 の短い数字ラベル + 短い hex 値なので
+          従来の横並び 2 列のまま（別コンポーネントで影響なし）。 */}
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75, p: 1, bgcolor: '#fff' }}>
         <TokenColumn mode='light' onCopy={handleCopy} copyData={lightEntries}>
           {entryKeys.map(k => (
             <TokenSwatch
