@@ -13,6 +13,7 @@ import {
 } from '@mui/material';
 import { PaletteData } from '@/lib/types/palette';
 import { paletteToDTCG } from '@/lib/figma/dtcg';
+import { getAuthHeader } from '@/lib/firebase/auth';
 
 type FigmaExportDialogProps = {
   open: boolean;
@@ -48,11 +49,13 @@ export const FigmaExportDialog = memo<FigmaExportDialogProps>(
       setError('');
       setLoading(true);
       try {
+        const authHeader = await getAuthHeader();
         const res = await fetch('/api/figma/push', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'X-Figma-Token': pat,
+            ...authHeader,
           },
           body: JSON.stringify({ fileKey, paletteData }),
         });

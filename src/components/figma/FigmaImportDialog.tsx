@@ -15,6 +15,7 @@ import {
   Chip,
 } from '@mui/material';
 import { ParsedVariable } from '@/lib/figma/types';
+import { getAuthHeader } from '@/lib/firebase/auth';
 
 type FigmaImportDialogProps = {
   open: boolean;
@@ -38,9 +39,12 @@ export const FigmaImportDialog = memo<FigmaImportDialogProps>(
       setError('');
       setVariables([]);
 
-      fetch(`/api/figma/variables?fileKey=${fileKey}`, {
-        headers: { 'X-Figma-Token': pat },
-      })
+      (async () => {
+        const authHeader = await getAuthHeader();
+        return fetch(`/api/figma/variables?fileKey=${fileKey}`, {
+          headers: { 'X-Figma-Token': pat, ...authHeader },
+        });
+      })()
         .then(async res => {
           if (!res.ok) {
             const data = await res.json().catch(() => ({}));

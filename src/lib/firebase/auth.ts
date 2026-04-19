@@ -31,3 +31,11 @@ export function onAuthChange(callback: (user: User | null) => void): () => void 
   }
   return onAuthStateChanged(auth, callback);
 }
+
+// API 呼び出し用の Authorization ヘッダーを返す。Firebase 未構成や未ログインの
+// 場合は空オブジェクトを返し、サーバー側 (admin.ts) の dev escape hatch に委ねる。
+export async function getAuthHeader(): Promise<Record<string, string>> {
+  if (!auth?.currentUser) return {};
+  const token = await auth.currentUser.getIdToken();
+  return { Authorization: `Bearer ${token}` };
+}
