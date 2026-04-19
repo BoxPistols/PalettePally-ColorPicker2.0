@@ -83,7 +83,7 @@ export const ExportHubDialog = memo<ExportHubDialogProps>(
             justifyContent: 'space-between',
             py: 2,
             px: 3,
-            borderBottom: '1px solid rgba(0,0,0,0.08)',
+            borderBottom: 1, borderColor: 'divider',
           }}
         >
           <Typography sx={{ fontSize: '1rem', fontWeight: 700 }}>
@@ -103,7 +103,7 @@ export const ExportHubDialog = memo<ExportHubDialogProps>(
           variant='scrollable'
           scrollButtons='auto'
           sx={{
-            borderBottom: '1px solid rgba(0,0,0,0.08)',
+            borderBottom: 1, borderColor: 'divider',
             '& .MuiTab-root': {
               textTransform: 'none',
               fontSize: '0.8rem',
@@ -125,8 +125,9 @@ export const ExportHubDialog = memo<ExportHubDialogProps>(
               justifyContent: 'space-between',
               px: 3,
               py: 1.5,
-              borderBottom: '1px solid rgba(0,0,0,0.05)',
-              bgcolor: '#fafafa',
+              borderBottom: 1,
+              borderColor: 'divider',
+              bgcolor: 'background.default',
             }}
           >
             <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>

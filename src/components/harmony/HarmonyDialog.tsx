@@ -65,7 +65,8 @@ export const HarmonyDialog = memo<HarmonyDialogProps>(
             justifyContent: 'space-between',
             py: 2,
             px: 3,
-            borderBottom: '1px solid rgba(0,0,0,0.08)',
+            borderBottom: 1,
+            borderColor: 'divider',
           }}
         >
           <Typography sx={{ fontSize: '1rem', fontWeight: 700 }}>

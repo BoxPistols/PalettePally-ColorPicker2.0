@@ -47,15 +47,20 @@ export const ExampleDialog = memo<ExampleDialogProps>(
             justifyContent: 'space-between',
             py: 1.5,
             px: 3,
-            borderBottom: '1px solid rgba(0,0,0,0.08)',
-            bgcolor: '#fff',
+            borderBottom: 1,
+            borderColor: 'divider',
+            // ExampleDialog の DialogTitle は外側の `_app.tsx` theme（light
+            // または dark）を反映させるため `background.paper` 参照に。中身
+            // (DialogContent 内) は入れ子 ThemeProvider で buildMuiTheme が
+            // 支配するが、title は外側 chrome なので ここでは palette ref のまま
+            bgcolor: 'background.paper',
           }}
         >
           <Box>
             <Typography sx={{ fontSize: '1rem', fontWeight: 700 }}>
               Theme Preview
             </Typography>
-            <Typography sx={{ fontSize: '0.75rem', color: 'rgba(0,0,0,0.55)', mt: 0.25 }}>
+            <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary', mt: 0.25 }}>
               {paletteData.names?.[0] ?? 'primary'} — {paletteData.colors[0] ?? '-'}
             </Typography>
           </Box>

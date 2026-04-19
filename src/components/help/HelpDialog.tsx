@@ -30,7 +30,8 @@ export const HelpDialog = memo<HelpDialogProps>(({ open, onClose }) => {
           justifyContent: 'space-between',
           py: 2,
           px: 3,
-          borderBottom: '1px solid rgba(0,0,0,0.08)',
+          borderBottom: 1,
+          borderColor: 'divider',
         }}
       >
         <Box>

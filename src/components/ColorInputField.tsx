@@ -112,7 +112,7 @@ const ColorInputField = memo(({ color, onChange }: ColorInputFieldProps) => {
                   borderRadius: '4px',
                   cursor: 'pointer',
                   bgcolor: copied === row.kind ? 'rgba(46,125,50,0.12)' : 'transparent',
-                  '&:hover': { bgcolor: 'rgba(0,0,0,0.04)' },
+                  '&:hover': { bgcolor: 'action.hover' },
                   transition: 'background-color 0.15s ease',
                 }}
               >
@@ -121,7 +121,7 @@ const ColorInputField = memo(({ color, onChange }: ColorInputFieldProps) => {
                     fontSize: '0.6rem',
                     fontWeight: 700,
                     letterSpacing: 0.5,
-                    color: 'rgba(0,0,0,0.5)',
+                    color: 'text.secondary',
                     minWidth: 28,
                   }}
                 >
@@ -131,7 +131,7 @@ const ColorInputField = memo(({ color, onChange }: ColorInputFieldProps) => {
                   sx={{
                     fontSize: '0.7rem',
                     fontFamily: '"JetBrains Mono", "Fira Code", monospace',
-                    color: '#1a1a2e',
+                    color: 'text.primary',
                     flex: 1,
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
