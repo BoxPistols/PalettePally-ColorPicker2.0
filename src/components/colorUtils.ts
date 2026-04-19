@@ -116,7 +116,8 @@ export function generateColorScheme(hex: string, contrastMode: ContrastMode = 'a
         dark: grey(60),
         light: grey(90),
         lighter: grey(30),
-        contrastText: getContrastText(darkMain, contrastMode),
+        // dark モードは WHITE / BLACK 強制の対象外。常に A11y (輝度ベース) で決定。
+        contrastText: getContrastText(darkMain, 'auto'),
       },
     };
     colorSchemeCache.set(cacheKey, result);
@@ -141,7 +142,8 @@ export function generateColorScheme(hex: string, contrastMode: ContrastMode = 'a
       dark: hexFromArgb(p.tone(60)),
       light: hexFromArgb(p.tone(90)),
       lighter: hexFromArgb(p.tone(30)),
-      contrastText: getContrastText(darkMain, contrastMode),
+      // dark モードは WHITE / BLACK 強制の対象外。常に A11y (輝度ベース) で決定。
+      contrastText: getContrastText(darkMain, 'auto'),
     },
   };
 

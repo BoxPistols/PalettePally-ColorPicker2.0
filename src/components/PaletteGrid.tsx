@@ -11,11 +11,26 @@ import {
 } from '@mui/material';
 import chroma from 'chroma-js';
 import { ColorPalette, MuiColorVariant } from './colorUtils';
-import { contrastRatio, wcagLevel, WCAG_COLOR } from '@/lib/wcag';
+import { contrastRatio, wcagLevel, WCAG_COLOR, A11yThreshold, THRESHOLD_RATIO, meetsThreshold, formatPreviewLevel, PreviewLabel } from '@/lib/wcag';
+
+const DISPLAY_COLOR: Record<PreviewLabel, string> = {
+  AAA: WCAG_COLOR.AAA,
+  AA: WCAG_COLOR.AA,
+  A: WCAG_COLOR['AA-Large'],
+  Fail: WCAG_COLOR.Fail,
+};
+
+const THRESHOLD_LABEL: Record<A11yThreshold, string> = {
+  none: '—',
+  A: `${THRESHOLD_RATIO.A}:1`,
+  AA: `${THRESHOLD_RATIO.AA}:1`,
+  AAA: `${THRESHOLD_RATIO.AAA}:1`,
+};
 
 type PaletteCardProps = {
   colorPalette: ColorPalette;
   colorName: string;
+  a11yThreshold?: A11yThreshold;
   onEdit?: (mode: 'light' | 'dark', shade: keyof MuiColorVariant, value: string) => void;
 };
 
@@ -46,27 +61,39 @@ const isValidHex = (hex: string) => /^#([0-9A-F]{3}){1,2}$/i.test(hex);
 const ColorSwatch = memo<{
   shade: keyof MuiColorVariant;
   colorValue: string;
+  mainColor: string;
+  contrastText: string;
   isDark: boolean;
   onCopy: (text: string) => void;
-}>(({ shade, colorValue, isDark, onCopy }) => {
+}>(({ shade, colorValue, mainColor, contrastText, isDark, onCopy }) => {
   const isLight = shade === 'light';
-  const luminance = chroma(colorValue).luminance();
-  const textColor =
-    luminance > 0.35 ? 'rgba(0,0,0,0.85)' : 'rgba(255,255,255,0.95)';
+  const isMain = shade === 'main';
+  const isContrast = shade === 'contrastText';
+  // main は A11y/White/Black toggle で決まる contrastText を直結。
+  // dark/light/lighter は背景が独立なので各自の輝度で自動選択。
+  // contrastText 行は main 背景 + contrastText を重ねた実運用プレビュー。
+  const swatchBg = isContrast ? mainColor : colorValue;
+  const swatchFg = isContrast
+    ? colorValue
+    : isMain
+      ? contrastText
+      : chroma(colorValue).luminance() > 0.35
+        ? 'rgba(0,0,0,0.85)'
+        : 'rgba(255,255,255,0.95)';
 
   return (
     <Box
       onClick={() => onCopy(colorValue)}
       title={`${shade}: ${colorValue} — click to copy`}
       sx={{
-        background: colorValue,
+        background: swatchBg,
         borderRadius: '6px',
         fontFamily: '"JetBrains Mono", "Fira Code", monospace',
-        color: textColor,
+        color: swatchFg,
         mb: 0.5,
         transition: 'transform 0.15s ease, box-shadow 0.15s ease',
         cursor: 'pointer',
-        border: isLight
+        border: isLight || isContrast
           ? `1.5px solid ${isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)'}`
           : '1.5px solid transparent',
         boxShadow:
@@ -104,7 +131,7 @@ const ColorSwatch = memo<{
         <Box
           component='span'
           sx={{
-            opacity: 0.75,
+            opacity: 0.85,
             fontSize: '0.75rem',
             fontWeight: 400,
             overflow: 'hidden',
@@ -122,13 +149,236 @@ const ColorSwatch = memo<{
 
 ColorSwatch.displayName = 'ColorSwatch';
 
+// ── Contrast Preview (main 背景に contrastText を重ねた実運用サンプル) ──
+
+const ContrastPreview = memo<{
+  variant: MuiColorVariant;
+  isDark: boolean;
+  threshold: A11yThreshold;
+}>(({ variant, isDark, threshold }) => {
+  const ct = variant.contrastText;
+  const bg = variant.main;
+  const pageBg = isDark ? '#121212' : '#fafafa';
+
+  // 2 ケースのコントラスト比。ラベルは threshold に沿った表示用 (AAA/AA/A/Fail)
+  const ratio1 = contrastRatio(ct, bg);
+  const label1 = formatPreviewLevel(ratio1, threshold);
+  const ratio2 = contrastRatio(bg, pageBg);
+  const label2 = formatPreviewLevel(ratio2, threshold);
+
+  const thresholdActive = threshold !== 'none';
+  // 枠 1 (main 背景 + contrastText): A11y/White/Black toggle が直接制御する領域
+  //   → 全体の ✓/✗ 判定はこちらだけで行う
+  // 枠 2 (main を text として使うケース): main カラー自体の性質で決まる
+  //   → 情報表示のみ。fail してもしきい値バッジや外枠色には影響させない
+  const pass1 = !thresholdActive || meetsThreshold(ratio1, threshold);
+  const pass2 = !thresholdActive || meetsThreshold(ratio2, threshold);
+
+  const failColor = WCAG_COLOR.Fail;
+  const neutralBorder = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)';
+
+  const makeTitle = (fg: string, bgHex: string, r: number, lvl: string, pass: boolean, label: string, extra?: string) =>
+    `${label}\n文字色: ${fg}\n背景色: ${bgHex}\nコントラスト比: ${r.toFixed(2)}:1 (${lvl})\n` +
+    (thresholdActive
+      ? (pass ? `✓ ${threshold} 基準 (${THRESHOLD_LABEL[threshold]}) を満たしています`
+              : `✗ ${threshold} 基準 (${THRESHOLD_LABEL[threshold]}) 未満です`)
+      : 'しきい値: none (チェック無効)') +
+    (extra ? `\n\n${extra}` : '');
+
+  return (
+    <Box
+      sx={{
+        mt: 0.75,
+        p: 0.75,
+        borderRadius: '8px',
+        border: thresholdActive && !pass1 ? '1.5px solid' : '1px dashed',
+        borderColor: thresholdActive && !pass1 ? failColor : neutralBorder,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 0.5,
+      }}
+    >
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 0.5 }}>
+        <Typography
+          sx={{
+            fontSize: '0.6rem',
+            fontWeight: 700,
+            letterSpacing: 0.8,
+            textTransform: 'uppercase',
+            color: isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.4)',
+          }}
+        >
+          Preview
+        </Typography>
+        {thresholdActive && (
+          <Tooltip
+            arrow
+            placement='top'
+            title={pass1
+              ? `main + contrastText は ${threshold} 基準 (${THRESHOLD_LABEL[threshold]}) を満たしています。\n※ 枠 2 の "main をテキスト色として使うケース" は main カラー自体の特性で決まり、A11y toggle の対象外です。`
+              : `main + contrastText が ${threshold} 基準 (${THRESHOLD_LABEL[threshold]}) 未満です`}
+          >
+            <Typography
+              sx={{
+                fontSize: '0.55rem',
+                fontWeight: 700,
+                letterSpacing: 0.4,
+                color: pass1 ? DISPLAY_COLOR[label1] : failColor,
+                px: 0.5,
+                py: 0.125,
+                borderRadius: '4px',
+                border: `1px solid ${pass1 ? DISPLAY_COLOR[label1] : failColor}`,
+                lineHeight: 1.3,
+                cursor: 'help',
+                whiteSpace: 'pre-line',
+              }}
+            >
+              {pass1 ? `✓ ${threshold}` : `✗ ${threshold}`}
+            </Typography>
+          </Tooltip>
+        )}
+      </Box>
+
+      {/* 枠 1: bg=main / fg=contrastText — 通常使用ケース */}
+      <Tooltip
+        arrow
+        placement='left'
+        title={<Box sx={{ whiteSpace: 'pre-line', fontSize: '0.75rem' }}>{
+          makeTitle(ct, bg, ratio1, label1, pass1, 'main 背景 + contrastText 文字')
+        }</Box>}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 0.5,
+            background: bg,
+            borderRadius: '6px',
+            px: 0.75,
+            py: 0.75,
+            minWidth: 0,
+            outline: thresholdActive && !pass1 ? `2px solid ${failColor}` : 'none',
+            outlineOffset: thresholdActive && !pass1 ? '-2px' : 0,
+            cursor: 'help',
+          }}
+        >
+          <Box
+            component='span'
+            sx={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              border: `1px solid ${ct}`,
+              color: ct,
+              borderRadius: '999px',
+              fontSize: '0.65rem',
+              fontWeight: 600,
+              px: 0.75,
+              py: 0.125,
+              lineHeight: 1.4,
+              flexShrink: 0,
+            }}
+          >
+            text
+          </Box>
+          <Box
+            component='span'
+            sx={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 0.25,
+              fontSize: '0.65rem',
+              fontWeight: 700,
+              fontFamily: 'monospace',
+              color: thresholdActive && !pass1 ? failColor : ct,
+              opacity: thresholdActive && !pass1 ? 1 : 0.85,
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
+            }}
+          >
+            {thresholdActive && !pass1 ? '⚠ ' : ''}{ratio1.toFixed(1)} {label1}
+          </Box>
+        </Box>
+      </Tooltip>
+
+      {/* 枠 2: main を純粋な text color として使うケース（情報表示のみ・A11y toggle の対象外） */}
+      <Tooltip
+        arrow
+        placement='left'
+        title={<Box sx={{ whiteSpace: 'pre-line', fontSize: '0.75rem' }}>{
+          makeTitle(
+            bg,
+            pageBg,
+            ratio2,
+            label2,
+            pass2,
+            `main をテキスト色として使うケース（ページ背景 ${pageBg}）`,
+            'この枠は main カラー自体の特性を表す情報表示です。A11y / White / Black toggle は contrastText (枠 1) を制御する設定なので、この値は toggle で変化しません。'
+          )
+        }</Box>}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 0.5,
+            background: 'transparent',
+            borderRadius: '6px',
+            px: 0.75,
+            py: 0.5,
+            minWidth: 0,
+            cursor: 'help',
+          }}
+        >
+          <Typography
+            sx={{
+              color: bg,
+              fontSize: '0.8rem',
+              fontWeight: 700,
+              lineHeight: 1.2,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              flexShrink: 1,
+              minWidth: 0,
+            }}
+          >
+            main text
+          </Typography>
+          <Box
+            component='span'
+            sx={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 0.25,
+              fontSize: '0.65rem',
+              fontWeight: 700,
+              fontFamily: 'monospace',
+              // 情報表示なので fail でも赤くせず muted amber のみに留める
+              color: thresholdActive && !pass2 ? WCAG_COLOR['AA-Large'] : bg,
+              opacity: 0.85,
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
+            }}
+          >
+            {ratio2.toFixed(1)} {label2}
+          </Box>
+        </Box>
+      </Tooltip>
+    </Box>
+  );
+});
+ContrastPreview.displayName = 'ContrastPreview';
+
 // ── Scheme Column (light / dark) ──
 
 const SchemeColumn = memo<{
   variant: MuiColorVariant;
   mode: 'light' | 'dark';
+  a11yThreshold: A11yThreshold;
   onCopy: (text: string) => void;
-}>(({ variant, mode, onCopy }) => {
+}>(({ variant, mode, a11yThreshold, onCopy }) => {
   const isDark = mode === 'dark';
 
   const handleCopyGroup = useCallback(() => {
@@ -176,10 +426,15 @@ const SchemeColumn = memo<{
           key={shade}
           shade={shade}
           colorValue={variant[shade]}
+          mainColor={variant.main}
+          contrastText={variant.contrastText}
           isDark={isDark}
           onCopy={onCopy}
         />
       ))}
+
+      {/* contrastText を実運用シーンで確認するためのサンプル（ボタン / テキスト） */}
+      <ContrastPreview variant={variant} isDark={isDark} threshold={a11yThreshold} />
     </Box>
   );
 });
@@ -422,7 +677,7 @@ EditDialog.displayName = 'EditDialog';
 // ── Palette Card ──
 
 export const PaletteCard = memo<PaletteCardProps>(
-  ({ colorPalette, colorName, onEdit }) => {
+  ({ colorPalette, colorName, a11yThreshold = 'none', onEdit }) => {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [snackOpen, setSnackOpen] = useState(false);
     const [copiedText, setCopiedText] = useState('');
@@ -563,11 +818,13 @@ export const PaletteCard = memo<PaletteCardProps>(
           <SchemeColumn
             variant={colorPalette.light}
             mode='light'
+            a11yThreshold={a11yThreshold}
             onCopy={handleCopy}
           />
           <SchemeColumn
             variant={colorPalette.dark}
             mode='dark'
+            a11yThreshold={a11yThreshold}
             onCopy={handleCopy}
           />
         </Box>

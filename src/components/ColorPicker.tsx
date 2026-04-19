@@ -26,7 +26,9 @@ import { ShareDialog } from './palette/ShareDialog';
 import { PaletteVersionHistory } from './palette/PaletteVersionHistory';
 import { generateColorScheme, generateThemeTokens, defaultColorName, defaultColorForName, ColorPalette, MuiColorVariant, ThemeTokens, ContrastMode } from './colorUtils';
 import { PaletteData, PaletteDocument } from '@/lib/types/palette';
+import { A11yThreshold } from '@/lib/wcag';
 import { ParsedVariable } from '@/lib/figma/types';
+import { parsedVariablesToPalette } from '@/lib/figma/variableMapper';
 import { HelpDialog } from './help/HelpDialog';
 import { ExampleDialog } from './example/ExampleDialog';
 import { ExportHubDialog } from './export/ExportHubDialog';
@@ -93,6 +95,8 @@ function ColorPicker() {
 
   // contrastText 戦略 ('auto' = WCAG準拠, 'white' = 常に白)
   const [contrastMode, setContrastMode] = useState<ContrastMode>('auto');
+  // a11y 許容しきい値（Preview でゲート表示に使用）
+  const [a11yThreshold, setA11yThreshold] = useState<A11yThreshold>('AA');
 
   // Harmony / WCAG Grid / Help / Example / Export / Import / Figma state
   const [harmonyOpen, setHarmonyOpen] = useState(false);
@@ -191,6 +195,9 @@ function ColorPicker() {
         if (['auto', 'white', 'black'].includes(data.contrastMode)) {
           setContrastMode(data.contrastMode);
         }
+        if (['none', 'A', 'AA', 'AAA'].includes(data.a11yThreshold)) {
+          setA11yThreshold(data.a11yThreshold);
+        }
       }
     } catch { /* ignore */ }
   }, []);
@@ -221,10 +228,11 @@ function ColorPicker() {
         names: colorNames,
         themeTokens,
         contrastMode,
+        a11yThreshold,
       }));
     }, 300);
     return () => clearTimeout(timer);
-  }, [numColors, color, colorNames, themeTokens, contrastMode]);
+  }, [numColors, color, colorNames, themeTokens, contrastMode, a11yThreshold]);
 
   function generateDistinctColorFromHues(existingHues: number[]): string {
     const count = existingHues.length;
@@ -420,15 +428,33 @@ function ColorPicker() {
   }, []);
 
   const handleFigmaImport = useCallback((variables: ParsedVariable[]) => {
-    // Group variables by collection/path into palette-compatible structure
-    const imported = variables.filter(v => v.lightValue.startsWith('#'));
-    if (imported.length === 0) return;
+    // action-colors / grey / utility コレクションのパス規約 (name/mode/shade) を
+    // そのまま逆変換して MUI 5シェード構造に復元する。
+    const restored = parsedVariablesToPalette(variables);
 
-    const newColors = imported.slice(0, 24).map(v => v.lightValue);
-    const newNames = imported.slice(0, 24).map(v => v.name.replace(/\//g, '-'));
-    setNumColors(newColors.length);
-    setColor(newColors);
-    setColorNames(newNames);
+    if (restored.names && restored.names.length > 0 && restored.colors) {
+      skipAutoResetRef.current = true;
+      setNumColors(restored.numColors ?? restored.colors.length);
+      setColor(restored.colors);
+      setColorNames(restored.names);
+
+      // 5シェード完全復元：palette state に流し込んで再計算を抑止
+      if (restored.palette) {
+        setPalette(restored.palette);
+      }
+    } else {
+      // action-colors 規約に合致しない場合はフラットな色リストとして取り込む
+      const flat = variables.filter(v => v.lightValue.startsWith('#')).slice(0, 24);
+      if (flat.length === 0) return;
+      skipAutoResetRef.current = true;
+      setNumColors(flat.length);
+      setColor(flat.map(v => v.lightValue));
+      setColorNames(flat.map(v => v.name.replace(/\//g, '-')));
+    }
+
+    if (restored.themeTokens) {
+      setThemeTokens(restored.themeTokens);
+    }
   }, []);
 
   const handleFigmaExportConfirm = useCallback(async (): Promise<boolean> => {
@@ -664,43 +690,6 @@ function ColorPicker() {
           </Tooltip>
           */}
 
-          <Tooltip title='Export (JSON/DTCG/CSS/SCSS/MUI/Tailwind/MCP)' arrow>
-            <Button
-              variant='text'
-              onClick={() => setExportHubOpen(true)}
-              aria-label='Export palette'
-              size='small'
-              startIcon={
-                <svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
-                  <path d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4' />
-                  <polyline points='7 10 12 15 17 10' />
-                  <line x1='12' y1='15' x2='12' y2='3' />
-                </svg>
-              }
-              sx={headerButtonSx}
-            >
-              Export
-            </Button>
-          </Tooltip>
-
-          <Tooltip title='Import (JSON/DTCG/Tokens Studio)' arrow>
-            <Button
-              variant='text'
-              onClick={() => setImportHubOpen(true)}
-              aria-label='Import palette'
-              size='small'
-              startIcon={
-                <svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
-                  <path d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4' />
-                  <polyline points='17 8 12 3 7 8' />
-                  <line x1='12' y1='3' x2='12' y2='15' />
-                </svg>
-              }
-              sx={headerButtonSx}
-            >
-              Import
-            </Button>
-          </Tooltip>
           <input
             ref={fileInputRef}
             type='file'
@@ -733,7 +722,7 @@ function ColorPicker() {
           )}
 
           {/* Contrast Mode Toggle */}
-          <Tooltip title='Contrast text: A11y (WCAG) or White (brand)' arrow>
+          <Tooltip title='Contrast text 戦略 (light mode のみ適用 / dark mode は常に A11y 自動選択)' arrow>
             <Box sx={{ display: 'flex', bgcolor: '#f5f5f5', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', p: '2px' }}>
               {(['auto', 'white', 'black'] as ContrastMode[]).map(m => (
                 <Box
@@ -762,6 +751,35 @@ function ColorPicker() {
             </Box>
           </Tooltip>
 
+          {/* A11y Threshold Toggle */}
+          <Tooltip title='A11y 許容しきい値（通常テキスト 14-16px 想定）: None (無効) / A (≥3:1, 大きい文字向け) / AA (≥4.5:1, WCAG 標準) / AAA (≥7:1, 強化)' arrow>
+            <Box sx={{ display: 'flex', bgcolor: '#f5f5f5', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', p: '2px' }}>
+              {(['none', 'A', 'AA', 'AAA'] as A11yThreshold[]).map(t => (
+                <Box
+                  key={t}
+                  component='button'
+                  onClick={() => setA11yThreshold(t)}
+                  sx={{
+                    border: 0,
+                    px: 1,
+                    py: 0.5,
+                    fontSize: '0.7rem',
+                    fontWeight: 600,
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    bgcolor: a11yThreshold === t ? '#fff' : 'transparent',
+                    color: a11yThreshold === t ? '#1a1a2e' : 'rgba(0,0,0,0.5)',
+                    boxShadow: a11yThreshold === t ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
+                    letterSpacing: '0.03em',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  {t === 'none' ? 'None' : t}
+                </Box>
+              ))}
+            </Box>
+          </Tooltip>
+
           {/* Divider */}
           <Box sx={{ width: '1px', height: 24, bgcolor: 'rgba(0,0,0,0.1)' }} />
 
@@ -773,14 +791,6 @@ function ColorPicker() {
             sx={headerButtonSx}
           >
             Example
-          </Button>
-          <Button
-            variant='text'
-            onClick={() => setHelpOpen(true)}
-            size='small'
-            sx={headerButtonSx}
-          >
-            Help
           </Button>
           <Tooltip title={greyscale ? 'Greyscale ON (click to disable)' : 'Greyscale mode (monochrome preview)'} arrow>
             <IconButton
@@ -825,6 +835,55 @@ function ColorPicker() {
               </Button>
             </Tooltip>
           )}
+
+          {/* Divider */}
+          <Box sx={{ width: '1px', height: 24, bgcolor: 'rgba(0,0,0,0.1)' }} />
+
+          {/* Export / Import / Help (右端グループ) */}
+          <Tooltip title='Export (JSON/DTCG/CSS/SCSS/MUI/Tailwind/MCP)' arrow>
+            <Button
+              variant='text'
+              onClick={() => setExportHubOpen(true)}
+              aria-label='Export palette'
+              size='small'
+              startIcon={
+                <svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
+                  <path d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4' />
+                  <polyline points='7 10 12 15 17 10' />
+                  <line x1='12' y1='15' x2='12' y2='3' />
+                </svg>
+              }
+              sx={headerButtonSx}
+            >
+              Export
+            </Button>
+          </Tooltip>
+          <Tooltip title='Import (JSON/DTCG/Tokens Studio)' arrow>
+            <Button
+              variant='text'
+              onClick={() => setImportHubOpen(true)}
+              aria-label='Import palette'
+              size='small'
+              startIcon={
+                <svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
+                  <path d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4' />
+                  <polyline points='17 8 12 3 7 8' />
+                  <line x1='12' y1='3' x2='12' y2='15' />
+                </svg>
+              }
+              sx={headerButtonSx}
+            >
+              Import
+            </Button>
+          </Tooltip>
+          <Button
+            variant='text'
+            onClick={() => setHelpOpen(true)}
+            size='small'
+            sx={headerButtonSx}
+          >
+            Help
+          </Button>
 
           {/* Divider */}
           <Box sx={{ width: '1px', height: 24, bgcolor: 'rgba(0,0,0,0.1)' }} />
@@ -946,6 +1005,7 @@ function ColorPicker() {
                 <PaletteCard
                   colorPalette={palette[index][colorNames[index]]}
                   colorName={colorNames[index]}
+                  a11yThreshold={a11yThreshold}
                   onEdit={(mode, shade, value) =>
                     handlePaletteEdit(index, mode, shade, value)
                   }

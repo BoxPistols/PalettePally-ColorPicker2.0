@@ -89,16 +89,20 @@ describe('generateColorScheme', () => {
     expect(light.light.contrastText).toBe('#000000');
   });
 
-  it('forces white contrastText in white mode', () => {
-    const result = generateColorScheme('#ffffff', 'white');
+  it('forces white contrastText in white mode (light のみ対象・dark は常に自動)', () => {
+    // 有彩色で dark main が暗い色になるケース
+    const result = generateColorScheme('#1976d2', 'white');
     expect(result.light.contrastText).toBe('#ffffff');
-    expect(result.dark.contrastText).toBe('#ffffff');
+    // dark モードは toggle の影響を受けず、auto と同じ結果になる
+    const autoResult = generateColorScheme('#1976d2', 'auto');
+    expect(result.dark.contrastText).toBe(autoResult.dark.contrastText);
   });
 
-  it('forces black contrastText in black mode', () => {
-    const result = generateColorScheme('#000000', 'black');
+  it('forces black contrastText in black mode (light のみ対象・dark は常に自動)', () => {
+    const result = generateColorScheme('#1976d2', 'black');
     expect(result.light.contrastText).toBe('#000000');
-    expect(result.dark.contrastText).toBe('#000000');
+    const autoResult = generateColorScheme('#1976d2', 'auto');
+    expect(result.dark.contrastText).toBe(autoResult.dark.contrastText);
   });
 
   it('caches results per hex+mode combination', () => {
