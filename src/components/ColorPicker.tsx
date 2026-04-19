@@ -15,6 +15,8 @@ import { ConfirmDialog } from './common/ConfirmDialog';
 import { useConfirmDialog } from '@/hooks/useConfirmDialog';
 import { useHistory } from '@/hooks/useHistory';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { useAppColors, AppColors } from '@/hooks/useAppColors';
+import { ColorSchemeToggle } from './common/ColorSchemeToggle';
 import { HarmonyDialog } from './harmony/HarmonyDialog';
 import { CompareDialog } from './compare/CompareDialog';
 import { useAuthContext } from './auth/AuthProvider';
@@ -42,9 +44,9 @@ import * as firestoreService from '@/lib/firebase/firestore';
 const LogoMark = () => (
   <svg width='48' height='40' viewBox='0 0 48 40' fill='none'>
     {/* ハンドリフト本体 (L字フレーム) */}
-    <path d='M 2 3 L 6 3 L 6 30 L 46 30 L 46 33 L 2 33 Z' fill='#1a1a2e' />
+    <path d='M 2 3 L 6 3 L 6 30 L 46 30 L 46 33 L 2 33 Z' fill='currentColor' />
     {/* 車輪 */}
-    <circle cx='8' cy='36' r='2.5' fill='none' stroke='#1a1a2e' strokeWidth='1.5' />
+    <circle cx='8' cy='36' r='2.5' fill='none' stroke='currentColor' strokeWidth='1.5' />
     {/* カラー版ブロック (テトリス状配置) */}
     <rect x='9' y='5' width='18' height='6' rx='1' fill='#E57373' />
     <rect x='29' y='5' width='15' height='6' rx='1' fill='#4DB6AC' />
@@ -53,35 +55,40 @@ const LogoMark = () => (
     <rect x='9' y='21' width='12' height='6' rx='1' fill='#FFD54F' />
     <rect x='23' y='21' width='21' height='6' rx='1' fill='#B39DDB' />
     {/* パレット支柱 */}
-    <rect x='10' y='33' width='4' height='3' fill='#1a1a2e' />
-    <rect x='23' y='33' width='4' height='3' fill='#1a1a2e' />
-    <rect x='36' y='33' width='4' height='3' fill='#1a1a2e' />
+    <rect x='10' y='33' width='4' height='3' fill='currentColor' />
+    <rect x='23' y='33' width='4' height='3' fill='currentColor' />
+    <rect x='36' y='33' width='4' height='3' fill='currentColor' />
   </svg>
 );
 
-// ヘッダーボタンの共通スタイル
-const headerButtonSx = {
-  minWidth: 0,
-  px: 1.5,
-  py: 0.625,
-  borderRadius: '8px',
-  border: '1px solid rgba(0,0,0,0.12)',
-  bgcolor: '#f5f5f5',
-  color: '#1a1a2e',
-  fontSize: '0.72rem',
-  fontWeight: 600,
-  textTransform: 'none' as const,
-  letterSpacing: '0.01em',
-  transition: 'all 0.15s ease',
-  '&:hover': {
-    bgcolor: '#eaeaea',
-    borderColor: 'rgba(0,0,0,0.2)',
-  },
-};
+// ヘッダーボタン共通スタイル。app color scheme に追従するので関数化し、
+// ColorPicker 内で useMemo で安定化する。
+function makeHeaderButtonSx(c: AppColors) {
+  return {
+    minWidth: 0,
+    px: 1.5,
+    py: 0.625,
+    borderRadius: '8px',
+    border: `1px solid ${c.border}`,
+    bgcolor: c.chromeBg,
+    color: c.textPrimary,
+    fontSize: '0.72rem',
+    fontWeight: 600,
+    textTransform: 'none' as const,
+    letterSpacing: '0.01em',
+    transition: 'all 0.15s ease',
+    '&:hover': {
+      bgcolor: c.chromeBgHover,
+      borderColor: c.borderHover,
+    },
+  };
+}
 
 function ColorPicker() {
   const { user, firebaseReady } = useAuthContext();
   const { state: confirmState, confirm, handleConfirm, handleCancel } = useConfirmDialog();
+  const c = useAppColors();
+  const headerButtonSx = React.useMemo(() => makeHeaderButtonSx(c), [c]);
 
   // Cloud state
   const [loginOpen, setLoginOpen] = useState(false);
@@ -493,7 +500,17 @@ function ColorPicker() {
   };
 
   return (
-    <>
+    <Box
+      sx={{
+        // Generator chrome（ヘッダー/ツールバー/ページ背景）を color scheme に追従。
+        // user palette (PaletteCard 内の色) はこの wrapper の影響を受けず自分の
+        // 色で描画される。
+        bgcolor: c.pageBg,
+        color: c.textPrimary,
+        minHeight: '100vh',
+        transition: 'background-color 0.2s ease, color 0.2s ease',
+      }}
+    >
       {/* ===== Header ===== */}
       <Box
         component='header'
@@ -503,8 +520,7 @@ function ColorPicker() {
           justifyContent: 'space-between',
           mb: 4,
           pb: 2.5,
-          borderBottom: '1px solid',
-          borderColor: 'rgba(0,0,0,0.06)',
+          borderBottom: `1px solid ${c.divider}`,
         }}
       >
         {/* Logo + Title */}
@@ -517,7 +533,7 @@ function ColorPicker() {
                 fontSize: '1.35rem',
                 fontWeight: 700,
                 letterSpacing: '-0.02em',
-                color: '#1a1a2e',
+                color: c.textPrimary,
                 lineHeight: 1.2,
               }}
             >
@@ -526,7 +542,7 @@ function ColorPicker() {
             <Typography
               sx={{
                 fontSize: '0.65rem',
-                color: 'rgba(0,0,0,0.35)',
+                color: c.textSubtle,
                 fontWeight: 500,
                 letterSpacing: '0.04em',
                 lineHeight: 1,
@@ -546,11 +562,11 @@ function ColorPicker() {
               display: 'flex',
               alignItems: 'center',
               gap: 0.75,
-              bgcolor: '#f5f5f5',
+              bgcolor: c.chromeBg,
               borderRadius: '8px',
               px: 1.25,
               py: 0.5,
-              border: '1px solid rgba(0,0,0,0.1)',
+              border: `1px solid ${c.divider}`,
             }}
           >
             <Typography
@@ -559,7 +575,7 @@ function ColorPicker() {
               sx={{
                 fontSize: '0.7rem',
                 fontWeight: 600,
-                color: 'rgba(0,0,0,0.5)',
+                color: c.textMuted,
                 textTransform: 'uppercase',
                 letterSpacing: '0.05em',
                 whiteSpace: 'nowrap',
@@ -580,10 +596,10 @@ function ColorPicker() {
               sx={{
                 width: 52,
                 '& .MuiOutlinedInput-root': {
-                  bgcolor: '#fff',
+                  bgcolor: c.chromeBgActive,
                   borderRadius: '6px',
-                  '& fieldset': { borderColor: 'rgba(0,0,0,0.1)' },
-                  '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.2)' },
+                  '& fieldset': { borderColor: c.divider },
+                  '&:hover fieldset': { borderColor: c.borderHover },
                 },
                 '& input': {
                   py: 0.5,
@@ -597,7 +613,7 @@ function ColorPicker() {
           </Box>
 
           {/* Divider */}
-          <Box sx={{ width: '1px', height: 24, bgcolor: 'rgba(0,0,0,0.1)' }} />
+          <Box sx={{ width: '1px', height: 24, bgcolor: c.divider }} />
 
           {/* Undo / Redo */}
           <Tooltip title='Undo (⌘Z)' arrow>
@@ -608,8 +624,8 @@ function ColorPicker() {
                 size='small'
                 sx={{
                   width: 34, height: 34, borderRadius: '8px',
-                  border: '1px solid rgba(0,0,0,0.12)', bgcolor: '#f5f5f5', color: '#1a1a2e',
-                  '&:hover': { bgcolor: '#eaeaea', borderColor: 'rgba(0,0,0,0.2)' },
+                  border: `1px solid ${c.border}`, bgcolor: c.chromeBg, color: c.textPrimary,
+                  '&:hover': { bgcolor: c.chromeBgHover, borderColor: c.borderHover },
                   '&:disabled': { opacity: 0.4 },
                 }}
               >
@@ -628,8 +644,8 @@ function ColorPicker() {
                 size='small'
                 sx={{
                   width: 34, height: 34, borderRadius: '8px',
-                  border: '1px solid rgba(0,0,0,0.12)', bgcolor: '#f5f5f5', color: '#1a1a2e',
-                  '&:hover': { bgcolor: '#eaeaea', borderColor: 'rgba(0,0,0,0.2)' },
+                  border: `1px solid ${c.border}`, bgcolor: c.chromeBg, color: c.textPrimary,
+                  '&:hover': { bgcolor: c.chromeBgHover, borderColor: c.borderHover },
                   '&:disabled': { opacity: 0.4 },
                 }}
               >
@@ -651,13 +667,13 @@ function ColorPicker() {
                 width: 34,
                 height: 34,
                 borderRadius: '8px',
-                border: '1px solid rgba(0,0,0,0.12)',
-                bgcolor: '#f5f5f5',
-                color: '#1a1a2e',
+                border: `1px solid ${c.border}`,
+                bgcolor: c.chromeBg,
+                color: c.textPrimary,
                 transition: 'all 0.15s ease',
                 '&:hover': {
-                  bgcolor: '#eaeaea',
-                  borderColor: 'rgba(0,0,0,0.2)',
+                  bgcolor: c.chromeBgHover,
+                  borderColor: c.borderHover,
                 },
               }}
             >
@@ -717,13 +733,13 @@ function ColorPicker() {
                   Rename
                 </Button>
               </Tooltip>
-              <Box sx={{ width: '1px', height: 24, bgcolor: 'rgba(0,0,0,0.1)' }} />
+              <Box sx={{ width: '1px', height: 24, bgcolor: c.divider }} />
             </>
           )}
 
           {/* Contrast Mode Toggle */}
           <Tooltip title='Contrast text 戦略 (light mode のみ適用 / dark mode は常に A11y 自動選択)' arrow>
-            <Box sx={{ display: 'flex', bgcolor: '#f5f5f5', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', p: '2px' }}>
+            <Box sx={{ display: 'flex', bgcolor: c.chromeBg, borderRadius: '8px', border: `1px solid ${c.divider}`, p: '2px' }}>
               {(['auto', 'white', 'black'] as ContrastMode[]).map(m => (
                 <Box
                   key={m}
@@ -737,9 +753,9 @@ function ColorPicker() {
                     fontWeight: 600,
                     borderRadius: '6px',
                     cursor: 'pointer',
-                    bgcolor: contrastMode === m ? '#fff' : 'transparent',
-                    color: contrastMode === m ? '#1a1a2e' : 'rgba(0,0,0,0.5)',
-                    boxShadow: contrastMode === m ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
+                    bgcolor: contrastMode === m ? c.chromeBgActive : 'transparent',
+                    color: contrastMode === m ? c.textPrimary : c.textMuted,
+                    boxShadow: contrastMode === m ? `0 1px 2px ${c.shadow}` : 'none',
                     textTransform: 'uppercase',
                     letterSpacing: '0.03em',
                     transition: 'all 0.15s ease',
@@ -753,7 +769,7 @@ function ColorPicker() {
 
           {/* A11y Threshold Toggle */}
           <Tooltip title='A11y 許容しきい値（通常テキスト 14-16px 想定）: None (無効) / A (≥3:1, 大きい文字向け) / AA (≥4.5:1, WCAG 標準) / AAA (≥7:1, 強化)' arrow>
-            <Box sx={{ display: 'flex', bgcolor: '#f5f5f5', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', p: '2px' }}>
+            <Box sx={{ display: 'flex', bgcolor: c.chromeBg, borderRadius: '8px', border: `1px solid ${c.divider}`, p: '2px' }}>
               {(['none', 'A', 'AA', 'AAA'] as A11yThreshold[]).map(t => (
                 <Box
                   key={t}
@@ -767,9 +783,9 @@ function ColorPicker() {
                     fontWeight: 600,
                     borderRadius: '6px',
                     cursor: 'pointer',
-                    bgcolor: a11yThreshold === t ? '#fff' : 'transparent',
-                    color: a11yThreshold === t ? '#1a1a2e' : 'rgba(0,0,0,0.5)',
-                    boxShadow: a11yThreshold === t ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
+                    bgcolor: a11yThreshold === t ? c.chromeBgActive : 'transparent',
+                    color: a11yThreshold === t ? c.textPrimary : c.textMuted,
+                    boxShadow: a11yThreshold === t ? `0 1px 2px ${c.shadow}` : 'none',
                     letterSpacing: '0.03em',
                     transition: 'all 0.15s ease',
                   }}
@@ -781,7 +797,7 @@ function ColorPicker() {
           </Tooltip>
 
           {/* Divider */}
-          <Box sx={{ width: '1px', height: 24, bgcolor: 'rgba(0,0,0,0.1)' }} />
+          <Box sx={{ width: '1px', height: 24, bgcolor: c.divider }} />
 
           {/* Navigation */}
           <Button
@@ -798,10 +814,10 @@ function ColorPicker() {
               size='small'
               sx={{
                 width: 34, height: 34, borderRadius: '8px',
-                border: '1px solid rgba(0,0,0,0.12)',
-                bgcolor: greyscale ? '#1a1a2e' : '#f5f5f5',
-                color: greyscale ? '#fff' : '#1a1a2e',
-                '&:hover': { bgcolor: greyscale ? '#2c2c44' : '#eaeaea' },
+                border: `1px solid ${c.border}`,
+                bgcolor: greyscale ? c.textPrimary : c.chromeBg,
+                color: greyscale ? c.pageBg : c.textPrimary,
+                '&:hover': { bgcolor: greyscale ? c.textPrimary : c.chromeBgHover, opacity: greyscale ? 0.85 : 1 },
               }}
             >
               <svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
@@ -812,7 +828,7 @@ function ColorPicker() {
           </Tooltip>
 
           {/* Divider */}
-          <Box sx={{ width: '1px', height: 24, bgcolor: 'rgba(0,0,0,0.1)' }} />
+          <Box sx={{ width: '1px', height: 24, bgcolor: c.divider }} />
 
           {/* Figma */}
           {figmaConnected ? (
@@ -837,7 +853,7 @@ function ColorPicker() {
           )}
 
           {/* Divider */}
-          <Box sx={{ width: '1px', height: 24, bgcolor: 'rgba(0,0,0,0.1)' }} />
+          <Box sx={{ width: '1px', height: 24, bgcolor: c.divider }} />
 
           {/* Export / Import / Help (右端グループ) */}
           <Tooltip title='Export (JSON/DTCG/CSS/SCSS/MUI/Tailwind/MCP)' arrow>
@@ -885,8 +901,11 @@ function ColorPicker() {
             Help
           </Button>
 
+          {/* App color scheme toggle (Light / Dark / System) */}
+          <ColorSchemeToggle />
+
           {/* Divider */}
-          <Box sx={{ width: '1px', height: 24, bgcolor: 'rgba(0,0,0,0.1)' }} />
+          <Box sx={{ width: '1px', height: 24, bgcolor: c.divider }} />
 
           {/* Cloud / Auth (Firebase 未設定時は非表示) */}
           {!firebaseReady ? null : user ? (
@@ -954,15 +973,15 @@ function ColorPicker() {
           scrollbarWidth: 'thin',
           scrollBehavior: 'smooth',
           '&::-webkit-scrollbar': { height: 8 },
-          '&::-webkit-scrollbar-track': { bgcolor: 'rgba(0,0,0,0.03)', borderRadius: 4 },
+          '&::-webkit-scrollbar-track': { bgcolor: c.divider, borderRadius: 4 },
           '&::-webkit-scrollbar-thumb': {
-            bgcolor: 'rgba(0,0,0,0.15)',
+            bgcolor: c.border,
             borderRadius: 4,
-            '&:hover': { bgcolor: 'rgba(0,0,0,0.25)' },
+            '&:hover': { bgcolor: c.borderHover },
           },
         }}
       >
-        {color.map((c, index) => (
+        {color.map((hex, index) => (
           <Box
             key={index}
             sx={{
@@ -982,8 +1001,8 @@ function ColorPicker() {
                 mb: 1,
                 '& .MuiOutlinedInput-root': {
                   borderRadius: '8px',
-                  '& fieldset': { borderColor: 'rgba(0,0,0,0.08)' },
-                  '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.15)' },
+                  '& fieldset': { borderColor: c.divider },
+                  '&:hover fieldset': { borderColor: c.border },
                   '&.Mui-focused fieldset': {
                     borderColor: '#3f50b5',
                     borderWidth: '2px',
@@ -997,7 +1016,7 @@ function ColorPicker() {
               }}
             />
             <ColorInputField
-              color={c}
+              color={hex}
               onChange={newColor => handleColorChange(index, newColor)}
             />
             {palette && palette[index] && (
@@ -1018,13 +1037,13 @@ function ColorPicker() {
 
       {/* ===== Theme Tokens (grey + utility) ===== */}
       {themeTokens && (
-        <Box sx={{ mt: 4, pt: 3, borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+        <Box sx={{ mt: 4, pt: 3, borderTop: `1px solid ${c.divider}` }}>
           <Typography
             component='h2'
             sx={{
               fontSize: '0.85rem',
               fontWeight: 700,
-              color: 'rgba(0,0,0,0.5)',
+              color: c.textMuted,
               textTransform: 'uppercase',
               letterSpacing: '0.05em',
               mb: 2,
@@ -1036,7 +1055,7 @@ function ColorPicker() {
               sx={{
                 fontSize: '0.75rem',
                 fontWeight: 400,
-                color: 'rgba(0,0,0,0.3)',
+                color: c.textSubtle,
                 ml: 1,
               }}
             >
@@ -1056,11 +1075,11 @@ function ColorPicker() {
               scrollbarWidth: 'thin',
               scrollBehavior: 'smooth',
               '&::-webkit-scrollbar': { height: 8 },
-              '&::-webkit-scrollbar-track': { bgcolor: 'rgba(0,0,0,0.03)', borderRadius: 4 },
+              '&::-webkit-scrollbar-track': { bgcolor: c.divider, borderRadius: 4 },
               '&::-webkit-scrollbar-thumb': {
-                bgcolor: 'rgba(0,0,0,0.15)',
+                bgcolor: c.border,
                 borderRadius: 4,
-                '&:hover': { bgcolor: 'rgba(0,0,0,0.25)' },
+                '&:hover': { bgcolor: c.borderHover },
               },
             }}
           >
@@ -1213,7 +1232,7 @@ function ColorPicker() {
         onConfirm={handleConfirm}
         onCancel={handleCancel}
       />
-    </>
+    </Box>
   );
 }
 
