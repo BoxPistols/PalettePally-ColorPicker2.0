@@ -52,6 +52,19 @@ export function buildMuiTheme(data: PaletteData, mode: 'light' | 'dark'): Theme 
   const iconColor = mode === 'light' ? '#64748b' : '#a1a1aa';
   const iconDarkColor = mode === 'light' ? '#334155' : '#e4e4e7';
 
+  // text トークンは WCAG 最低コントラスト (primary/secondary 4.5:1, disabled 3:1) を
+  // bgDefault に対して保証。壊れた localStorage データへのセーフネット。
+  // typography.allVariants.color でも参照するため関数スコープに持ち上げる。
+  const bgDefault = utility.background?.default ?? (mode === 'light' ? '#f8fafc' : '#18181b');
+  const fbPrimary = mode === 'light' ? '#1a1a2e' : '#e4e4e7';
+  const fbSecondary = mode === 'light' ? '#4a5568' : '#a1a1aa';
+  const fbDisabled = mode === 'light' ? '#9e9e9e' : '#9ca3af';
+  const textTokens = {
+    primary: ensureReadable(utility.text?.primary ?? fbPrimary, bgDefault, 4.5, fbPrimary),
+    secondary: ensureReadable(utility.text?.secondary ?? fbSecondary, bgDefault, 4.5, fbSecondary),
+    disabled: ensureReadable(utility.text?.disabled ?? fbDisabled, bgDefault, 3, fbDisabled),
+  };
+
   const options: ThemeOptions = {
     palette: {
       mode,
@@ -109,21 +122,9 @@ export function buildMuiTheme(data: PaletteData, mode: 'light' | 'dark'): Theme 
         },
       }),
       grey: grey as Record<string, string>,
-      text: (() => {
-        const bgDefault = utility.background?.default ?? (mode === 'light' ? '#f8fafc' : '#18181b');
-        const fbPrimary = mode === 'light' ? '#1a1a2e' : '#e4e4e7';
-        const fbSecondary = mode === 'light' ? '#4a5568' : '#a1a1aa';
-        const fbDisabled = mode === 'light' ? '#9e9e9e' : '#9ca3af';
-        return {
-          // 通常テキストは WCAG AA (4.5:1)、disabled は AA-Large (3:1) を最低保証。
-          // 満たさない値は上記 fallback に置換する（壊れた localStorage データへのセーフネット）
-          primary: ensureReadable(utility.text?.primary ?? fbPrimary, bgDefault, 4.5, fbPrimary),
-          secondary: ensureReadable(utility.text?.secondary ?? fbSecondary, bgDefault, 4.5, fbSecondary),
-          disabled: ensureReadable(utility.text?.disabled ?? fbDisabled, bgDefault, 3, fbDisabled),
-        };
-      })(),
+      text: textTokens,
       background: {
-        default: utility.background?.default ?? (mode === 'light' ? '#f8fafc' : '#18181b'),
+        default: bgDefault,
         paper: utility.background?.paper ?? (mode === 'light' ? '#ffffff' : '#27272a'),
       },
       divider: utility.divider?.default ?? (mode === 'light' ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)'),
@@ -132,6 +133,16 @@ export function buildMuiTheme(data: PaletteData, mode: 'light' | 'dark'): Theme 
         selected: utility.action?.selected,
         disabled: utility.action?.disabled,
         active: utility.action?.active,
+      },
+    },
+    // 親 ThemeProvider (_app.tsx の theme) が typography.allVariants.color を固定色
+    // (colorData.text.primary = '#1a1a2e') で注入しており、ExampleDialog 内の入れ子
+    // ThemeProvider でも CSS が拮抗して dark モードの Typography が真っ黒になる
+    // 問題があった。内側 theme の allVariants に textTokens.primary を明示して遮断する。
+    // 個別の `color='text.secondary'` などはさらに優先されるため維持される。
+    typography: {
+      allVariants: {
+        color: textTokens.primary,
       },
     },
     shape: { borderRadius: 8 },
