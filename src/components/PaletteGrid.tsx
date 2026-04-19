@@ -158,53 +158,38 @@ const ContrastPreview = memo<{
           color: isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.4)',
         }}
       >
-        contrastText preview
+        Preview
       </Typography>
       <Box
         sx={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          gap: 0.75,
+          gap: 0.5,
           background: bg,
           borderRadius: '6px',
-          px: 1,
+          px: 0.75,
           py: 0.75,
           minWidth: 0,
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, minWidth: 0, flex: 1 }}>
-          <Typography
-            sx={{
-              color: ct,
-              fontSize: '0.85rem',
-              fontWeight: 600,
-              lineHeight: 1.2,
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-            }}
-          >
-            Aa テキスト
-          </Typography>
-          <Box
-            component='span'
-            sx={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              border: `1px solid ${ct}`,
-              color: ct,
-              borderRadius: '999px',
-              fontSize: '0.65rem',
-              fontWeight: 600,
-              px: 0.75,
-              py: 0.125,
-              lineHeight: 1.4,
-              flexShrink: 0,
-            }}
-          >
-            Button
-          </Box>
+        <Box
+          component='span'
+          sx={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            border: `1px solid ${ct}`,
+            color: ct,
+            borderRadius: '999px',
+            fontSize: '0.65rem',
+            fontWeight: 600,
+            px: 0.75,
+            py: 0.125,
+            lineHeight: 1.4,
+            flexShrink: 0,
+          }}
+        >
+          text
         </Box>
         <Typography
           sx={{
