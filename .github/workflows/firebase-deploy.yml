@@ -1,0 +1,48 @@
+name: Deploy Firestore rules & indexes
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'firestore.rules'
+      - 'firestore.indexes.json'
+      - 'firebase.json'
+      - '.github/workflows/firebase-deploy.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # Skip automatically if the required secret is not configured (e.g. fork).
+    # Owner must add FIREBASE_SERVICE_ACCOUNT secret with a Firebase service
+    # account JSON to enable automated deploys.
+    if: ${{ github.repository == github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+      - name: Install firebase-tools
+        run: npm install -g firebase-tools
+      - name: Check for required secret
+        id: check
+        run: |
+          if [ -z "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" ]; then
+            echo "configured=false" >> $GITHUB_OUTPUT
+          else
+            echo "configured=true" >> $GITHUB_OUTPUT
+          fi
+      - name: Deploy rules & indexes
+        if: steps.check.outputs.configured == 'true'
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: /tmp/firebase-sa.json
+          FIREBASE_PROJECT: ${{ secrets.FIREBASE_PROJECT_ID }}
+        run: |
+          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > /tmp/firebase-sa.json
+          firebase deploy --only firestore:rules,firestore:indexes \
+            --project "$FIREBASE_PROJECT" --non-interactive
+      - name: Skip notice
+        if: steps.check.outputs.configured != 'true'
+        run: |
+          echo "::warning::FIREBASE_SERVICE_ACCOUNT secret is not set — skipping deploy."
+          echo "Add service account JSON and FIREBASE_PROJECT_ID to repo secrets to enable."

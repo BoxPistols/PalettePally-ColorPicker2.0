@@ -118,6 +118,20 @@ firebase init firestore   # select existing project
 firebase deploy --only firestore:rules,firestore:indexes
 ```
 
+### Automated deploy via GitHub Actions
+
+`firestore.rules` / `firestore.indexes.json` / `firebase.json` がリポジトリにコミット済み。
+`.github/workflows/firebase-deploy.yml` が main へのプッシュ時に自動デプロイする。
+
+有効化に必要な GitHub Secrets:
+
+| Secret | 値 |
+| --- | --- |
+| `FIREBASE_SERVICE_ACCOUNT` | Firebase Console > Project Settings > Service accounts > Generate new private key の JSON 全体 |
+| `FIREBASE_PROJECT_ID` | プロジェクト ID（例: `palette-pally`） |
+
+未設定の場合、ワークフローは警告を出してスキップする（fork でも安全）。
+
 ## 9. Figma API Token (for Phase 5)
 
 1. Open [Figma Account Settings](https://www.figma.com/settings)
