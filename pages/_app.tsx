@@ -1,10 +1,10 @@
 import type { AppProps } from 'next/app';
 import createCache from '@emotion/cache';
-import { theme } from '@/lib/theme';
 import Head from 'next/head';
 import '../src/styles/globals.css';
-import { ThemeProvider, CacheProvider } from '@emotion/react';
+import { CacheProvider } from '@emotion/react';
 import { AuthProvider } from '@/components/auth/AuthProvider';
+import { AppShell } from '@/components/common/AppShell';
 
 export default function App({ Component, pageProps }: AppProps) {
   const cache = createCache({ key: 'css', prepend: true, stylisPlugins: [] });
@@ -12,7 +12,7 @@ export default function App({ Component, pageProps }: AppProps) {
 
   return (
     <AuthProvider>
-      <ThemeProvider theme={theme}>
+      <AppShell>
         <CacheProvider value={cache}>
           <Head>
             <title>Pallett Pally - MUI カラーパレット生成</title>
@@ -21,7 +21,7 @@ export default function App({ Component, pageProps }: AppProps) {
           </Head>
           <Component {...pageProps} />
         </CacheProvider>
-      </ThemeProvider>
+      </AppShell>
     </AuthProvider>
   );
 }

@@ -17,7 +17,21 @@ body {
   padding: 1vh 3vw;
   max-width: 1440px;
   margin: auto;
-  color: #345;
+  color: #1a1a2e;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* App-level color scheme: useColorScheme が html[data-color-scheme] を付与する。
+   MUI CssBaseline も同じ値を当てるが、hydration 直前のちらつき防止に CSS 側で
+   先行して body 背景/文字色を切り替える。 */
+html[data-color-scheme='dark'] body {
+  background-color: #18181b;
+  color: #e4e4e7;
+}
+
+html[data-color-scheme='light'] body {
+  background-color: #ffffff;
+  color: #1a1a2e;
 }
 
 a {

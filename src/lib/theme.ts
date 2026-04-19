@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { createTheme } from '@mui/material/styles';
+import { createTheme, Theme, ThemeOptions } from '@mui/material/styles';
 import { CSSProperties } from 'react';
 import { TypographyStyleOptions } from '@mui/material/styles/createTypography';
 import { colorData } from '@/lib/colorToken';
@@ -451,3 +451,76 @@ export const theme = createTheme({
   },
   */
 });
+
+// ── App-level dark theme ──
+// 既存の light theme を base に palette / typography を dark 用に上書き。
+// useColorScheme の resolved === 'dark' のとき AppShell が createAppTheme('dark')
+// で差し替える。user palette (PaletteCard) には影響しない（こちらは自分の
+// 色を持つ別レイヤー）。
+const darkText = {
+  primary: '#e4e4e7',
+  secondary: '#a1a1aa',
+  disabled: '#9ca3af',
+};
+const darkBg = {
+  default: '#18181b',
+  paper: '#27272a',
+};
+
+// dark 用の allVariants。既存 light の allVariants と fontFamily / weight /
+// line-height は共通だが、color だけ明示的に dark 値を設定。
+// （createTheme 後の theme.typography から allVariants を再スプレッドすると
+//   型が壊れるため、両 theme 作成時の input 側で揃える）
+const sharedAllVariants = {
+  fontFamily: 'Jost, Inter, Noto Sans JP, Helvetica, Arial, sans-serif',
+  lineHeight: lineHeight.medium,
+  fontWeight: fontWeight.normal,
+  textTransform: 'inherit' as const,
+  WebkitFontSmoothing: 'antialiased' as const,
+  MozOsxFontSmoothing: 'antialiased' as const,
+  fontSize: pxToRem(baseFontSize),
+};
+
+export const darkTheme = createTheme({
+  ...(theme as unknown as ThemeOptions),
+  palette: {
+    ...(theme.palette as unknown as ThemeOptions['palette']),
+    mode: 'dark',
+    text: darkText,
+    background: darkBg,
+    divider: 'rgba(255,255,255,0.12)',
+    // カスタム surface / icon を dark 用に再指定（declare module で必須のため）
+    surfaceBackground: '#1e1e22',
+    surfaceBackgroundDark: '#09090b',
+    surfaceBackgroundDisabled: '#333338',
+    iconWhite: colorData.icon.white,
+    iconLight: '#a1a1aa',
+    iconDark: '#e4e4e7',
+    iconAction: colorData.icon.action,
+    iconDisabled: '#52525b',
+  },
+  typography: {
+    ...(theme.typography as unknown as ThemeOptions['typography']),
+    // 親 theme の allVariants.color が固定で入れ子 ThemeProvider を貫通する
+    // ため、dark theme では allVariants.color を明示的に dark 値に。
+    allVariants: {
+      ...sharedAllVariants,
+      color: darkText.primary,
+    },
+  },
+  components: {
+    ...theme.components,
+    MuiCssBaseline: {
+      styleOverrides: {
+        body: {
+          backgroundColor: darkBg.default,
+          color: darkText.primary,
+        },
+      },
+    },
+  },
+});
+
+export function createAppTheme(mode: 'light' | 'dark'): Theme {
+  return mode === 'dark' ? darkTheme : theme;
+}
