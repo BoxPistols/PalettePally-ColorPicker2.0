@@ -1,6 +1,19 @@
 import { createTheme, Theme, ThemeOptions } from '@mui/material/styles';
+import chroma from 'chroma-js';
 import { PaletteData } from '@/lib/types/palette';
 import { MuiColorVariant } from '@/components/colorUtils';
+
+// 指定色が背景に対して minRatio を満たさなければ fallback を返す。
+// localStorage に壊れた / 暗すぎる utility.text.* が保存されているケースで
+// dark preview 全体が読めなくなるのを防ぐセーフネット。
+function ensureReadable(color: string, bg: string, minRatio: number, fallback: string): string {
+  try {
+    if (chroma.contrast(color, bg) >= minRatio) return color;
+  } catch {
+    // invalid color -> fallback
+  }
+  return fallback;
+}
 
 // パレット内から指定名の MuiColorVariant を検索 (大文字小文字無視)
 function findByName(
@@ -96,11 +109,19 @@ export function buildMuiTheme(data: PaletteData, mode: 'light' | 'dark'): Theme 
         },
       }),
       grey: grey as Record<string, string>,
-      text: {
-        primary: utility.text?.primary ?? (mode === 'light' ? '#1a1a2e' : '#e4e4e7'),
-        secondary: utility.text?.secondary ?? (mode === 'light' ? '#4a5568' : '#a1a1aa'),
-        disabled: utility.text?.disabled ?? (mode === 'light' ? '#9e9e9e' : '#6b7280'),
-      },
+      text: (() => {
+        const bgDefault = utility.background?.default ?? (mode === 'light' ? '#f8fafc' : '#18181b');
+        const fbPrimary = mode === 'light' ? '#1a1a2e' : '#e4e4e7';
+        const fbSecondary = mode === 'light' ? '#4a5568' : '#a1a1aa';
+        const fbDisabled = mode === 'light' ? '#9e9e9e' : '#9ca3af';
+        return {
+          // 通常テキストは WCAG AA (4.5:1)、disabled は AA-Large (3:1) を最低保証。
+          // 満たさない値は上記 fallback に置換する（壊れた localStorage データへのセーフネット）
+          primary: ensureReadable(utility.text?.primary ?? fbPrimary, bgDefault, 4.5, fbPrimary),
+          secondary: ensureReadable(utility.text?.secondary ?? fbSecondary, bgDefault, 4.5, fbSecondary),
+          disabled: ensureReadable(utility.text?.disabled ?? fbDisabled, bgDefault, 3, fbDisabled),
+        };
+      })(),
       background: {
         default: utility.background?.default ?? (mode === 'light' ? '#f8fafc' : '#18181b'),
         paper: utility.background?.paper ?? (mode === 'light' ? '#ffffff' : '#27272a'),
