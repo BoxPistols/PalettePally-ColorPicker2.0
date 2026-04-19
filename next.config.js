@@ -2,7 +2,11 @@
 
 const path = require('path');
 
-const isStaticExport = process.env.NEXT_PUBLIC_STATIC_EXPORT === 'true' || process.env.GITHUB_ACTIONS === 'true';
+// static export は明示的にオプトイン (NEXT_PUBLIC_STATIC_EXPORT=true) のときのみ。
+// GITHUB_ACTIONS 環境変数だけで有効化すると、E2E / Lighthouse など `next start` を
+// 必要とする別の workflow が `output: export` と衝突して失敗する。GitHub Pages
+// デプロイ用 workflow (`.github/workflows/nextjs.yml`) 側で明示的に env を渡す。
+const isStaticExport = process.env.NEXT_PUBLIC_STATIC_EXPORT === 'true';
 // GitHub Actions から自動取得 (GITHUB_REPOSITORY="owner/repo") or 環境変数 or fallback
 const repoName =
   process.env.REPO_NAME ||

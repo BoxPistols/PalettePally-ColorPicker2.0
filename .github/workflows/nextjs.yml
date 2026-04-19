@@ -75,6 +75,11 @@ jobs:
         run: ${{ steps.detect-package-manager.outputs.manager }} ${{ steps.detect-package-manager.outputs.command }}
       - name: Build with Next.js
         run: ${{ steps.detect-package-manager.outputs.runner }} next build
+        env:
+          # static export (output: 'export') を明示的にオプトイン。
+          # 他 workflow (E2E / Lighthouse) は next start を使うので、
+          # この env は Pages deploy job だけで渡す。
+          NEXT_PUBLIC_STATIC_EXPORT: 'true'
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
