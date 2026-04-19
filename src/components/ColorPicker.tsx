@@ -26,6 +26,7 @@ import { ShareDialog } from './palette/ShareDialog';
 import { PaletteVersionHistory } from './palette/PaletteVersionHistory';
 import { generateColorScheme, generateThemeTokens, defaultColorName, defaultColorForName, ColorPalette, MuiColorVariant, ThemeTokens, ContrastMode } from './colorUtils';
 import { PaletteData, PaletteDocument } from '@/lib/types/palette';
+import { A11yThreshold } from '@/lib/wcag';
 import { ParsedVariable } from '@/lib/figma/types';
 import { parsedVariablesToPalette } from '@/lib/figma/variableMapper';
 import { HelpDialog } from './help/HelpDialog';
@@ -94,6 +95,8 @@ function ColorPicker() {
 
   // contrastText 戦略 ('auto' = WCAG準拠, 'white' = 常に白)
   const [contrastMode, setContrastMode] = useState<ContrastMode>('auto');
+  // a11y 許容しきい値（Preview でゲート表示に使用）
+  const [a11yThreshold, setA11yThreshold] = useState<A11yThreshold>('AA');
 
   // Harmony / WCAG Grid / Help / Example / Export / Import / Figma state
   const [harmonyOpen, setHarmonyOpen] = useState(false);
@@ -192,6 +195,9 @@ function ColorPicker() {
         if (['auto', 'white', 'black'].includes(data.contrastMode)) {
           setContrastMode(data.contrastMode);
         }
+        if (['none', 'A', 'AA', 'AAA'].includes(data.a11yThreshold)) {
+          setA11yThreshold(data.a11yThreshold);
+        }
       }
     } catch { /* ignore */ }
   }, []);
@@ -222,10 +228,11 @@ function ColorPicker() {
         names: colorNames,
         themeTokens,
         contrastMode,
+        a11yThreshold,
       }));
     }, 300);
     return () => clearTimeout(timer);
-  }, [numColors, color, colorNames, themeTokens, contrastMode]);
+  }, [numColors, color, colorNames, themeTokens, contrastMode, a11yThreshold]);
 
   function generateDistinctColorFromHues(existingHues: number[]): string {
     const count = existingHues.length;
@@ -781,6 +788,35 @@ function ColorPicker() {
             </Box>
           </Tooltip>
 
+          {/* A11y Threshold Toggle */}
+          <Tooltip title='A11y 許容しきい値: None (無効) / A (≥3:1) / AA (≥4.5:1) / AAA (≥7:1)' arrow>
+            <Box sx={{ display: 'flex', bgcolor: '#f5f5f5', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', p: '2px' }}>
+              {(['none', 'A', 'AA', 'AAA'] as A11yThreshold[]).map(t => (
+                <Box
+                  key={t}
+                  component='button'
+                  onClick={() => setA11yThreshold(t)}
+                  sx={{
+                    border: 0,
+                    px: 1,
+                    py: 0.5,
+                    fontSize: '0.7rem',
+                    fontWeight: 600,
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    bgcolor: a11yThreshold === t ? '#fff' : 'transparent',
+                    color: a11yThreshold === t ? '#1a1a2e' : 'rgba(0,0,0,0.5)',
+                    boxShadow: a11yThreshold === t ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
+                    letterSpacing: '0.03em',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  {t === 'none' ? 'None' : t}
+                </Box>
+              ))}
+            </Box>
+          </Tooltip>
+
           {/* Divider */}
           <Box sx={{ width: '1px', height: 24, bgcolor: 'rgba(0,0,0,0.1)' }} />
 
@@ -965,6 +1001,7 @@ function ColorPicker() {
                 <PaletteCard
                   colorPalette={palette[index][colorNames[index]]}
                   colorName={colorNames[index]}
+                  a11yThreshold={a11yThreshold}
                   onEdit={(mode, shade, value) =>
                     handlePaletteEdit(index, mode, shade, value)
                   }

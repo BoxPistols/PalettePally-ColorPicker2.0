@@ -11,11 +11,19 @@ import {
 } from '@mui/material';
 import chroma from 'chroma-js';
 import { ColorPalette, MuiColorVariant } from './colorUtils';
-import { contrastRatio, wcagLevel, WCAG_COLOR } from '@/lib/wcag';
+import { contrastRatio, wcagLevel, WCAG_COLOR, A11yThreshold, THRESHOLD_RATIO, meetsThreshold } from '@/lib/wcag';
+
+const THRESHOLD_LABEL: Record<A11yThreshold, string> = {
+  none: '—',
+  A: `${THRESHOLD_RATIO.A}:1`,
+  AA: `${THRESHOLD_RATIO.AA}:1`,
+  AAA: `${THRESHOLD_RATIO.AAA}:1`,
+};
 
 type PaletteCardProps = {
   colorPalette: ColorPalette;
   colorName: string;
+  a11yThreshold?: A11yThreshold;
   onEdit?: (mode: 'light' | 'dark', shade: keyof MuiColorVariant, value: string) => void;
 };
 
@@ -135,11 +143,19 @@ ColorSwatch.displayName = 'ColorSwatch';
 const ContrastPreview = memo<{
   variant: MuiColorVariant;
   isDark: boolean;
-}>(({ variant, isDark }) => {
+  threshold: A11yThreshold;
+}>(({ variant, isDark, threshold }) => {
   const ct = variant.contrastText;
   const bg = variant.main;
   const ratio = contrastRatio(ct, bg);
   const level = wcagLevel(ratio);
+  const thresholdActive = threshold !== 'none';
+  const passes = !thresholdActive || meetsThreshold(ratio, threshold);
+
+  const failColor = WCAG_COLOR.Fail;
+  const frameBorderColor = thresholdActive && !passes
+    ? failColor
+    : isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)';
 
   return (
     <Box
@@ -147,24 +163,46 @@ const ContrastPreview = memo<{
         mt: 0.75,
         p: 0.75,
         borderRadius: '8px',
-        border: '1px dashed',
-        borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)',
+        border: thresholdActive && !passes ? '1.5px solid' : '1px dashed',
+        borderColor: frameBorderColor,
         display: 'flex',
         flexDirection: 'column',
         gap: 0.5,
       }}
     >
-      <Typography
-        sx={{
-          fontSize: '0.6rem',
-          fontWeight: 700,
-          letterSpacing: 0.8,
-          textTransform: 'uppercase',
-          color: isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.4)',
-        }}
-      >
-        Preview
-      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 0.5 }}>
+        <Typography
+          sx={{
+            fontSize: '0.6rem',
+            fontWeight: 700,
+            letterSpacing: 0.8,
+            textTransform: 'uppercase',
+            color: isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.4)',
+          }}
+        >
+          Preview
+        </Typography>
+        {thresholdActive && (
+          <Typography
+            sx={{
+              fontSize: '0.55rem',
+              fontWeight: 700,
+              letterSpacing: 0.4,
+              color: passes ? WCAG_COLOR[level] : failColor,
+              px: 0.5,
+              py: 0.125,
+              borderRadius: '4px',
+              border: `1px solid ${passes ? WCAG_COLOR[level] : failColor}`,
+              lineHeight: 1.3,
+            }}
+            title={passes
+              ? `Meets ${threshold} (${ratio.toFixed(2)}:1 ≥ ${THRESHOLD_LABEL[threshold]})`
+              : `Below ${threshold} threshold (${ratio.toFixed(2)}:1 < ${THRESHOLD_LABEL[threshold]})`}
+          >
+            {passes ? `✓ ${threshold}` : `✗ ${threshold}`}
+          </Typography>
+        )}
+      </Box>
       <Box
         sx={{
           display: 'flex',
@@ -221,8 +259,9 @@ ContrastPreview.displayName = 'ContrastPreview';
 const SchemeColumn = memo<{
   variant: MuiColorVariant;
   mode: 'light' | 'dark';
+  a11yThreshold: A11yThreshold;
   onCopy: (text: string) => void;
-}>(({ variant, mode, onCopy }) => {
+}>(({ variant, mode, a11yThreshold, onCopy }) => {
   const isDark = mode === 'dark';
 
   const handleCopyGroup = useCallback(() => {
@@ -277,7 +316,7 @@ const SchemeColumn = memo<{
       ))}
 
       {/* contrastText を実運用シーンで確認するためのサンプル（ボタン / テキスト） */}
-      <ContrastPreview variant={variant} isDark={isDark} />
+      <ContrastPreview variant={variant} isDark={isDark} threshold={a11yThreshold} />
     </Box>
   );
 });
@@ -520,7 +559,7 @@ EditDialog.displayName = 'EditDialog';
 // ── Palette Card ──
 
 export const PaletteCard = memo<PaletteCardProps>(
-  ({ colorPalette, colorName, onEdit }) => {
+  ({ colorPalette, colorName, a11yThreshold = 'none', onEdit }) => {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [snackOpen, setSnackOpen] = useState(false);
     const [copiedText, setCopiedText] = useState('');
@@ -661,11 +700,13 @@ export const PaletteCard = memo<PaletteCardProps>(
           <SchemeColumn
             variant={colorPalette.light}
             mode='light'
+            a11yThreshold={a11yThreshold}
             onCopy={handleCopy}
           />
           <SchemeColumn
             variant={colorPalette.dark}
             mode='dark'
+            a11yThreshold={a11yThreshold}
             onCopy={handleCopy}
           />
         </Box>

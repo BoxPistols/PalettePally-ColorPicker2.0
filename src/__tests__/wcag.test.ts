@@ -1,4 +1,4 @@
-import { contrastRatio, wcagLevel } from '@/lib/wcag';
+import { contrastRatio, wcagLevel, meetsThreshold, THRESHOLD_RATIO } from '@/lib/wcag';
 
 describe('contrastRatio', () => {
   it('returns 21 for white on black', () => {
@@ -33,5 +33,37 @@ describe('wcagLevel', () => {
   it('returns Fail for ratio < 3', () => {
     expect(wcagLevel(2.9)).toBe('Fail');
     expect(wcagLevel(1)).toBe('Fail');
+  });
+});
+
+describe('meetsThreshold', () => {
+  it('none はどのコントラスト比でも常に許容', () => {
+    expect(meetsThreshold(1, 'none')).toBe(true);
+    expect(meetsThreshold(0, 'none')).toBe(true);
+  });
+
+  it('A は 3:1 以上で許容', () => {
+    expect(meetsThreshold(2.9, 'A')).toBe(false);
+    expect(meetsThreshold(3, 'A')).toBe(true);
+    expect(meetsThreshold(21, 'A')).toBe(true);
+  });
+
+  it('AA は 4.5:1 以上で許容', () => {
+    expect(meetsThreshold(4.4, 'AA')).toBe(false);
+    expect(meetsThreshold(4.5, 'AA')).toBe(true);
+    expect(meetsThreshold(7, 'AA')).toBe(true);
+  });
+
+  it('AAA は 7:1 以上で許容', () => {
+    expect(meetsThreshold(6.9, 'AAA')).toBe(false);
+    expect(meetsThreshold(7, 'AAA')).toBe(true);
+    expect(meetsThreshold(21, 'AAA')).toBe(true);
+  });
+
+  it('THRESHOLD_RATIO は WCAG 値と一致', () => {
+    expect(THRESHOLD_RATIO.none).toBe(1);
+    expect(THRESHOLD_RATIO.A).toBe(3);
+    expect(THRESHOLD_RATIO.AA).toBe(4.5);
+    expect(THRESHOLD_RATIO.AAA).toBe(7);
   });
 });

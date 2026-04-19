@@ -25,3 +25,19 @@ export const WCAG_COLOR: Record<WcagLevel, string> = {
   'AA-Large': '#f59e0b', // amber
   Fail: '#ef4444',      // red
 };
+
+// ユーザが設定可能な a11y 許容しきい値。
+// 'none': チェック無効 / 'A': ≥3:1 / 'AA': ≥4.5:1 / 'AAA': ≥7:1
+export type A11yThreshold = 'none' | 'A' | 'AA' | 'AAA';
+
+export const THRESHOLD_RATIO: Record<A11yThreshold, number> = {
+  none: 1,
+  A: 3,
+  AA: 4.5,
+  AAA: 7,
+};
+
+export function meetsThreshold(ratio: number, threshold: A11yThreshold): boolean {
+  if (threshold === 'none') return true;
+  return ratio >= THRESHOLD_RATIO[threshold];
+}
