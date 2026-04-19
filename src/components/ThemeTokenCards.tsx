@@ -20,22 +20,39 @@ const isValidColor = (v: string) =>
 
 // ── Shared: Token Swatch (read-only, click to copy) ──
 
+// tintMode:
+//   'bg' (既定) — トークン値を swatch 背景に塗る。grey など「値そのものを見たい」トークン向け
+//   'fg'        — 背景を mode 依存の紙色に固定し、文字色にトークン値を当てる。Text グループ向け
+//                 （primary/secondary/disabled の意味ラベルと実際の見え方を一致させる）
 const TokenSwatch = memo<{
   label: string;
   value: string;
   isDark: boolean;
   onCopy: (text: string) => void;
-}>(({ label, value, isDark, onCopy }) => {
+  tintMode?: 'bg' | 'fg';
+}>(({ label, value, isDark, onCopy, tintMode = 'bg' }) => {
   const isRgba = value.startsWith('rgba');
-  const bgColor = isRgba ? (isDark ? '#121212' : '#fafafa') : value;
-  let luminance: number;
+
+  const neutralBg = isDark ? '#18181b' : '#ffffff';
+
+  // bg モード: value を塗る。輝度で白/黒の文字色を自動選択
+  // fg モード: 紙色固定で value を文字色に。label も value 色で描き、意味的な
+  //            primary/secondary/disabled の強弱を両カラムで同じ順に保つ
+  const bgColor = tintMode === 'fg' ? neutralBg : (isRgba ? (isDark ? '#121212' : '#fafafa') : value);
+
+  let bgLuminance: number;
   try {
-    luminance = isRgba ? (isDark ? 0.01 : 0.95) : chroma(value).luminance();
+    bgLuminance = isRgba && tintMode === 'bg'
+      ? (isDark ? 0.01 : 0.95)
+      : chroma(bgColor).luminance();
   } catch {
-    luminance = 0.5;
+    bgLuminance = 0.5;
   }
-  const textColor =
-    luminance > 0.35 ? 'rgba(0,0,0,0.85)' : 'rgba(255,255,255,0.95)';
+
+  const autoTextColor = bgLuminance > 0.35 ? 'rgba(0,0,0,0.85)' : 'rgba(255,255,255,0.95)';
+  const fgTextColor = isRgba ? autoTextColor : value;
+  const labelColor = tintMode === 'fg' ? fgTextColor : autoTextColor;
+  const valueColor = tintMode === 'fg' ? fgTextColor : autoTextColor;
 
   return (
     <Box
@@ -47,18 +64,19 @@ const TokenSwatch = memo<{
         background: bgColor,
         borderRadius: '4px',
         fontFamily: '"JetBrains Mono", "Fira Code", monospace',
-        color: textColor,
         mb: 0.25,
         cursor: 'pointer',
-        border: isRgba
+        border: isRgba && tintMode === 'bg'
           ? `1px dashed ${isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)'}`
-          : '1px solid transparent',
+          : tintMode === 'fg'
+            ? `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`
+            : '1px solid transparent',
         transition: 'transform 0.1s ease',
         '&:hover': { transform: 'scale(1.02)' },
         '&:active': { transform: 'scale(0.98)' },
       }}
     >
-      {isRgba && (
+      {isRgba && tintMode === 'bg' && (
         <Box sx={{ position: 'absolute', inset: 0, background: value, borderRadius: '4px' }} />
       )}
       <Box
@@ -73,7 +91,15 @@ const TokenSwatch = memo<{
           position: 'relative',
         }}
       >
-        <Box component='span' sx={{ fontSize: '0.75rem', fontWeight: 500, flexShrink: 0 }}>
+        <Box
+          component='span'
+          sx={{
+            fontSize: '0.75rem',
+            fontWeight: 500,
+            flexShrink: 0,
+            color: labelColor,
+          }}
+        >
           {label}
         </Box>
         <Box
@@ -85,6 +111,7 @@ const TokenSwatch = memo<{
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
             minWidth: 0,
+            color: valueColor,
           }}
         >
           {value}
@@ -716,12 +743,26 @@ export const UtilityGroupCard = memo<{
       <Box sx={{ display: 'flex', gap: 0.75, p: 1, bgcolor: '#fff' }}>
         <TokenColumn mode='light' onCopy={handleCopy} copyData={lightEntries}>
           {entryKeys.map(k => (
-            <TokenSwatch key={k} label={k} value={lightEntries[k]} isDark={false} onCopy={handleCopy} />
+            <TokenSwatch
+              key={k}
+              label={k}
+              value={lightEntries[k]}
+              isDark={false}
+              onCopy={handleCopy}
+              tintMode={groupName === 'text' ? 'fg' : 'bg'}
+            />
           ))}
         </TokenColumn>
         <TokenColumn mode='dark' onCopy={handleCopy} copyData={darkEntries}>
           {entryKeys.map(k => (
-            <TokenSwatch key={k} label={k} value={darkEntries[k]} isDark={true} onCopy={handleCopy} />
+            <TokenSwatch
+              key={k}
+              label={k}
+              value={darkEntries[k]}
+              isDark={true}
+              onCopy={handleCopy}
+              tintMode={groupName === 'text' ? 'fg' : 'bg'}
+            />
           ))}
         </TokenColumn>
       </Box>
