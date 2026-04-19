@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { buildPushPayload } from '@/lib/figma/variableMapper';
 import { hexToFigmaColor } from '@/lib/figma/types';
 import { PaletteData } from '@/lib/types/palette';
+import { verifyAuth } from '@/lib/firebase/admin';
 
 export default async function handler(
   req: NextApiRequest,
@@ -9,6 +10,11 @@ export default async function handler(
 ) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const auth = await verifyAuth(req);
+  if (!auth.ok) {
+    return res.status(auth.status).json({ error: auth.error });
   }
 
   const pat = req.headers['x-figma-token'] as string;

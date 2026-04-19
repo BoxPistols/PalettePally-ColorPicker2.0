@@ -15,6 +15,8 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage --maxWorkers=50%",
     "typecheck": "tsc --noEmit",
+    "e2e": "playwright test",
+    "e2e:install": "playwright install --with-deps chromium",
     "size": "size-limit"
   },
   "engines": {
@@ -39,6 +41,7 @@
     "@mui/material": "^5.14.2",
     "chroma-js": "^2.4.2",
     "firebase": "^12.11.0",
+    "firebase-admin": "^12",
     "nanoid": "3",
     "next": "13.4.19",
     "react": "18.2.0",
@@ -46,6 +49,7 @@
     "react-dom": "18.2.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "@size-limit/preset-big-lib": "^12.0.1",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
