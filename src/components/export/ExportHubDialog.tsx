@@ -19,12 +19,78 @@ import {
   FORMAT_EXTENSIONS,
 } from '@/lib/formatters';
 import { downloadPalettePNG } from '@/lib/imageExport';
+import { tokenizeCode, hexFromToken, TokenType } from '@/lib/highlight';
 
 type ExportHubDialogProps = {
   open: boolean;
   onClose: () => void;
   paletteData: PaletteData;
 };
+
+// シンタックスハイライト用の配色（ダーク背景前提）
+const TOKEN_COLORS: Record<TokenType, string> = {
+  comment: '#6b7280',
+  hex: '#f5d0fe',
+  string: '#a5d6a7',
+  number: '#fcd34d',
+  keyword: '#93c5fd',
+  punct: '#9ca3af',
+  text: '#e4e4e7',
+};
+
+// トークン列をハイライト付きで描画。hex はインラインのカラースウォッチを前置する。
+const CodeBlock = memo<{ content: string }>(({ content }) => {
+  const tokens = useMemo(() => tokenizeCode(content), [content]);
+  return (
+    <Box
+      component='pre'
+      aria-label='Export preview'
+      sx={{
+        m: 0,
+        p: 3,
+        maxHeight: '60vh',
+        overflow: 'auto',
+        bgcolor: '#1e1e2e',
+        color: TOKEN_COLORS.text,
+        fontFamily: '"JetBrains Mono", "Fira Code", monospace',
+        fontSize: '0.78rem',
+        lineHeight: 1.55,
+        whiteSpace: 'pre',
+      }}
+    >
+      {tokens.map((t, i) => {
+        if (t.type === 'hex') {
+          const hex = hexFromToken(t.value);
+          return (
+            <Box component='span' key={i} sx={{ color: TOKEN_COLORS.hex }}>
+              <Box
+                component='span'
+                aria-hidden
+                sx={{
+                  display: 'inline-block',
+                  width: '0.72em',
+                  height: '0.72em',
+                  borderRadius: '2px',
+                  bgcolor: hex,
+                  border: '1px solid rgba(255,255,255,0.35)',
+                  mr: '0.32em',
+                  verticalAlign: 'middle',
+                }}
+              />
+              {t.value}
+            </Box>
+          );
+        }
+        return (
+          <Box component='span' key={i} sx={{ color: TOKEN_COLORS[t.type] }}>
+            {t.value}
+          </Box>
+        );
+      })}
+    </Box>
+  );
+});
+CodeBlock.displayName = 'CodeBlock';
 
 const FORMATS: ExportFormat[] = [
   'json',
@@ -165,23 +231,7 @@ export const ExportHubDialog = memo<ExportHubDialogProps>(
             </Box>
           </Box>
 
-          <Box
-            component='pre'
-            sx={{
-              m: 0,
-              p: 3,
-              maxHeight: '60vh',
-              overflow: 'auto',
-              bgcolor: '#1e1e2e',
-              color: '#e4e4e7',
-              fontFamily: '"JetBrains Mono", "Fira Code", monospace',
-              fontSize: '0.78rem',
-              lineHeight: 1.55,
-              whiteSpace: 'pre',
-            }}
-          >
-            {content}
-          </Box>
+          <CodeBlock content={content} />
         </DialogContent>
 
         <Snackbar
