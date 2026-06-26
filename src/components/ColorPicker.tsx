@@ -130,7 +130,7 @@ function ColorPicker() {
   const initializedRef = useRef(false);
   const prevPrimaryRef = useRef<string | undefined>(undefined);
 
-  const isValidHex = (hex: never) => /^#([0-9A-F]{3}){1,2}$/i.test(hex);
+  const isValidHex = (hex: string) => /^#([0-9A-F]{3}){1,2}$/i.test(hex);
 
   // numColors 変更時のみ色を増減（functional setState でカスケード防止）
   useEffect(() => {
@@ -272,7 +272,7 @@ function ColorPicker() {
   };
 
   const handleColorChange = (index: number, newColor: string) => {
-    if (!isValidHex(newColor as never) && newColor !== '#') return;
+    if (!isValidHex(newColor) && newColor !== '#') return;
     const newColors = [...color];
     newColors[index] = newColor;
     setColor(newColors);
