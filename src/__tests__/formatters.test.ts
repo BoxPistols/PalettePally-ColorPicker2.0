@@ -132,6 +132,71 @@ describe('toTailwind', () => {
     expect(result).toContain('theme:');
     expect(result).toContain('colors:');
   });
+
+  it('includes light-mode colors at the root', () => {
+    const parsed = parseTailwindColors(toTailwind(sampleData));
+    const primary = parsed.primary as Record<string, string>;
+    expect(primary.DEFAULT).toBe('#1976d2'); // light.main
+  });
+
+  it('includes dark-mode colors under colors.dark (previously missing entirely)', () => {
+    const parsed = parseTailwindColors(toTailwind(sampleData));
+    expect(parsed.dark).toBeDefined();
+    const dark = parsed.dark as Record<string, Record<string, string>>;
+    expect(dark.primary.DEFAULT).toBe('#90caf9'); // dark.main
+    expect(dark.secondary.DEFAULT).toBe('#ce93d8');
+    expect(dark.grey['50']).toBe('#121212'); // dark grey
+  });
+});
+
+// toTailwind の colors マップを取り出すヘルパ。colors の値は JSON.stringify 由来の
+// 正当な JSON なので、対応する括弧まで切り出して JSON.parse する（eval 不使用）。
+function parseTailwindColors(src: string): Record<string, unknown> {
+  const start = src.indexOf('colors:');
+  const open = src.indexOf('{', start);
+  let depth = 0;
+  let end = open;
+  for (let i = open; i < src.length; i++) {
+    if (src[i] === '{') depth++;
+    else if (src[i] === '}') {
+      depth--;
+      if (depth === 0) {
+        end = i;
+        break;
+      }
+    }
+  }
+  return JSON.parse(src.slice(open, end + 1));
+}
+
+describe('kebab sanitization (custom group names)', () => {
+  // カスタムトークングループ名に空白や記号が含まれても、CSS/SCSS の識別子として
+  // 不正な文字（空白・"!" など）を出力しないことを保証する。
+  const dataWithMessyGroup: PaletteData = {
+    numColors: 0,
+    colors: [],
+    names: [],
+    palette: [],
+    themeTokens: {
+      grey: { light: {}, dark: {} },
+      utility: {
+        light: { 'My Group!': { 'Hover State': '#ffffff' } },
+        dark: { 'My Group!': { 'Hover State': '#000000' } },
+      },
+    },
+  };
+
+  it('CSS produces a valid custom-property name', () => {
+    const css = toCSS(dataWithMessyGroup);
+    expect(css).toContain('--color-my-group-hover-state: #ffffff;');
+    expect(css).not.toMatch(/--color-my group/i); // 空白を含まない
+    expect(css).not.toContain('!');
+  });
+
+  it('SCSS produces a valid variable name', () => {
+    const scss = toSCSS(dataWithMessyGroup);
+    expect(scss).toContain('$color-my-group-hover-state-light: #ffffff;');
+  });
 });
 
 describe('toTokensStudio', () => {

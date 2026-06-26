@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Box,
   TextField,
@@ -123,8 +123,6 @@ function ColorPicker() {
   );
 
   const [themeTokens, setThemeTokens] = useState<ThemeTokens | null>(null);
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const skipAutoResetRef = useRef(false);
   const initializedRef = useRef(false);
@@ -475,23 +473,6 @@ function ColorPicker() {
     });
   }, [confirm]);
 
-  const importFromJson = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files ? event.target.files[0] : null;
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = e => {
-        if (e.target !== null) {
-          const data = JSON.parse(e.target.result as string);
-          setColor(data.colors);
-          setColorNames(data.names);
-          setPalette(data.palette);
-          setNumColors(data.colors.length);
-        }
-      };
-      reader.readAsText(file);
-    }
-  };
-
   return (
     <>
       {/* ===== Header ===== */}
@@ -689,14 +670,6 @@ function ColorPicker() {
             </Button>
           </Tooltip>
           */}
-
-          <input
-            ref={fileInputRef}
-            type='file'
-            accept='.json'
-            onChange={importFromJson}
-            style={{ display: 'none' }}
-          />
 
           {/* Legacy name migration (表示条件: color1/color2 名が残っている) */}
           {colorNames.slice(0, 6).some(n => /^color\d+$/.test(n)) && (

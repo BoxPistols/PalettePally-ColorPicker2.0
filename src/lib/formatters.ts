@@ -36,7 +36,14 @@ export const FORMAT_EXTENSIONS: Record<ExportFormat, string> = {
 
 // ── Helpers ──
 
-const kebab = (s: string) => s.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+// camelCase → kebab に変換しつつ、CSS 識別子として不正な文字（空白・記号など。
+// カスタムトークングループ名に混入しうる）をハイフンへ畳み込み、端のハイフンを除去する。
+const kebab = (s: string) =>
+  s
+    .replace(/([a-z])([A-Z])/g, '$1-$2')
+    .replace(/[^a-zA-Z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .toLowerCase();
 
 const forEachAction = (
   data: PaletteData,
@@ -249,26 +256,42 @@ ${buildPalette('dark')}
 // ── Tailwind Config ──
 
 export function toTailwind(data: PaletteData): string {
-  const colors: Record<string, Record<string, string> | string> = {};
+  // MuiColorVariant を Tailwind の shade マップへ変換
+  const toShades = (v: {
+    main: string;
+    light: string;
+    dark: string;
+    lighter: string;
+    contrastText: string;
+  }) => ({
+    DEFAULT: v.main,
+    light: v.light,
+    dark: v.dark,
+    lighter: v.lighter,
+    contrast: v.contrastText,
+  });
+
+  type ShadeMap = Record<string, string>;
+  // colors は shade マップ（light 各色 / grey）に加えて、dark に色マップのネストを持つ
+  const colors: Record<string, ShadeMap | Record<string, ShadeMap>> = {};
+  const darkColors: Record<string, ShadeMap> = {};
 
   (data.palette ?? []).forEach(entry => {
     const [name, palette] = Object.entries(entry)[0] ?? [];
     if (!name || !palette) return;
-    colors[name] = {
-      DEFAULT: palette.light.main,
-      light: palette.light.light,
-      dark: palette.light.dark,
-      lighter: palette.light.lighter,
-      contrast: palette.light.contrastText,
-    };
+    colors[name] = toShades(palette.light);
+    darkColors[name] = toShades(palette.dark);
   });
 
   if (data.themeTokens?.grey) {
-    const greyMap: Record<string, string> = {};
-    Object.entries(data.themeTokens.grey.light).forEach(([k, v]) => {
-      greyMap[k] = v;
-    });
-    colors.grey = greyMap;
+    colors.grey = { ...data.themeTokens.grey.light };
+    darkColors.grey = { ...data.themeTokens.grey.dark };
+  }
+
+  // dark モードのトークンは colors.dark.* に格納（例: bg-dark-primary, text-dark-grey-900）。
+  // 以前は light モードのみ出力しており dark の色定義が完全に欠落していた。
+  if (Object.keys(darkColors).length > 0) {
+    colors.dark = darkColors;
   }
 
   return `/** @type {import('tailwindcss').Config} */

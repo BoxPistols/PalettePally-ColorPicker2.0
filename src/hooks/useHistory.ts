@@ -49,6 +49,9 @@ export function useHistory(
       if (p.length === 0) return p;
       const last = p[p.length - 1];
       skipNextPush.current = true;
+      // future は先頭が「次に redo する最新状態」の front-loaded 構造。
+      // よって上限超過時は slice(0, MAX) で先頭=最新側を残すのが正しい
+      // （past は末尾が最新の back-loaded なので slice(-MAX)。両者で向きが逆な点に注意）。
       setFuture(f => [{ colors, names }, ...f].slice(0, MAX_HISTORY));
       apply(last.colors, last.names);
       return p.slice(0, -1);

@@ -77,6 +77,19 @@ const getContrastText = (mainHex: string, mode: ContrastMode = 'auto'): string =
   return chroma(mainHex).luminance() > 0.179 ? '#000000' : '#ffffff';
 };
 
+// 不正な hex（インポートデータ等に混入しうる）で chroma / argbFromHex が throw して
+// レンダリングごと巻き込まれるのを防ぐ。検証に通らなければ安全なフォールバックを使う。
+const FALLBACK_HEX = '#1976d2';
+const isValidHex = (hex: string): boolean => {
+  try {
+    chroma(hex);
+    return true;
+  } catch {
+    return false;
+  }
+};
+const safeHex = (hex: string): string => (isValidHex(hex) ? hex : FALLBACK_HEX);
+
 // ── Module-level caches ──
 
 const colorSchemeCache = new Map<string, ColorPalette>();
@@ -89,15 +102,16 @@ export function clearColorSchemeCache() {
 // ── Action Color Generator (cached) ──
 
 export function generateColorScheme(hex: string, contrastMode: ContrastMode = 'auto'): ColorPalette {
-  const normalizedHex = hex.toLowerCase();
+  const normalizedHex = safeHex(hex).toLowerCase();
   const cacheKey = `${normalizedHex}|${contrastMode}`;
   const cached = colorSchemeCache.get(cacheKey);
   if (cached) return cached;
 
   const inputChroma = chroma(normalizedHex).lch()[1] || 0;
 
-  // main は常に入力値をそのまま使用（Material You のアクセシビリティ補正を禁止）
-  const lightMain = hex;
+  // main は常に入力値をそのまま使用（Material You のアクセシビリティ補正を禁止）。
+  // 不正な hex はフォールバックに置換し、後続の chroma 呼び出しが throw しないようにする。
+  const lightMain = safeHex(hex);
 
   // 純粋な無彩色 (chroma < 4) は chroma-js で純粋なグレースケール
   if (inputChroma < 4) {
@@ -154,7 +168,7 @@ export function generateColorScheme(hex: string, contrastMode: ContrastMode = 'a
 // ── Theme Tokens Generator (grey + utility, cached) ──
 
 export function generateThemeTokens(primaryHex: string): ThemeTokens {
-  const key = primaryHex.toLowerCase();
+  const key = safeHex(primaryHex).toLowerCase();
   const cached = themeTokensCache.get(key);
   if (cached) return cached;
 
