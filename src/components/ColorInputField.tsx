@@ -72,8 +72,9 @@ const ColorInputField = memo(({ color, onChange }: ColorInputFieldProps) => {
             fontSize: '11px !important',
             borderRadius: '3px !important',
             textAlign: 'center !important',
+            // フォーカスリングを消さず、視認できる枠を出す（WCAG 2.4.7 / プロジェクト規約）
             '&:focus': {
-              boxShadow: 'none !important',
+              boxShadow: '0 0 0 2px rgba(25,118,210,0.6) !important',
             },
           },
         },

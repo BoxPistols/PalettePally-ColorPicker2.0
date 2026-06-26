@@ -84,6 +84,15 @@ const ColorSwatch = memo<{
   return (
     <Box
       onClick={() => onCopy(colorValue)}
+      onKeyDown={(e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onCopy(colorValue);
+        }
+      }}
+      role='button'
+      tabIndex={0}
+      aria-label={`${shade} ${colorValue} をコピー`}
       title={`${shade}: ${colorValue} — click to copy`}
       sx={{
         background: swatchBg,
@@ -93,6 +102,10 @@ const ColorSwatch = memo<{
         mb: 0.5,
         transition: 'transform 0.15s ease, box-shadow 0.15s ease',
         cursor: 'pointer',
+        '&:focus-visible': {
+          outline: '2px solid #1976d2',
+          outlineOffset: '2px',
+        },
         border: isLight || isContrast
           ? `1.5px solid ${isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)'}`
           : '1.5px solid transparent',
