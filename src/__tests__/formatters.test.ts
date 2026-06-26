@@ -403,6 +403,23 @@ describe('Round-trip: Export → Import', () => {
       expect(result.data.names).toContain('primary');
     }
   });
+
+  // 回帰テスト: 以前 detectAndProc は DTCG を検出しても空データを返していた（パレットが消える）。
+  // dtcgToPalette を経由して action-colors / grey / utility を完全復元することを保証する。
+  it('DTCG: export then import restores full palette (not empty)', () => {
+    const exported = toDTCG(sampleData);
+    const result = detectAndParse(exported);
+    expect(result.format).toBe('dtcg');
+    if (result.format === 'dtcg') {
+      expect(result.data.colors).toEqual(['#1976d2', '#9c27b0']);
+      expect(result.data.names).toEqual(['primary', 'secondary']);
+      const primary = Object.values(result.data.palette![0])[0];
+      expect(primary.light.main).toBe('#1976d2');
+      expect(primary.dark.main).toBe('#90caf9');
+      expect(result.data.themeTokens?.grey.light['50']).toBe('#fafafa');
+      expect(result.data.themeTokens?.utility.light.text?.primary).toBe('#1a1a2e');
+    }
+  });
 });
 
 describe('CSS/SCSS format details', () => {

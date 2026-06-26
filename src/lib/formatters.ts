@@ -1,5 +1,6 @@
 import { PaletteData } from '@/lib/types/palette';
-import { paletteToDTCG } from '@/lib/figma/dtcg';
+import { paletteToDTCG, dtcgToPalette } from '@/lib/figma/dtcg';
+import { DTCGFile } from '@/lib/types/dtcg';
 
 export type ExportFormat =
   | 'json'
@@ -364,9 +365,9 @@ export function detectAndParse(text: string): ImportResult {
     };
   }
 
-  // DTCG: has action-colors or grey with $value
+  // DTCG: has action-colors / grey / utility groups。実装済みの dtcgToPalette で完全復元する
   if ('action-colors' in obj || 'grey' in obj || 'utility' in obj) {
-    return { format: 'dtcg', data: { colors: [], names: [], palette: [], themeTokens: null, numColors: 0 } };
+    return { format: 'dtcg', data: dtcgToPalette(obj as unknown as DTCGFile) };
   }
 
   return { format: 'unknown', error: 'Unrecognized format' };
