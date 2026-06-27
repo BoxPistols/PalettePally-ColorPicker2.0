@@ -95,12 +95,21 @@ export type ParsedVariable = {
 
 // Hex ↔ Figma color conversion
 export function hexToFigmaColor(hex: string): FigmaColor {
-  const h = hex.replace('#', '');
+  let h = hex.replace('#', '');
+  // 短縮表記 #RGB / #RGBA を #RRGGBB / #RRGGBBAA に展開する。
+  // これをしないと 3桁 hex で substring(4,6) が空になり b が NaN になり Figma へ不正色を送る。
+  if (h.length === 3 || h.length === 4) {
+    h = h
+      .split('')
+      .map(c => c + c)
+      .join('');
+  }
   return {
     r: parseInt(h.substring(0, 2), 16) / 255,
     g: parseInt(h.substring(2, 4), 16) / 255,
     b: parseInt(h.substring(4, 6), 16) / 255,
-    a: 1,
+    // 8桁(#RRGGBBAA)はアルファも反映、それ以外は不透明
+    a: h.length >= 8 ? parseInt(h.substring(6, 8), 16) / 255 : 1,
   };
 }
 
