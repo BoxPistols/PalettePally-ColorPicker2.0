@@ -12,6 +12,7 @@ import {
 import chroma from 'chroma-js';
 import { ColorPalette, MuiColorVariant } from './colorUtils';
 import { contrastRatio, wcagLevel, WCAG_COLOR, A11yThreshold, THRESHOLD_RATIO, meetsThreshold, formatPreviewLevel, PreviewLabel } from '@/lib/wcag';
+import { copyToClipboard } from '@/lib/clipboard';
 
 const DISPLAY_COLOR: Record<PreviewLabel, string> = {
   AAA: WCAG_COLOR.AAA,
@@ -48,10 +49,6 @@ const SHADE_LABELS: Record<keyof MuiColorVariant, string> = {
   light: 'light',
   lighter: 'lighter',
   contrastText: 'contrast',
-};
-
-const copyToClipboard = (text: string) => {
-  navigator.clipboard.writeText(text);
 };
 
 const isValidHex = (hex: string) => /^#([0-9A-F]{3}){1,2}$/i.test(hex);

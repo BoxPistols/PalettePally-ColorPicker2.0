@@ -13,8 +13,8 @@ import {
 } from '@mui/material';
 import chroma from 'chroma-js';
 import { ThemeTokens } from './colorUtils';
+import { copyToClipboard } from '@/lib/clipboard';
 
-const copyToClipboard = (text: string) => navigator.clipboard.writeText(text);
 const isValidColor = (v: string) =>
   /^#([0-9A-F]{3}){1,2}$/i.test(v) || v.startsWith('rgba');
 
