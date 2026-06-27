@@ -16,6 +16,7 @@ import {
 } from '@mui/material';
 import { ParsedVariable } from '@/lib/figma/types';
 import { getAuthHeader } from '@/lib/firebase/auth';
+import { t } from '@/lib/i18n';
 
 type FigmaImportDialogProps = {
   open: boolean;
@@ -51,7 +52,7 @@ export const FigmaImportDialog = memo<FigmaImportDialogProps>(
         .then(async res => {
           if (!res.ok) {
             const data = await res.json().catch(() => ({}));
-            throw new Error(data.error || `Failed (${res.status})`);
+            throw new Error(data.error || t.figmaImportDialog.failedStatus(res.status));
           }
           return res.json();
         })
@@ -62,7 +63,7 @@ export const FigmaImportDialog = memo<FigmaImportDialogProps>(
         })
         .catch(err => {
           if (cancelled) return;
-          setError(err instanceof Error ? err.message : 'Failed to load');
+          setError(err instanceof Error ? err.message : t.figmaImportDialog.failedToLoad);
         })
         .finally(() => {
           if (!cancelled) setLoading(false);
@@ -91,7 +92,7 @@ export const FigmaImportDialog = memo<FigmaImportDialogProps>(
         PaperProps={{ sx: { borderRadius: '16px' } }}
       >
         <DialogTitle sx={{ fontWeight: 700, fontSize: '1rem' }}>
-          Import from Figma Variables
+          {t.figmaImportDialog.dialogTitle}
         </DialogTitle>
         <DialogContent sx={{ pt: '16px !important' }}>
           {error && (
@@ -106,7 +107,7 @@ export const FigmaImportDialog = memo<FigmaImportDialogProps>(
             </Box>
           ) : variables.length === 0 ? (
             <Typography sx={{ color: 'text.secondary', py: 2, textAlign: 'center' }}>
-              No color variables found in this file
+              {t.figmaImportDialog.noColorVariables}
             </Typography>
           ) : (
             <>
@@ -117,7 +118,7 @@ export const FigmaImportDialog = memo<FigmaImportDialogProps>(
               </Box>
 
               <Typography sx={{ fontSize: '0.85rem', color: 'text.secondary', mb: 1 }}>
-                {colorVars.length} color variables found:
+                {t.figmaImportDialog.colorVariablesFound(colorVars.length)}
               </Typography>
 
               <List
@@ -162,30 +163,32 @@ export const FigmaImportDialog = memo<FigmaImportDialogProps>(
                 {colorVars.length > 50 && (
                   <ListItem>
                     <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
-                      ...and {colorVars.length - 50} more
+                      {t.figmaImportDialog.andMore(colorVars.length - 50)}
                     </Typography>
                   </ListItem>
                 )}
               </List>
 
               <Alert severity='warning' sx={{ mt: 2, borderRadius: '8px', fontSize: '0.8rem' }}>
-                現在のパレットが Figma の Variables で上書きされます。
-                命名規則 <code>{'{name}/{shade}'}</code>（action-colors）/
-                <code>{'{tone}'}</code>（grey）/ <code>{'{group}/{key}'}</code>（utility）に
-                従う Variables は MUI 5 シェード構造 (main/dark/light/lighter/contrastText) に
-                自動復元されます。light/dark は Figma Mode から取得します。
+                {t.figmaImportDialog.overwriteWarningIntro}
+                <code>{'{name}/{shade}'}</code>
+                {t.figmaImportDialog.overwriteWarningActionColors}
+                <code>{'{tone}'}</code>
+                {t.figmaImportDialog.overwriteWarningGrey}
+                <code>{'{group}/{key}'}</code>
+                {t.figmaImportDialog.overwriteWarningRest}
               </Alert>
               <Alert severity='info' sx={{ mt: 1, borderRadius: '8px', fontSize: '0.78rem' }}>
-                REST API Import は Enterprise プラン限定です。非 Enterprise では
-                <strong> PalettePally Figma Plugin </strong>
-                から DTCG JSON をエクスポートし、Import Hub でペーストしてください。
+                {t.figmaImportDialog.enterpriseIntro}
+                <strong>{t.figmaImportDialog.pluginName}</strong>
+                {t.figmaImportDialog.enterpriseOutro}
               </Alert>
             </>
           )}
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2.5 }}>
           <Button onClick={onClose} sx={{ textTransform: 'none' }}>
-            Cancel
+            {t.figmaImportDialog.cancel}
           </Button>
           <Button
             onClick={handleImport}
@@ -193,7 +196,7 @@ export const FigmaImportDialog = memo<FigmaImportDialogProps>(
             disabled={loading || colorVars.length === 0}
             sx={{ textTransform: 'none', fontWeight: 600, borderRadius: '8px' }}
           >
-            Import {colorVars.length} Variables
+            {t.figmaImportDialog.importVariables(colorVars.length)}
           </Button>
         </DialogActions>
       </Dialog>

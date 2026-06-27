@@ -14,6 +14,7 @@ import {
 import { PaletteData } from '@/lib/types/palette';
 import { buildMuiTheme } from '@/lib/theme/buildMuiTheme';
 import { ExampleShowcase } from './ExampleShowcase';
+import { t } from '@/lib/i18n';
 
 type ExampleDialogProps = {
   open: boolean;
@@ -53,10 +54,10 @@ export const ExampleDialog = memo<ExampleDialogProps>(
         >
           <Box>
             <Typography sx={{ fontSize: '1rem', fontWeight: 700 }}>
-              Theme Preview
+              {t.exampleDialog.title}
             </Typography>
             <Typography sx={{ fontSize: '0.75rem', color: 'rgba(0,0,0,0.55)', mt: 0.25 }}>
-              {paletteData.names?.[0] ?? 'primary'} — {paletteData.colors[0] ?? '-'}
+              {t.exampleDialog.subtitle(paletteData.names?.[0] ?? 'primary', paletteData.colors[0] ?? '-')}
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -67,10 +68,10 @@ export const ExampleDialog = memo<ExampleDialogProps>(
               size='small'
             >
               <ToggleButton value='light' sx={{ textTransform: 'none', px: 2 }}>
-                Light
+                {t.exampleDialog.lightLabel}
               </ToggleButton>
               <ToggleButton value='dark' sx={{ textTransform: 'none', px: 2 }}>
-                Dark
+                {t.exampleDialog.darkLabel}
               </ToggleButton>
             </ToggleButtonGroup>
             <IconButton onClick={onClose} size='small'>

@@ -4,6 +4,8 @@ import React, { useEffect, useState, memo, useMemo } from 'react';
 import { SketchPicker } from 'react-color';
 import chroma from 'chroma-js';
 
+import { t } from '@/lib/i18n';
+
 type ColorInputFieldProps = {
   color: string;
   onChange: (newColor: string) => void;
@@ -99,7 +101,7 @@ const ColorInputField = memo(({ color, onChange }: ColorInputFieldProps) => {
               { kind: 'hsl' as const, label: 'HSL', value: readouts.hsl },
             ]
           ).map(row => (
-            <Tooltip key={row.kind} arrow placement='right' title='クリックでコピー'>
+            <Tooltip key={row.kind} arrow placement='right' title={t.colorInputField.copyTooltip}>
               <Box
                 onClick={() => handleCopy(row.kind, row.value)}
                 onKeyDown={e => {
@@ -111,7 +113,7 @@ const ColorInputField = memo(({ color, onChange }: ColorInputFieldProps) => {
                 }}
                 role='button'
                 tabIndex={0}
-                aria-label={`${row.label} をコピー`}
+                aria-label={t.colorInputField.copyAriaLabel(row.label)}
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
@@ -156,7 +158,7 @@ const ColorInputField = memo(({ color, onChange }: ColorInputFieldProps) => {
                 </Typography>
                 {copied === row.kind && (
                   <Typography sx={{ fontSize: '0.6rem', color: '#2e7d32', fontWeight: 700 }}>
-                    ✓ Copied
+                    {t.colorInputField.copiedLabel}
                   </Typography>
                 )}
               </Box>

@@ -8,6 +8,7 @@ import {
   Typography,
 } from '@mui/material';
 import { ConfirmDialogState } from '@/hooks/useConfirmDialog';
+import { t } from '@/lib/i18n';
 
 type ConfirmDialogProps = {
   state: ConfirmDialogState;
@@ -21,8 +22,8 @@ export const ConfirmDialog = memo<ConfirmDialogProps>(
       open,
       title,
       message,
-      confirmLabel = 'Confirm',
-      cancelLabel = 'Cancel',
+      confirmLabel = t.confirmDialog.confirmLabel,
+      cancelLabel = t.confirmDialog.cancelLabel,
       severity = 'warning',
     } = state;
 

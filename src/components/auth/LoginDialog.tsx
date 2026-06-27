@@ -11,6 +11,7 @@ import {
   Tab,
 } from '@mui/material';
 import { useAuthContext } from './AuthProvider';
+import { t } from '@/lib/i18n';
 
 type LoginDialogProps = {
   open: boolean;
@@ -39,7 +40,7 @@ export const LoginDialog = memo<LoginDialogProps>(({ open, onClose }) => {
       setPassword('');
       onClose();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Authentication failed';
+      const msg = err instanceof Error ? err.message : t.loginDialog.authFailed;
       setError(msg.replace('Firebase: ', ''));
     } finally {
       setLoading(false);
@@ -60,8 +61,8 @@ export const LoginDialog = memo<LoginDialogProps>(({ open, onClose }) => {
           onChange={(_, v) => { setTab(v); setError(''); }}
           sx={{ '& .MuiTab-root': { textTransform: 'none', fontWeight: 600 } }}
         >
-          <Tab label='Login' value='login' />
-          <Tab label='Sign Up' value='signup' />
+          <Tab label={t.loginDialog.tabLogin} value='login' />
+          <Tab label={t.loginDialog.tabSignUp} value='signup' />
         </Tabs>
       </DialogTitle>
       <DialogContent sx={{ pt: '16px !important' }}>
@@ -71,7 +72,7 @@ export const LoginDialog = memo<LoginDialogProps>(({ open, onClose }) => {
           </Alert>
         )}
         <TextField
-          label='Email'
+          label={t.loginDialog.emailLabel}
           type='email'
           value={email}
           onChange={e => setEmail(e.target.value)}
@@ -81,7 +82,7 @@ export const LoginDialog = memo<LoginDialogProps>(({ open, onClose }) => {
           autoFocus
         />
         <TextField
-          label='Password'
+          label={t.loginDialog.passwordLabel}
           type='password'
           value={password}
           onChange={e => setPassword(e.target.value)}
@@ -93,7 +94,7 @@ export const LoginDialog = memo<LoginDialogProps>(({ open, onClose }) => {
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2.5 }}>
         <Button onClick={onClose} sx={{ textTransform: 'none' }}>
-          Cancel
+          {t.loginDialog.cancel}
         </Button>
         <Button
           onClick={handleSubmit}
@@ -101,7 +102,7 @@ export const LoginDialog = memo<LoginDialogProps>(({ open, onClose }) => {
           disabled={loading || !email || !password}
           sx={{ textTransform: 'none', fontWeight: 600, borderRadius: '8px' }}
         >
-          {loading ? '...' : tab === 'login' ? 'Login' : 'Create Account'}
+          {loading ? '...' : tab === 'login' ? t.loginDialog.submitLogin : t.loginDialog.submitCreateAccount}
         </Button>
       </DialogActions>
     </Dialog>

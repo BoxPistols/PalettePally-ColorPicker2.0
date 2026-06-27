@@ -14,6 +14,7 @@ import {
 } from '@mui/material';
 import { PaletteData } from '@/lib/types/palette';
 import { detectAndParse, ImportResult } from '@/lib/formatters';
+import { t } from '@/lib/i18n';
 
 type ImportHubDialogProps = {
   open: boolean;
@@ -60,12 +61,12 @@ export const ImportHubDialog = memo<ImportHubDialogProps>(
     const formatChip = (() => {
       if (!result) return null;
       if (result.format === 'unknown') {
-        return <Chip label='Unknown' size='small' color='error' />;
+        return <Chip label={t.importHubDialog.unknownChip} size='small' color='error' />;
       }
       const label = {
-        json: 'JSON (Native)',
-        dtcg: 'DTCG',
-        tokensStudio: 'Tokens Studio',
+        json: t.importHubDialog.formatJson,
+        dtcg: t.importHubDialog.formatDtcg,
+        tokensStudio: t.importHubDialog.formatTokensStudio,
       }[result.format];
       return <Chip label={label} size='small' color='success' />;
     })();
@@ -89,7 +90,7 @@ export const ImportHubDialog = memo<ImportHubDialogProps>(
           }}
         >
           <Typography sx={{ fontSize: '1rem', fontWeight: 700 }}>
-            Import Palette
+            {t.importHubDialog.title}
           </Typography>
           <IconButton onClick={onClose} size='small'>
             <svg width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
@@ -101,7 +102,7 @@ export const ImportHubDialog = memo<ImportHubDialogProps>(
 
         <DialogContent sx={{ p: 3 }}>
           <Typography sx={{ fontSize: '0.85rem', color: 'text.secondary', mb: 2 }}>
-            JSON / DTCG / Tokens Studio 形式を自動判定します。ファイルアップロードまたは直接ペースト。
+            {t.importHubDialog.description}
           </Typography>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
@@ -111,7 +112,7 @@ export const ImportHubDialog = memo<ImportHubDialogProps>(
               size='small'
               sx={{ textTransform: 'none', borderRadius: '6px' }}
             >
-              Upload File
+              {t.importHubDialog.uploadFile}
               <input
                 type='file'
                 accept='.json,.txt'
@@ -126,7 +127,7 @@ export const ImportHubDialog = memo<ImportHubDialogProps>(
             multiline
             rows={12}
             fullWidth
-            placeholder='Paste JSON content here (auto-detect format)'
+            placeholder={t.importHubDialog.pastePlaceholder}
             value={text}
             onChange={e => handleParse(e.target.value)}
             sx={{
@@ -147,14 +148,14 @@ export const ImportHubDialog = memo<ImportHubDialogProps>(
 
           {result && result.format !== 'unknown' && result.format === 'dtcg' && (
             <Alert severity='info' sx={{ mt: 2, borderRadius: '8px' }}>
-              DTCG 形式を読み込みます (action-colors / grey / utility を復元)
+              {t.importHubDialog.dtcgInfo}
             </Alert>
           )}
         </DialogContent>
 
         <DialogActions sx={{ px: 3, pb: 2.5 }}>
           <Button onClick={onClose} sx={{ textTransform: 'none' }}>
-            Cancel
+            {t.importHubDialog.cancel}
           </Button>
           <Button
             onClick={handleImport}
@@ -162,7 +163,7 @@ export const ImportHubDialog = memo<ImportHubDialogProps>(
             disabled={!result || result.format === 'unknown'}
             sx={{ textTransform: 'none', fontWeight: 600, borderRadius: '8px' }}
           >
-            Import
+            {t.importHubDialog.import}
           </Button>
         </DialogActions>
       </Dialog>

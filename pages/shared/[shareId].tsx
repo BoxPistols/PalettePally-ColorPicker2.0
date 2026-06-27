@@ -5,6 +5,7 @@ import { PaletteCard } from '@/components/PaletteGrid';
 import { PaletteDocument } from '@/lib/types/palette';
 import * as firestoreService from '@/lib/firebase/firestore';
 import { useAuthContext } from '@/components/auth/AuthProvider';
+import { t } from '@/lib/i18n';
 
 export default function SharedPalettePage() {
   const router = useRouter();
@@ -21,9 +22,9 @@ export default function SharedPalettePage() {
       .loadSharedPalette(shareId)
       .then(p => {
         setPalette(p);
-        if (!p) setError('Palette not found or link expired');
+        if (!p) setError(t.sharedPage.errorNotFoundOrExpired);
       })
-      .catch(() => setError('Failed to load palette'))
+      .catch(() => setError(t.sharedPage.errorLoadFailed))
       .finally(() => setLoading(false));
   }, [shareId]);
 
@@ -36,12 +37,12 @@ export default function SharedPalettePage() {
       await firestoreService.savePalette(
         user.uid,
         palette.data,
-        `${palette.name} (copy)`,
-        `Duplicated from "${palette.name}"`
+        t.sharedPage.duplicateName(palette.name),
+        t.sharedPage.duplicateDescription(palette.name)
       );
       router.push('/');
     } catch {
-      setError('Failed to duplicate');
+      setError(t.sharedPage.errorDuplicateFailed);
     } finally {
       setDuplicating(false);
     }
@@ -59,10 +60,10 @@ export default function SharedPalettePage() {
     return (
       <Container maxWidth='sm' sx={{ py: 8, textAlign: 'center' }}>
         <Typography sx={{ fontSize: '1.2rem', fontWeight: 600, mb: 1 }}>
-          {error || 'Not found'}
+          {error || t.sharedPage.notFound}
         </Typography>
         <Button href='/' sx={{ textTransform: 'none' }}>
-          Back to Generator
+          {t.sharedPage.backToGenerator}
         </Button>
       </Container>
     );
@@ -91,11 +92,11 @@ export default function SharedPalettePage() {
               disabled={duplicating}
               sx={{ textTransform: 'none', fontWeight: 600, borderRadius: '8px' }}
             >
-              {duplicating ? '...' : 'Duplicate to My Account'}
+              {duplicating ? '...' : t.sharedPage.duplicateToMyAccount}
             </Button>
           )}
           <Button href='/' variant='outlined' sx={{ textTransform: 'none', borderRadius: '8px' }}>
-            Generator
+            {t.sharedPage.generator}
           </Button>
         </Box>
       </Box>

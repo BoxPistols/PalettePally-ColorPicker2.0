@@ -14,6 +14,7 @@ import {
   Snackbar,
 } from '@mui/material';
 import * as firestoreService from '@/lib/firebase/firestore';
+import { t } from '@/lib/i18n';
 
 type ShareDialogProps = {
   open: boolean;
@@ -43,7 +44,7 @@ export const ShareDialog = memo<ShareDialogProps>(
         const id = await firestoreService.generateShareLink(paletteId, permission);
         setShareId(id);
       } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : 'Failed to generate link');
+        setError(err instanceof Error ? err.message : t.shareDialog.failedToGenerate);
       } finally {
         setLoading(false);
       }
@@ -56,7 +57,7 @@ export const ShareDialog = memo<ShareDialogProps>(
           await firestoreService.revokeShareLink(paletteId);
           setShareId(null);
         } catch {
-          setError('Failed to revoke link');
+          setError(t.shareDialog.failedToRevoke);
         }
       }
     };
@@ -75,7 +76,7 @@ export const ShareDialog = memo<ShareDialogProps>(
         PaperProps={{ sx: { borderRadius: '16px' } }}
       >
         <DialogTitle sx={{ fontWeight: 700, fontSize: '1rem' }}>
-          Share: {paletteName}
+          {t.shareDialog.title(paletteName)}
         </DialogTitle>
         <DialogContent sx={{ pt: '8px !important' }}>
           {error && (
@@ -87,7 +88,7 @@ export const ShareDialog = memo<ShareDialogProps>(
           {shareId ? (
             <Box>
               <Typography sx={{ fontSize: '0.85rem', color: 'text.secondary', mb: 1 }}>
-                Share link:
+                {t.shareDialog.shareLinkLabel}
               </Typography>
               <Box sx={{ display: 'flex', gap: 1 }}>
                 <TextField
@@ -103,7 +104,7 @@ export const ShareDialog = memo<ShareDialogProps>(
                   size='small'
                   sx={{ textTransform: 'none', flexShrink: 0 }}
                 >
-                  Copy
+                  {t.shareDialog.copy}
                 </Button>
               </Box>
               <Button
@@ -112,13 +113,13 @@ export const ShareDialog = memo<ShareDialogProps>(
                 size='small'
                 sx={{ textTransform: 'none', mt: 2 }}
               >
-                Revoke Link
+                {t.shareDialog.revokeLink}
               </Button>
             </Box>
           ) : (
             <Box>
               <Typography sx={{ fontSize: '0.85rem', mb: 1.5 }}>
-                Permission:
+                {t.shareDialog.permissionLabel}
               </Typography>
               <ToggleButtonGroup
                 value={permission}
@@ -128,10 +129,10 @@ export const ShareDialog = memo<ShareDialogProps>(
                 sx={{ mb: 2 }}
               >
                 <ToggleButton value='view' sx={{ textTransform: 'none', px: 2 }}>
-                  View only
+                  {t.shareDialog.viewOnly}
                 </ToggleButton>
                 <ToggleButton value='duplicate' sx={{ textTransform: 'none', px: 2 }}>
-                  View + Duplicate
+                  {t.shareDialog.viewAndDuplicate}
                 </ToggleButton>
               </ToggleButtonGroup>
               <Box>
@@ -141,7 +142,7 @@ export const ShareDialog = memo<ShareDialogProps>(
                   disabled={loading}
                   sx={{ textTransform: 'none', fontWeight: 600, borderRadius: '8px' }}
                 >
-                  {loading ? '...' : 'Generate Share Link'}
+                  {loading ? '...' : t.shareDialog.generateShareLink}
                 </Button>
               </Box>
             </Box>
@@ -149,14 +150,14 @@ export const ShareDialog = memo<ShareDialogProps>(
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button onClick={onClose} sx={{ textTransform: 'none' }}>
-            Close
+            {t.shareDialog.close}
           </Button>
         </DialogActions>
         <Snackbar
           open={copied}
           autoHideDuration={2000}
           onClose={() => setCopied(false)}
-          message='Link copied!'
+          message={t.shareDialog.linkCopied}
           anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         />
       </Dialog>

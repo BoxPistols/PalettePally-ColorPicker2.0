@@ -13,6 +13,7 @@ import chroma from 'chroma-js';
 import { ColorPalette, MuiColorVariant } from './colorUtils';
 import { contrastRatio, wcagLevel, WCAG_COLOR, A11yThreshold, THRESHOLD_RATIO, meetsThreshold, formatPreviewLevel, PreviewLabel } from '@/lib/wcag';
 import { copyToClipboard } from '@/lib/clipboard';
+import { t } from '@/lib/i18n';
 
 const DISPLAY_COLOR: Record<PreviewLabel, string> = {
   AAA: WCAG_COLOR.AAA,
@@ -89,8 +90,8 @@ const ColorSwatch = memo<{
       }}
       role='button'
       tabIndex={0}
-      aria-label={`${shade} ${colorValue} をコピー`}
-      title={`${shade}: ${colorValue} — click to copy`}
+      aria-label={t.paletteGrid.copySwatchAria(shade, colorValue)}
+      title={t.paletteGrid.swatchTitle(shade, colorValue)}
       sx={{
         background: swatchBg,
         borderRadius: '6px',
@@ -188,12 +189,7 @@ const ContrastPreview = memo<{
   const neutralBorder = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)';
 
   const makeTitle = (fg: string, bgHex: string, r: number, lvl: string, pass: boolean, label: string, extra?: string) =>
-    `${label}\n文字色: ${fg}\n背景色: ${bgHex}\nコントラスト比: ${r.toFixed(2)}:1 (${lvl})\n` +
-    (thresholdActive
-      ? (pass ? `✓ ${threshold} 基準 (${THRESHOLD_LABEL[threshold]}) を満たしています`
-              : `✗ ${threshold} 基準 (${THRESHOLD_LABEL[threshold]}) 未満です`)
-      : 'しきい値: none (チェック無効)') +
-    (extra ? `\n\n${extra}` : '');
+    t.paletteGrid.makeContrastTitle(label, fg, bgHex, r, lvl, thresholdActive, pass, threshold, THRESHOLD_LABEL[threshold], extra);
 
   return (
     <Box
@@ -218,15 +214,15 @@ const ContrastPreview = memo<{
             color: isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.4)',
           }}
         >
-          Preview
+          {t.paletteGrid.previewHeading}
         </Typography>
         {thresholdActive && (
           <Tooltip
             arrow
             placement='top'
             title={pass1
-              ? `main + contrastText は ${threshold} 基準 (${THRESHOLD_LABEL[threshold]}) を満たしています。\n※ 枠 2 の "main をテキスト色として使うケース" は main カラー自体の特性で決まり、A11y toggle の対象外です。`
-              : `main + contrastText が ${threshold} 基準 (${THRESHOLD_LABEL[threshold]}) 未満です`}
+              ? t.paletteGrid.previewBadgePassTooltip(threshold, THRESHOLD_LABEL[threshold])
+              : t.paletteGrid.previewBadgeFailTooltip(threshold, THRESHOLD_LABEL[threshold])}
           >
             <Typography
               sx={{
@@ -243,7 +239,7 @@ const ContrastPreview = memo<{
                 whiteSpace: 'pre-line',
               }}
             >
-              {pass1 ? `✓ ${threshold}` : `✗ ${threshold}`}
+              {pass1 ? t.paletteGrid.previewBadgePass(threshold) : t.paletteGrid.previewBadgeFail(threshold)}
             </Typography>
           </Tooltip>
         )}
@@ -254,7 +250,7 @@ const ContrastPreview = memo<{
         arrow
         placement='left'
         title={<Box sx={{ whiteSpace: 'pre-line', fontSize: '0.75rem' }}>{
-          makeTitle(ct, bg, ratio1, label1, pass1, 'main 背景 + contrastText 文字')
+          makeTitle(ct, bg, ratio1, label1, pass1, t.paletteGrid.previewLabelMainContrast)
         }</Box>}
       >
         <Box
@@ -289,7 +285,7 @@ const ContrastPreview = memo<{
               flexShrink: 0,
             }}
           >
-            text
+            {t.paletteGrid.sampleTextLabel}
           </Box>
           <Box
             component='span'
@@ -322,8 +318,8 @@ const ContrastPreview = memo<{
             ratio2,
             label2,
             pass2,
-            `main をテキスト色として使うケース（ページ背景 ${pageBg}）`,
-            'この枠は main カラー自体の特性を表す情報表示です。A11y / White / Black toggle は contrastText (枠 1) を制御する設定なので、この値は toggle で変化しません。'
+            t.paletteGrid.previewLabelMainAsText(pageBg),
+            t.paletteGrid.previewMainAsTextNote
           )
         }</Box>}
       >
@@ -354,7 +350,7 @@ const ContrastPreview = memo<{
               minWidth: 0,
             }}
           >
-            main text
+            {t.paletteGrid.sampleMainTextLabel}
           </Typography>
           <Box
             component='span'
@@ -414,7 +410,7 @@ const SchemeColumn = memo<{
       <Typography
         variant='caption'
         onClick={handleCopyGroup}
-        title='Click to copy all colors'
+        title={t.paletteGrid.copyAllColorsTitle}
         sx={{
           fontWeight: 600,
           fontSize: '0.75rem',
@@ -537,7 +533,7 @@ const WcagBadge = memo<{ ratio: number }>(({ ratio }) => {
   const level = wcagLevel(ratio);
   const color = WCAG_COLOR[level];
   return (
-    <Tooltip title={`${ratio.toFixed(2)}:1 — ${level}`} arrow placement='top'>
+    <Tooltip title={t.paletteGrid.wcagBadgeTooltip(ratio, level)} arrow placement='top'>
       <Box
         sx={{
           display: 'flex',
@@ -636,22 +632,22 @@ const EditDialog = memo<{
           <Typography
             sx={{ fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: 1, color: 'rgba(0,0,0,0.4)' }}
           >
-            Light
+            {t.paletteGrid.dialogHeaderLight}
           </Typography>
           <Typography
             sx={{ fontWeight: 700, fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: 0.5, color: 'rgba(0,0,0,0.35)', textAlign: 'center' }}
           >
-            WCAG
+            {t.paletteGrid.dialogHeaderWcag}
           </Typography>
           <Typography
             sx={{ fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: 1, color: 'rgba(0,0,0,0.4)' }}
           >
-            Dark
+            {t.paletteGrid.dialogHeaderDark}
           </Typography>
           <Typography
             sx={{ fontWeight: 700, fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: 0.5, color: 'rgba(0,0,0,0.35)', textAlign: 'center' }}
           >
-            WCAG
+            {t.paletteGrid.dialogHeaderWcag}
           </Typography>
 
           {/* Rows */}
@@ -676,7 +672,7 @@ const EditDialog = memo<{
           })}
         </Box>
         <Typography sx={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.45)', mt: 2, textAlign: 'center' }}>
-          Contrast ratio with contrastText · AAA ≥ 7 · AA ≥ 4.5 · AA-Large ≥ 3
+          {t.paletteGrid.dialogContrastNote}
         </Typography>
       </DialogContent>
     </Dialog>
@@ -694,7 +690,7 @@ export const PaletteCard = memo<PaletteCardProps>(
 
     const handleCopy = useCallback((text: string) => {
       copyToClipboard(text);
-      setCopiedText(text.length > 20 ? 'Group copied!' : text);
+      setCopiedText(text.length > 20 ? t.paletteGrid.groupCopiedMessage : text);
       setSnackOpen(true);
     }, []);
 
@@ -749,7 +745,7 @@ export const PaletteCard = memo<PaletteCardProps>(
           <Typography
             variant='subtitle2'
             onClick={handleCopyAll}
-            title='Click to copy all variants'
+            title={t.paletteGrid.copyAllVariantsTitle}
             sx={{
               fontWeight: 700,
               color: headerTextColor,
@@ -765,7 +761,7 @@ export const PaletteCard = memo<PaletteCardProps>(
             <Typography
               variant='caption'
               onClick={handleCopyAll}
-              title='Click to copy all variants'
+              title={t.paletteGrid.copyAllVariantsTitle}
               sx={{
                 fontFamily: '"JetBrains Mono", "Fira Code", monospace',
                 color:
@@ -785,7 +781,7 @@ export const PaletteCard = memo<PaletteCardProps>(
                   e.stopPropagation();
                   setDialogOpen(true);
                 }}
-                title='Edit colors'
+                title={t.paletteGrid.editColorsTitle}
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
@@ -854,7 +850,7 @@ export const PaletteCard = memo<PaletteCardProps>(
           open={snackOpen}
           autoHideDuration={1200}
           onClose={() => setSnackOpen(false)}
-          message={`Copied: ${copiedText}`}
+          message={t.paletteGrid.copiedMessage(copiedText)}
           anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         />
       </Box>

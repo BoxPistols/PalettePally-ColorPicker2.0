@@ -8,6 +8,7 @@ import {
   Divider,
 } from '@mui/material';
 import { useAuthContext } from './AuthProvider';
+import { t } from '@/lib/i18n';
 
 type UserMenuProps = {
   onOpenPalettes?: () => void;
@@ -51,7 +52,7 @@ export const UserMenu = memo<UserMenuProps>(({ onOpenPalettes }) => {
       >
         <Box sx={{ px: 2, py: 1 }}>
           <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
-            Signed in as
+            {t.userMenu.signedInAs}
           </Typography>
           <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, wordBreak: 'break-all' }}>
             {user.email}
@@ -63,14 +64,14 @@ export const UserMenu = memo<UserMenuProps>(({ onOpenPalettes }) => {
             onClick={() => { setAnchorEl(null); onOpenPalettes(); }}
             sx={{ fontSize: '0.85rem' }}
           >
-            My Palettes
+            {t.userMenu.myPalettes}
           </MenuItem>
         )}
         <MenuItem
           onClick={() => { setAnchorEl(null); signOut(); }}
           sx={{ fontSize: '0.85rem', color: 'error.main' }}
         >
-          Sign Out
+          {t.userMenu.signOut}
         </MenuItem>
       </Menu>
     </>

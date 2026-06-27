@@ -13,6 +13,7 @@ import {
 } from '@mui/material';
 import { PaletteDocument } from '@/lib/types/palette';
 import * as firestoreService from '@/lib/firebase/firestore';
+import { t } from '@/lib/i18n';
 
 type PaletteListDrawerProps = {
   open: boolean;
@@ -36,7 +37,7 @@ export const PaletteListDrawer = memo<PaletteListDrawerProps>(
         setPalettes(list);
       } catch {
         // 以前は握りつぶしており、失敗時も「No saved palettes」と表示され区別不能だった
-        setError('パレットの読み込みに失敗しました');
+        setError(t.paletteListDrawer.loadError);
       } finally {
         setLoading(false);
       }
@@ -75,7 +76,7 @@ export const PaletteListDrawer = memo<PaletteListDrawerProps>(
       >
         <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Typography sx={{ fontWeight: 700, fontSize: '1rem' }}>
-            My Palettes
+            {t.paletteListDrawer.title}
           </Typography>
           <IconButton onClick={onClose} size='small'>
             <svg width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
@@ -96,13 +97,13 @@ export const PaletteListDrawer = memo<PaletteListDrawerProps>(
               {error}
             </Typography>
             <Button size='small' variant='outlined' onClick={fetchPalettes} sx={{ textTransform: 'none' }}>
-              再読み込み
+              {t.paletteListDrawer.reload}
             </Button>
           </Box>
         ) : palettes.length === 0 ? (
           <Box sx={{ px: 2, py: 4, textAlign: 'center' }}>
             <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem' }}>
-              No saved palettes
+              {t.paletteListDrawer.emptyState}
             </Typography>
           </Box>
         ) : (
@@ -115,7 +116,7 @@ export const PaletteListDrawer = memo<PaletteListDrawerProps>(
               >
                 <ListItemText
                   primary={p.name}
-                  secondary={`v${p.currentVersion} — ${formatDate(p.updatedAt)}`}
+                  secondary={t.paletteListDrawer.versionDate(p.currentVersion, formatDate(p.updatedAt))}
                   primaryTypographyProps={{ fontWeight: 600, fontSize: '0.85rem' }}
                   secondaryTypographyProps={{ fontSize: '0.75rem' }}
                 />

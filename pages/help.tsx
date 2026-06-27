@@ -1,5 +1,6 @@
 import React from 'react';
 import { Container, Box, Typography, Paper, Button, Divider } from '@mui/material';
+import { t } from '@/lib/i18n';
 
 export default function HelpPage() {
   return (
@@ -7,133 +8,132 @@ export default function HelpPage() {
       {/* ヘッダー */}
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 4 }}>
         <Typography sx={{ fontSize: '1.8rem', fontWeight: 700, letterSpacing: '-0.02em', color: '#1a1a2e' }}>
-          使い方ガイド
+          {t.helpPage.headerTitle}
         </Typography>
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Button href='/' variant='outlined' size='small' sx={{ textTransform: 'none', borderRadius: '8px' }}>
-            Generator
+            {t.helpPage.navGenerator}
           </Button>
           <Button href='/example' size='small' sx={{ textTransform: 'none', borderRadius: '8px' }}>
-            Example
+            {t.helpPage.navExample}
           </Button>
         </Box>
       </Box>
 
       <Typography sx={{ fontSize: '0.95rem', color: 'text.secondary', mb: 4, lineHeight: 1.7 }}>
-        Palette Pally は、MUI (Material-UI) 互換のカラーパレットを生成するツールです。
-        シードカラーを選ぶだけで、light / dark 両対応の5色パレット + グレースケール + ユーティリティトークンを自動生成できます。
+        {t.helpPage.intro}
       </Typography>
 
       {/* Step 1 */}
       <Step
         num={1}
-        title='カラーを選ぶ'
-        description='各カラーピッカーで HEX 値 / RGB / プリセットから色を選択します。カラー数は 1〜24 まで変更可能。'
+        title={t.helpPage.step1Title}
+        description={t.helpPage.step1Desc}
         tips={[
-          '1番目の色が Primary (main theme color) として扱われます',
-          'Primary から Grey / Utility Tokens が自動導出されます',
-          'カラー名は任意で変更可能 (例: color1 → brand)',
+          t.helpPage.step1Tip1,
+          t.helpPage.step1Tip2,
+          t.helpPage.step1Tip3,
         ]}
       />
 
       {/* Step 2 */}
       <Step
         num={2}
-        title='パレットが自動生成される'
-        description='各色に対して Material Design 3 ベースの 5段階パレット (main / dark / light / lighter / contrastText) が light / dark 両モードで生成されます。'
+        title={t.helpPage.step2Title}
+        description={t.helpPage.step2Desc}
         tips={[
-          'main はあなたが入力した HEX 値そのまま',
-          'dark / light / lighter は TonalPalette から導出',
-          'contrastText は輝度に応じて pure white / black (WCAG 準拠)',
-          '無彩色を入力すると純粋グレースケールに (ティール色にならない)',
+          t.helpPage.step2Tip1,
+          t.helpPage.step2Tip2,
+          t.helpPage.step2Tip3,
+          t.helpPage.step2Tip4,
         ]}
       />
 
       {/* Step 3 */}
       <Step
         num={3}
-        title='パレットを微調整する'
-        description='各カードの右上ペンアイコン をクリックすると編集 Dialog が開きます。個別の色をカラーピッカー / HEX で編集できます。'
+        title={t.helpPage.step3Title}
+        description={t.helpPage.step3Desc}
         tips={[
-          'Light / Dark のすべての shade を個別に編集可能',
-          'Theme Tokens (Grey / text / background 等) も同様に編集',
-          '編集内容はリロード後も保持 (localStorage)',
+          t.helpPage.step3Tip1,
+          t.helpPage.step3Tip2,
+          t.helpPage.step3Tip3,
         ]}
       />
 
       {/* Step 4 */}
       <Step
         num={4}
-        title='トークングループを追加する'
-        description='Utility Tokens セクションの「+ Add Token Group」から独自のトークンカテゴリを追加できます。'
+        title={t.helpPage.step4Title}
+        description={t.helpPage.step4Desc}
         tips={[
-          '例: icon (white / light / dark / action / disabled)',
-          '例: chart (category1 / category2 / category3)',
-          '例: status (online / offline / busy)',
+          t.helpPage.step4Tip1,
+          t.helpPage.step4Tip2,
+          t.helpPage.step4Tip3,
         ]}
       />
 
       {/* Step 5 */}
       <Step
         num={5}
-        title='Example ページでプレビュー'
-        description='ヘッダーの「Example」リンクから、生成したパレットを使った MUI コンポーネントのプレビューを確認できます。'
+        title={t.helpPage.step5Title}
+        description={t.helpPage.step5Desc}
         tips={[
-          'Button / Alert / Dialog / Table / Form など全要素を確認',
-          'Light / Dark の切り替えボタンで即座に比較',
-          'デザインの雰囲気をつかむのに最適',
+          t.helpPage.step5Tip1,
+          t.helpPage.step5Tip2,
+          t.helpPage.step5Tip3,
         ]}
       />
 
       {/* Step 6 */}
       <Step
         num={6}
-        title='Export / Import する'
-        description='Export ボタンで JSON ファイルとして保存、Import で既存の JSON を読み込めます。'
+        title={t.helpPage.step6Title}
+        description={t.helpPage.step6Desc}
         tips={[
-          'Export JSON: colors / names / palette / themeTokens を含む',
-          '共有: Firebase ログイン後、Share Link で URL 共有が可能',
-          'Figma 連携: Figma Variables API で直接読み書き',
+          t.helpPage.step6Tip1,
+          t.helpPage.step6Tip2,
+          t.helpPage.step6Tip3,
         ]}
       />
 
       {/* Step 7 */}
       <Step
         num={7}
-        title='Figma Variables と同期する (オプション)'
-        description='「Figma」ボタンから Personal Access Token とファイル URL を入力すると、生成パレットを Figma Variable Collection として pushできます。'
+        title={t.helpPage.step7Title}
+        description={t.helpPage.step7Desc}
         tips={[
-          'Figma Enterprise / Organization プラン必要',
-          'Personal Access Token は Figma Settings から発行',
-          '既存の Variables を読み込むこともできる (Import)',
-          'DTCG (Design Tokens Community Group) 形式で相互変換',
+          t.helpPage.step7Tip1,
+          t.helpPage.step7Tip2,
+          t.helpPage.step7Tip3,
+          t.helpPage.step7Tip4,
         ]}
       />
 
       {/* FAQ */}
       <Box sx={{ mt: 6 }}>
         <Typography sx={{ fontSize: '1.3rem', fontWeight: 700, mb: 2 }}>
-          よくある質問
+          {t.helpPage.faqHeading}
         </Typography>
         <Faq
-          q='Q. グレーを入力したのにティール色になるのはなぜ？'
-          a='A. Material You は無彩色の入力にも hue を割り当てます。当ツールでは chroma < 4 の入力を検出して純粋グレースケールに強制変換しています。'
+          q={t.helpPage.faq1Q}
+          a={t.helpPage.faq1A}
         />
         <Faq
-          q='Q. main カラーが入力値と違う色になる'
-          a='A. 修正済みです。main は常に入力 HEX をそのまま使用します。dark / light / lighter のみ TonalPalette から導出されます。'
+          q={t.helpPage.faq2Q}
+          a={t.helpPage.faq2A}
         />
         <Faq
-          q='Q. contrastText はどう決まる？'
-          a='A. main の輝度 (luminance > 0.179) に基づいて pure white または pure black を選択します。WCAG のコントラスト基準に準拠。'
+          q={t.helpPage.faq3Q}
+          a={t.helpPage.faq3A}
         />
         <Faq
-          q='Q. カラーが保存されるのはどこ？'
-          a='A. デフォルトでは localStorage。Firebase ログイン後はクラウド保存 + バージョン履歴 + 共有が可能。'
+          q={t.helpPage.faq4Q}
+          a={t.helpPage.faq4A}
         />
         <Faq
-          q='Q. 24色以上は追加できる？'
-          a='A. 現在の制限は 24色です。パフォーマンス上の理由で設定されています。'
+          q={t.helpPage.faq5Q}
+          a={t.helpPage.faq5A}
         />
       </Box>
 
@@ -142,14 +142,14 @@ export default function HelpPage() {
       {/* フッター */}
       <Box sx={{ textAlign: 'center', py: 3 }}>
         <Typography sx={{ fontSize: '0.85rem', color: 'text.secondary', mb: 2 }}>
-          さらに詳しい情報
+          {t.helpPage.footerMore}
         </Typography>
         <Box sx={{ display: 'flex', gap: 1.5, justifyContent: 'center' }}>
           <Button href='/' variant='contained' sx={{ textTransform: 'none', borderRadius: '8px' }}>
-            Generator を開く
+            {t.helpPage.footerOpenGenerator}
           </Button>
           <Button href='/example' variant='outlined' sx={{ textTransform: 'none', borderRadius: '8px' }}>
-            Example を見る
+            {t.helpPage.footerSeeExample}
           </Button>
         </Box>
       </Box>
