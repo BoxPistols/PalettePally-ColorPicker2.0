@@ -1,9 +1,6 @@
 import {
   collection,
   doc,
-  setDoc,
-  updateDoc,
-  deleteDoc,
   getDoc,
   getDocs,
   query,
@@ -23,6 +20,19 @@ function getDb() {
 const PALETTES = 'palettes';
 const VERSIONS = 'versions';
 const SHARES = 'shares';
+
+// 公開共有リンクの閲覧用ビュー。PaletteDocument 全体ではなく shares スナップショットに
+// 実在するフィールドだけを持つ（PaletteDocument へ無理に cast して必須フィールド欠落を
+// 隠さないための専用型）。
+export type SharedPaletteView = {
+  id: string;
+  ownerUid: string;
+  name: string;
+  description: string;
+  data: PaletteData;
+  shareId: string;
+  sharePermission: 'view' | 'duplicate';
+};
 
 // ── Save (create new) ──
 
@@ -166,11 +176,14 @@ export async function generateShareLink(
   const { nanoid } = await import('nanoid');
   const shareId = nanoid(12);
   const palette = await loadPalette(paletteId);
-  // 再生成時に旧 share doc が残ると古いリンクが生き続けてしまうため削除しておく
+  // share doc の作成/更新と palette メタの更新を 1 バッチでアトミックに行う。
+  // 途中失敗で shares が孤児化したり shareId が stale になるのを防ぐ。
+  const batch = writeBatch(getDb());
+  // 再生成時は旧 share doc も同一バッチで削除し、古いリンクを無効化する
   if (palette.shareId) {
-    await deleteDoc(doc(getDb(), SHARES, palette.shareId));
+    batch.delete(doc(getDb(), SHARES, palette.shareId));
   }
-  await setDoc(doc(getDb(), SHARES, shareId), {
+  batch.set(doc(getDb(), SHARES, shareId), {
     paletteId,
     ownerUid: palette.ownerUid,
     permission,
@@ -179,28 +192,32 @@ export async function generateShareLink(
     data: palette.data,
     createdAt: serverTimestamp(),
   });
-  await updateDoc(doc(getDb(), PALETTES, paletteId), {
+  batch.update(doc(getDb(), PALETTES, paletteId), {
     shareId,
     sharePermission: permission,
   });
+  await batch.commit();
   return shareId;
 }
 
 export async function revokeShareLink(paletteId: string): Promise<void> {
   const snap = await getDoc(doc(getDb(), PALETTES, paletteId));
   const shareId = snap.exists() ? (snap.data().shareId as string | null) : null;
+  // share doc 削除と palette メタのクリアを 1 バッチでアトミックに行う
+  const batch = writeBatch(getDb());
   if (shareId) {
-    await deleteDoc(doc(getDb(), SHARES, shareId));
+    batch.delete(doc(getDb(), SHARES, shareId));
   }
-  await updateDoc(doc(getDb(), PALETTES, paletteId), {
+  batch.update(doc(getDb(), PALETTES, paletteId), {
     shareId: null,
     sharePermission: null,
   });
+  await batch.commit();
 }
 
 export async function loadSharedPalette(
   shareId: string
-): Promise<PaletteDocument | null> {
+): Promise<SharedPaletteView | null> {
   const snap = await getDoc(doc(getDb(), SHARES, shareId));
   if (!snap.exists()) return null;
   const s = snap.data();
@@ -209,8 +226,8 @@ export async function loadSharedPalette(
     ownerUid: s.ownerUid,
     name: s.name,
     description: s.description ?? '',
-    data: s.data,
+    data: s.data as PaletteData,
     shareId,
     sharePermission: s.permission,
-  } as unknown as PaletteDocument;
+  };
 }

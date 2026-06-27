@@ -2,15 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { Box, Typography, Button, CircularProgress, Container } from '@mui/material';
 import { PaletteCard } from '@/components/PaletteGrid';
-import { PaletteDocument } from '@/lib/types/palette';
 import * as firestoreService from '@/lib/firebase/firestore';
+import { SharedPaletteView } from '@/lib/firebase/firestore';
 import { useAuthContext } from '@/components/auth/AuthProvider';
 
 export default function SharedPalettePage() {
   const router = useRouter();
   const { shareId } = router.query;
   const { user } = useAuthContext();
-  const [palette, setPalette] = useState<PaletteDocument | null>(null);
+  const [palette, setPalette] = useState<SharedPaletteView | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [duplicating, setDuplicating] = useState(false);

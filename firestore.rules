@@ -26,8 +26,18 @@ service cloud.firestore {
     // query. Snapshots are immutable; revoke = delete.
     match /shares/{shareId} {
       allow get: if true;
+      // create は「参照先 palette の所有者本人」だけに限定し、permission 値と
+      // 書き込めるフィールドも固定する（任意の paletteId/permission/追加フィールドを
+      // 持つ公開ドキュメントを認証ユーザーが捏造できないようにする）。
       allow create: if request.auth != null
-        && request.auth.uid == request.resource.data.ownerUid;
+        && request.auth.uid == request.resource.data.ownerUid
+        && request.resource.data.ownerUid == get(
+          /databases/$(database)/documents/palettes/$(request.resource.data.paletteId)
+        ).data.ownerUid
+        && request.resource.data.permission in ['view', 'duplicate']
+        && request.resource.data.keys().hasOnly(
+          ['paletteId', 'ownerUid', 'permission', 'name', 'description', 'data', 'createdAt']
+        );
       allow delete: if request.auth != null
         && request.auth.uid == resource.data.ownerUid;
     }
