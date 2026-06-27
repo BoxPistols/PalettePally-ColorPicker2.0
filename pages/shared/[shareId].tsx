@@ -31,7 +31,14 @@ export default function SharedPalettePage() {
     if (!palette || !user) return;
     setDuplicating(true);
     try {
-      await firestoreService.duplicatePalette(palette.id, user.uid, `${palette.name} (copy)`);
+      // 複製は閲覧者が自分のパレットとして新規保存する（owner 限定ルール下でも成立）。
+      // 共有スナップショットの data をそのまま使うため元パレットの直接読み取りは不要。
+      await firestoreService.savePalette(
+        user.uid,
+        palette.data,
+        `${palette.name} (copy)`,
+        `Duplicated from "${palette.name}"`
+      );
       router.push('/');
     } catch {
       setError('Failed to duplicate');
