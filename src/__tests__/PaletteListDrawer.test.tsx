@@ -73,6 +73,23 @@ describe('PaletteListDrawer', () => {
     expect(onClose).toHaveBeenCalled();
   });
 
+  it('surfaces an error (with retry) instead of silently showing empty when load fails', async () => {
+    mockListPalettes.mockRejectedValueOnce(new Error('network down'));
+    render(<PaletteListDrawer {...defaultProps} />);
+    await waitFor(() =>
+      expect(screen.getByRole('alert')).toHaveTextContent('パレットの読み込みに失敗しました')
+    );
+    // 失敗時は誤解を招く "No saved palettes" を出さない
+    expect(screen.queryByText('No saved palettes')).not.toBeInTheDocument();
+
+    // 再読み込みで成功すればリストが表示される
+    mockListPalettes.mockResolvedValueOnce([
+      { id: 'p1', name: 'Recovered', currentVersion: 1, updatedAt: new Date(), data: { colors: [] } },
+    ]);
+    fireEvent.click(screen.getByText('再読み込み'));
+    await waitFor(() => expect(screen.getByText('Recovered')).toBeInTheDocument());
+  });
+
   it('renders delete icon for each palette', async () => {
     mockListPalettes.mockResolvedValue([
       { id: 'p1', name: 'Test', currentVersion: 1, updatedAt: new Date(), data: { colors: [] } },

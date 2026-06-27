@@ -648,8 +648,7 @@ function ColorPicker() {
               </svg>
             </IconButton>
           </Tooltip>
-          {/* TODO: Harmony / Compare ボタンは UX 説明不足のため一旦非表示
-          <Tooltip title='Harmony Generator (complementary/triadic/...)' arrow>
+          <Tooltip title='Harmony — 補色・三角・類似など配色理論からシードカラーを生成' arrow>
             <Button
               variant='text'
               onClick={() => setHarmonyOpen(true)}
@@ -659,7 +658,7 @@ function ColorPicker() {
               Harmony
             </Button>
           </Tooltip>
-          <Tooltip title='Compare with another palette' arrow>
+          <Tooltip title='Compare — 別パレット(JSON)を読み込んで現在のパレットと並べて比較' arrow>
             <Button
               variant='text'
               onClick={() => setCompareOpen(true)}
@@ -669,7 +668,6 @@ function ColorPicker() {
               Compare
             </Button>
           </Tooltip>
-          */}
 
           {/* Legacy name migration (表示条件: color1/color2 名が残っている) */}
           {colorNames.slice(0, 6).some(n => /^color\d+$/.test(n)) && (

@@ -9,6 +9,7 @@ import {
   IconButton,
   Divider,
   CircularProgress,
+  Button,
 } from '@mui/material';
 import { PaletteDocument } from '@/lib/types/palette';
 import * as firestoreService from '@/lib/firebase/firestore';
@@ -25,14 +26,17 @@ export const PaletteListDrawer = memo<PaletteListDrawerProps>(
   ({ open, onClose, uid, onLoad, onDelete }) => {
     const [palettes, setPalettes] = useState<PaletteDocument[]>([]);
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
 
     const fetchPalettes = useCallback(async () => {
       setLoading(true);
+      setError('');
       try {
         const list = await firestoreService.listPalettes(uid);
         setPalettes(list);
       } catch {
-        /* ignore */
+        // 以前は握りつぶしており、失敗時も「No saved palettes」と表示され区別不能だった
+        setError('パレットの読み込みに失敗しました');
       } finally {
         setLoading(false);
       }
@@ -85,6 +89,15 @@ export const PaletteListDrawer = memo<PaletteListDrawerProps>(
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
             <CircularProgress size={24} />
+          </Box>
+        ) : error ? (
+          <Box sx={{ px: 2, py: 4, textAlign: 'center' }}>
+            <Typography role='alert' sx={{ color: 'error.main', fontSize: '0.85rem', mb: 1.5 }}>
+              {error}
+            </Typography>
+            <Button size='small' variant='outlined' onClick={fetchPalettes} sx={{ textTransform: 'none' }}>
+              再読み込み
+            </Button>
           </Box>
         ) : palettes.length === 0 ? (
           <Box sx={{ px: 2, py: 4, textAlign: 'center' }}>
