@@ -14,6 +14,7 @@ import {
 import chroma from 'chroma-js';
 import { ThemeTokens } from './colorUtils';
 import { copyToClipboard } from '@/lib/clipboard';
+import { t } from '@/lib/i18n';
 
 const isValidColor = (v: string) =>
   /^#([0-9A-F]{3}){1,2}$/i.test(v) || v.startsWith('rgba');
@@ -65,8 +66,8 @@ const TokenSwatch = memo<{
       }}
       role='button'
       tabIndex={0}
-      aria-label={`${label} ${value} をコピー`}
-      title={`${label}: ${value}`}
+      aria-label={t.themeTokenCards.swatchCopyLabel(label, value)}
+      title={t.themeTokenCards.swatchTitle(label, value)}
       sx={{
         position: 'relative',
         overflow: 'hidden',
@@ -162,7 +163,7 @@ const EditCell = memo<{
           component='input'
           type='color'
           value={value}
-          aria-label='カラーピッカー'
+          aria-label={t.themeTokenCards.colorPicker}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
           sx={{
             width: 28,
@@ -180,7 +181,7 @@ const EditCell = memo<{
       <Box
         component='input'
         value={text}
-        aria-label='カラー値 (HEX)'
+        aria-label={t.themeTokenCards.colorValueHex}
         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setText(e.target.value)}
         onBlur={commit}
         onKeyDown={(e: React.KeyboardEvent) => {
@@ -212,7 +213,7 @@ EditCell.displayName = 'EditCell';
 // ── Shared: Delete Button ──
 
 const DeleteBtn = memo<{ onClick: () => void; title?: string }>(
-  ({ onClick, title = 'Remove' }) => (
+  ({ onClick, title = t.themeTokenCards.remove }) => (
     <IconButton
       onClick={onClick}
       size='small'
@@ -288,7 +289,7 @@ const EditButton = memo<{
       e.stopPropagation();
       onClick();
     }}
-    title='Edit'
+    title={t.themeTokenCards.edit}
     sx={{
       display: 'flex',
       alignItems: 'center',
@@ -340,7 +341,7 @@ const TokenColumn = memo<{
       <Typography
         variant='caption'
         onClick={() => onCopy(JSON.stringify(copyData, null, 2))}
-        title='Click to copy all'
+        title={t.themeTokenCards.clickToCopyAll}
         sx={{
           fontWeight: 600,
           fontSize: '0.75rem',
@@ -419,7 +420,7 @@ const GreyEditDialog = memo<{
   return (
     <Dialog open={open} onClose={onClose} maxWidth='sm' fullWidth PaperProps={{ sx: { borderRadius: '16px' } }}>
       <DialogTitle sx={{ background: '#616161', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', py: 1.5, px: 2.5 }}>
-        <Typography sx={{ fontWeight: 700, fontSize: '1rem' }}>Grey</Typography>
+        <Typography sx={{ fontWeight: 700, fontSize: '1rem' }}>{t.themeTokenCards.grey}</Typography>
         <IconButton onClick={onClose} size='small' sx={{ color: 'inherit', bgcolor: 'rgba(255,255,255,0.15)', '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' } }}>
           <svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2.5' strokeLinecap='round' strokeLinejoin='round'>
             <polyline points='20 6 9 17 4 12' />
@@ -429,8 +430,8 @@ const GreyEditDialog = memo<{
       <DialogContent sx={{ p: 2.5, pt: '20px !important' }}>
         <Box sx={{ display: 'grid', gridTemplateColumns: '60px 1fr 1fr 32px', gap: 1, alignItems: 'center' }}>
           <Box />
-          <Typography sx={{ fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: 1, color: 'rgba(0,0,0,0.4)' }}>Light</Typography>
-          <Typography sx={{ fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: 1, color: 'rgba(0,0,0,0.4)' }}>Dark</Typography>
+          <Typography sx={{ fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: 1, color: 'rgba(0,0,0,0.4)' }}>{t.themeTokenCards.light}</Typography>
+          <Typography sx={{ fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: 1, color: 'rgba(0,0,0,0.4)' }}>{t.themeTokenCards.dark}</Typography>
           <Box />
           {keys.map(shade => (
             <React.Fragment key={shade}>
@@ -442,7 +443,7 @@ const GreyEditDialog = memo<{
           ))}
         </Box>
         <Box sx={{ mt: 2 }}>
-          <AddRow placeholder='e.g. 850' onAdd={handleAdd} />
+          <AddRow placeholder={t.themeTokenCards.greyAddPlaceholder} onAdd={handleAdd} />
         </Box>
       </DialogContent>
     </Dialog>
@@ -461,14 +462,14 @@ export const GreyScaleCard = memo<{
 
   const handleCopy = useCallback((text: string) => {
     copyToClipboard(text);
-    setCopiedText(text.length > 20 ? 'Copied!' : text);
+    setCopiedText(text.length > 20 ? t.themeTokenCards.copied : text);
     setSnackOpen(true);
   }, []);
 
   return (
     <Box sx={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid', borderColor: 'rgba(0,0,0,0.08)', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
       <Box sx={{ background: '#616161', px: 1.5, py: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Typography variant='subtitle2' sx={{ fontWeight: 700, color: '#fff', fontSize: '0.8rem' }}>Grey</Typography>
+        <Typography variant='subtitle2' sx={{ fontWeight: 700, color: '#fff', fontSize: '0.8rem' }}>{t.themeTokenCards.grey}</Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
           <Typography variant='caption' sx={{ fontFamily: '"JetBrains Mono", monospace', color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem' }}>
             {keys[0]}–{keys[keys.length - 1]}
@@ -491,7 +492,7 @@ export const GreyScaleCard = memo<{
       {onUpdate && (
         <GreyEditDialog open={dialogOpen} onClose={() => setDialogOpen(false)} grey={grey} onUpdate={onUpdate} />
       )}
-      <Snackbar open={snackOpen} autoHideDuration={1200} onClose={() => setSnackOpen(false)} message={`Copied: ${copiedText}`} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }} />
+      <Snackbar open={snackOpen} autoHideDuration={1200} onClose={() => setSnackOpen(false)} message={t.themeTokenCards.copiedMessage(copiedText)} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }} />
     </Box>
   );
 });
@@ -582,7 +583,7 @@ const UtilityEditDialog = memo<{
   return (
     <Dialog open={open} onClose={onClose} maxWidth='md' fullWidth PaperProps={{ sx: { borderRadius: '16px' } }}>
       <DialogTitle sx={{ background: 'linear-gradient(135deg, #334155, #1e293b)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', py: 1.5, px: 2.5 }}>
-        <Typography sx={{ fontWeight: 700, fontSize: '1rem' }}>Utility Tokens</Typography>
+        <Typography sx={{ fontWeight: 700, fontSize: '1rem' }}>{t.themeTokenCards.utilityTokens}</Typography>
         <IconButton onClick={onClose} size='small' sx={{ color: 'inherit', bgcolor: 'rgba(255,255,255,0.15)', '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' } }}>
           <svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2.5' strokeLinecap='round' strokeLinejoin='round'>
             <polyline points='20 6 9 17 4 12' />
@@ -619,12 +620,12 @@ const UtilityEditDialog = memo<{
                     },
                   }}
                 />
-                <DeleteBtn onClick={() => handleRemoveGroup(group)} title={`Remove ${group} group`} />
+                <DeleteBtn onClick={() => handleRemoveGroup(group)} title={t.themeTokenCards.removeGroup(group)} />
               </Box>
               <Box sx={{ display: 'grid', gridTemplateColumns: '100px 1fr 1fr 32px', gap: 1, alignItems: 'center' }}>
                 <Box />
-                <Typography sx={{ fontWeight: 600, fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: 0.5, color: 'rgba(0,0,0,0.35)' }}>Light</Typography>
-                <Typography sx={{ fontWeight: 600, fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: 0.5, color: 'rgba(0,0,0,0.35)' }}>Dark</Typography>
+                <Typography sx={{ fontWeight: 600, fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: 0.5, color: 'rgba(0,0,0,0.35)' }}>{t.themeTokenCards.light}</Typography>
+                <Typography sx={{ fontWeight: 600, fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: 0.5, color: 'rgba(0,0,0,0.35)' }}>{t.themeTokenCards.dark}</Typography>
                 <Box />
                 {entries.map(key => (
                   <React.Fragment key={key}>
@@ -656,12 +657,12 @@ const UtilityEditDialog = memo<{
                   </React.Fragment>
                 ))}
               </Box>
-              <AddRow placeholder='entry key' onAdd={k => handleAddEntry(group, k)} />
+              <AddRow placeholder={t.themeTokenCards.entryKeyPlaceholder} onAdd={k => handleAddEntry(group, k)} />
             </Box>
           );
         })}
         <Box sx={{ borderTop: '1px solid rgba(0,0,0,0.08)', pt: 2 }}>
-          <AddRow placeholder='group name' onAdd={handleAddGroup} />
+          <AddRow placeholder={t.themeTokenCards.groupNamePlaceholder} onAdd={handleAddGroup} />
         </Box>
       </DialogContent>
     </Dialog>
@@ -680,14 +681,14 @@ export const UtilityTokensCard = memo<{
 
   const handleCopy = useCallback((text: string) => {
     copyToClipboard(text);
-    setCopiedText(text.length > 20 ? 'Copied!' : text);
+    setCopiedText(text.length > 20 ? t.themeTokenCards.copied : text);
     setSnackOpen(true);
   }, []);
 
   return (
     <Box sx={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid', borderColor: 'rgba(0,0,0,0.08)', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
       <Box sx={{ background: 'linear-gradient(135deg, #334155, #1e293b)', px: 1.5, py: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Typography variant='subtitle2' sx={{ fontWeight: 700, color: '#fff', fontSize: '0.8rem' }}>Utility Tokens</Typography>
+        <Typography variant='subtitle2' sx={{ fontWeight: 700, color: '#fff', fontSize: '0.8rem' }}>{t.themeTokenCards.utilityTokens}</Typography>
         {onUpdate && <EditButton onClick={() => setDialogOpen(true)} />}
       </Box>
       <Box sx={{ display: 'flex', gap: 0.75, p: 1, bgcolor: '#fff' }}>
@@ -715,7 +716,7 @@ export const UtilityTokensCard = memo<{
       {onUpdate && (
         <UtilityEditDialog open={dialogOpen} onClose={() => setDialogOpen(false)} utility={utility} onUpdate={onUpdate} />
       )}
-      <Snackbar open={snackOpen} autoHideDuration={1200} onClose={() => setSnackOpen(false)} message={`Copied: ${copiedText}`} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }} />
+      <Snackbar open={snackOpen} autoHideDuration={1200} onClose={() => setSnackOpen(false)} message={t.themeTokenCards.copiedMessage(copiedText)} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }} />
     </Box>
   );
 });
@@ -736,7 +737,7 @@ export const UtilityGroupCard = memo<{
 
   const handleCopy = useCallback((text: string) => {
     copyToClipboard(text);
-    setCopiedText(text.length > 20 ? 'Copied!' : text);
+    setCopiedText(text.length > 20 ? t.themeTokenCards.copied : text);
     setSnackOpen(true);
   }, []);
 
@@ -752,7 +753,7 @@ export const UtilityGroupCard = memo<{
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
           <Typography variant='caption' sx={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem' }}>
-            {entryKeys.length} {entryKeys.length === 1 ? 'token' : 'tokens'}
+            {entryKeys.length} {entryKeys.length === 1 ? t.themeTokenCards.token : t.themeTokenCards.tokens}
           </Typography>
           {onUpdate && <EditButton onClick={() => setDialogOpen(true)} />}
         </Box>
@@ -790,7 +791,7 @@ export const UtilityGroupCard = memo<{
       {onUpdate && (
         <UtilityEditDialog open={dialogOpen} onClose={() => setDialogOpen(false)} utility={utility} onUpdate={onUpdate} />
       )}
-      <Snackbar open={snackOpen} autoHideDuration={1200} onClose={() => setSnackOpen(false)} message={`Copied: ${copiedText}`} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }} />
+      <Snackbar open={snackOpen} autoHideDuration={1200} onClose={() => setSnackOpen(false)} message={t.themeTokenCards.copiedMessage(copiedText)} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }} />
     </Box>
   );
 });
@@ -812,7 +813,7 @@ export const AddGroupCard = memo<{
     const name = groupName.trim();
     if (!name) return;
     if (utility.light[name]) {
-      setError('Group already exists');
+      setError(t.themeTokenCards.groupAlreadyExists);
       return;
     }
     onUpdate({
@@ -863,10 +864,10 @@ export const AddGroupCard = memo<{
           </svg>
         </Box>
         <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: 'rgba(0,0,0,0.6)' }}>
-          Add Token Group
+          {t.themeTokenCards.addTokenGroup}
         </Typography>
         <Typography sx={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.4)', mt: 0.25 }}>
-          e.g. icon, chart, status
+          {t.themeTokenCards.groupNameExample}
         </Typography>
       </Box>
 
@@ -878,14 +879,14 @@ export const AddGroupCard = memo<{
         PaperProps={{ sx: { borderRadius: '12px' } }}
       >
         <DialogTitle sx={{ fontWeight: 700, fontSize: '1rem' }}>
-          New Token Group
+          {t.themeTokenCards.newTokenGroup}
         </DialogTitle>
         <DialogContent>
           <TextField
             value={groupName}
             onChange={e => { setGroupName(e.target.value); setError(''); }}
             onKeyDown={e => { if (e.key === 'Enter') handleAdd(); }}
-            placeholder='e.g. icon, chart, status'
+            placeholder={t.themeTokenCards.groupNameExample}
             fullWidth
             size='small'
             autoFocus
@@ -896,7 +897,7 @@ export const AddGroupCard = memo<{
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button onClick={() => { setDialogOpen(false); setError(''); }} sx={{ textTransform: 'none' }}>
-            Cancel
+            {t.themeTokenCards.cancel}
           </Button>
           <Button
             onClick={handleAdd}
@@ -904,7 +905,7 @@ export const AddGroupCard = memo<{
             disabled={!groupName.trim()}
             sx={{ textTransform: 'none', fontWeight: 600 }}
           >
-            Create
+            {t.themeTokenCards.create}
           </Button>
         </DialogActions>
       </Dialog>

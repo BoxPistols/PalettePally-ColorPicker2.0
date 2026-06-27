@@ -8,6 +8,7 @@ import {
   Button,
   Alert,
 } from '@mui/material';
+import { t } from '@/lib/i18n';
 
 type SavePaletteDialogProps = {
   open: boolean;
@@ -32,7 +33,7 @@ export const SavePaletteDialog = memo<SavePaletteDialogProps>(
         await onSave(name.trim(), description.trim());
         onClose();
       } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : 'Save failed');
+        setError(err instanceof Error ? err.message : t.savePaletteDialog.saveFailed);
       } finally {
         setLoading(false);
       }
@@ -47,7 +48,7 @@ export const SavePaletteDialog = memo<SavePaletteDialogProps>(
         PaperProps={{ sx: { borderRadius: '16px' } }}
       >
         <DialogTitle sx={{ fontWeight: 700, fontSize: '1rem' }}>
-          {isUpdate ? 'Update Palette' : 'Save Palette'}
+          {isUpdate ? t.savePaletteDialog.titleUpdate : t.savePaletteDialog.titleSave}
         </DialogTitle>
         <DialogContent sx={{ pt: '8px !important' }}>
           {error && (
@@ -56,7 +57,7 @@ export const SavePaletteDialog = memo<SavePaletteDialogProps>(
             </Alert>
           )}
           <TextField
-            label='Palette Name'
+            label={t.savePaletteDialog.nameLabel}
             value={name}
             onChange={e => setName(e.target.value)}
             fullWidth
@@ -65,7 +66,7 @@ export const SavePaletteDialog = memo<SavePaletteDialogProps>(
             sx={{ mb: 2 }}
           />
           <TextField
-            label='Description (optional)'
+            label={t.savePaletteDialog.descriptionLabel}
             value={description}
             onChange={e => setDescription(e.target.value)}
             fullWidth
@@ -76,7 +77,7 @@ export const SavePaletteDialog = memo<SavePaletteDialogProps>(
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2.5 }}>
           <Button onClick={onClose} sx={{ textTransform: 'none' }}>
-            Cancel
+            {t.savePaletteDialog.cancel}
           </Button>
           <Button
             onClick={handleSave}
@@ -84,7 +85,11 @@ export const SavePaletteDialog = memo<SavePaletteDialogProps>(
             disabled={loading || !name.trim()}
             sx={{ textTransform: 'none', fontWeight: 600, borderRadius: '8px' }}
           >
-            {loading ? '...' : isUpdate ? 'Update' : 'Save'}
+            {loading
+              ? '...'
+              : isUpdate
+                ? t.savePaletteDialog.update
+                : t.savePaletteDialog.save}
           </Button>
         </DialogActions>
       </Dialog>

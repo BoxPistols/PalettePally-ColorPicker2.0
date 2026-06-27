@@ -10,6 +10,7 @@ import {
   Alert,
 } from '@mui/material';
 import { PaletteData } from '@/lib/types/palette';
+import { t } from '@/lib/i18n';
 
 type CompareDialogProps = {
   open: boolean;
@@ -51,11 +52,11 @@ export const CompareDialog = memo<CompareDialogProps>(({ open, onClose, current 
         setOther(parsed as PaletteData);
         setError('');
       } else {
-        setError('Not a valid Palette Pally JSON');
+        setError(t.compareDialog.errorNotValidPalette);
         setOther(null);
       }
     } catch {
-      setError('Invalid JSON');
+      setError(t.compareDialog.errorInvalidJson);
       setOther(null);
     }
   };
@@ -79,7 +80,7 @@ export const CompareDialog = memo<CompareDialogProps>(({ open, onClose, current 
         }}
       >
         <Typography sx={{ fontSize: '1rem', fontWeight: 700 }}>
-          Compare Palettes
+          {t.compareDialog.title}
         </Typography>
         <IconButton onClick={onClose} size='small'>
           <svg width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
@@ -91,14 +92,14 @@ export const CompareDialog = memo<CompareDialogProps>(({ open, onClose, current 
 
       <DialogContent sx={{ p: 3 }}>
         <Typography sx={{ fontSize: '0.85rem', color: 'text.secondary', mb: 2 }}>
-          比較したい Palette Pally JSON をペーストすると、現在のパレットと並べて差分を表示します。
+          {t.compareDialog.description}
         </Typography>
 
         <TextField
           multiline
           rows={4}
           fullWidth
-          placeholder='Paste Palette Pally JSON (Export Hub → JSON)'
+          placeholder={t.compareDialog.placeholder}
           value={pastedJson}
           onChange={e => handleParse(e.target.value)}
           sx={{
@@ -118,10 +119,10 @@ export const CompareDialog = memo<CompareDialogProps>(({ open, onClose, current 
           <Box>
             <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3, mb: 2 }}>
               <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1, color: 'rgba(0,0,0,0.5)' }}>
-                Current ({current.colors?.length ?? 0} colors)
+                {t.compareDialog.currentColors(current.colors?.length ?? 0)}
               </Typography>
               <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1, color: 'rgba(0,0,0,0.5)' }}>
-                Imported ({other.colors?.length ?? 0} colors)
+                {t.compareDialog.importedColors(other.colors?.length ?? 0)}
               </Typography>
             </Box>
 
@@ -151,7 +152,7 @@ export const CompareDialog = memo<CompareDialogProps>(({ open, onClose, current 
                     {cColor ? (
                       <ColorRow name={cName ?? `color${idx + 1}`} color={cColor} />
                     ) : (
-                      <Box sx={{ color: 'rgba(0,0,0,0.3)', fontSize: '0.75rem', fontStyle: 'italic' }}>(missing)</Box>
+                      <Box sx={{ color: 'rgba(0,0,0,0.3)', fontSize: '0.75rem', fontStyle: 'italic' }}>{t.compareDialog.missing}</Box>
                     )}
                     <Box sx={{ textAlign: 'center' }}>
                       {dist !== null ? (
@@ -173,7 +174,7 @@ export const CompareDialog = memo<CompareDialogProps>(({ open, onClose, current 
                     {oColor ? (
                       <ColorRow name={oName ?? `color${idx + 1}`} color={oColor} />
                     ) : (
-                      <Box sx={{ color: 'rgba(0,0,0,0.3)', fontSize: '0.75rem', fontStyle: 'italic' }}>(missing)</Box>
+                      <Box sx={{ color: 'rgba(0,0,0,0.3)', fontSize: '0.75rem', fontStyle: 'italic' }}>{t.compareDialog.missing}</Box>
                     )}
                   </Box>
                 );

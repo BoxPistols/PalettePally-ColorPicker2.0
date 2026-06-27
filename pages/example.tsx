@@ -7,6 +7,7 @@ import {
 import { PaletteData } from '@/lib/types/palette';
 import { buildMuiTheme, loadPaletteFromStorage } from '@/lib/theme/buildMuiTheme';
 import { ExampleShowcase } from '@/components/example/ExampleShowcase';
+import { t } from '@/lib/i18n';
 
 export default function ExamplePage() {
   const [data, setData] = useState<PaletteData | null>(null);
@@ -30,13 +31,13 @@ export default function ExamplePage() {
     return (
       <Container maxWidth='sm' sx={{ py: 8, textAlign: 'center' }}>
         <Typography variant='h6' sx={{ mb: 2 }}>
-          No palette data
+          {t.examplePage.noPaletteTitle}
         </Typography>
         <Typography sx={{ mb: 3, color: 'text.secondary' }}>
-          Create a palette first in the generator.
+          {t.examplePage.noPaletteBody}
         </Typography>
         <Button href='/' variant='contained'>
-          Go to Generator
+          {t.examplePage.goToGenerator}
         </Button>
       </Container>
     );
@@ -66,10 +67,10 @@ export default function ExamplePage() {
         >
           <Box>
             <Typography sx={{ fontWeight: 700, fontSize: '1rem' }}>
-              Theme Preview
+              {t.examplePage.themePreview}
             </Typography>
             <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
-              {data.names?.[0] ?? 'primary'} — {data.colors[0]}
+              {data.names?.[0] ?? t.examplePage.defaultColorName} — {data.colors[0]}
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -79,14 +80,14 @@ export default function ExamplePage() {
               onChange={(_, v) => v && setMode(v)}
               size='small'
             >
-              <ToggleButton value='light' sx={{ textTransform: 'none', px: 2 }}>Light</ToggleButton>
-              <ToggleButton value='dark' sx={{ textTransform: 'none', px: 2 }}>Dark</ToggleButton>
+              <ToggleButton value='light' sx={{ textTransform: 'none', px: 2 }}>{t.examplePage.lightLabel}</ToggleButton>
+              <ToggleButton value='dark' sx={{ textTransform: 'none', px: 2 }}>{t.examplePage.darkLabel}</ToggleButton>
             </ToggleButtonGroup>
             <Button href='/' variant='outlined' size='small' sx={{ textTransform: 'none' }}>
-              Generator
+              {t.examplePage.generator}
             </Button>
             <Button href='/help' size='small' sx={{ textTransform: 'none' }}>
-              Help
+              {t.examplePage.help}
             </Button>
           </Box>
         </Box>

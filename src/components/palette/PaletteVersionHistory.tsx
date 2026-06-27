@@ -14,6 +14,7 @@ import {
 } from '@mui/material';
 import { PaletteVersion } from '@/lib/types/palette';
 import * as firestoreService from '@/lib/firebase/firestore';
+import { t } from '@/lib/i18n';
 
 type PaletteVersionHistoryProps = {
   open: boolean;
@@ -69,7 +70,7 @@ export const PaletteVersionHistory = memo<PaletteVersionHistoryProps>(
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 1 }}>
           <Box>
             <Typography sx={{ fontWeight: 700, fontSize: '1rem' }}>
-              Version History
+              {t.paletteVersionHistory.title}
             </Typography>
             <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
               {paletteName}
@@ -90,7 +91,7 @@ export const PaletteVersionHistory = memo<PaletteVersionHistoryProps>(
           ) : versions.length === 0 ? (
             <Box sx={{ px: 3, py: 4, textAlign: 'center' }}>
               <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem' }}>
-                No versions
+                {t.paletteVersionHistory.noVersions}
               </Typography>
             </Box>
           ) : (
@@ -109,7 +110,7 @@ export const PaletteVersionHistory = memo<PaletteVersionHistoryProps>(
                           {v.label}
                         </Typography>
                         {idx === 0 && (
-                          <Chip label='current' size='small' color='primary' sx={{ height: 20, fontSize: '0.65rem' }} />
+                          <Chip label={t.paletteVersionHistory.current} size='small' color='primary' sx={{ height: 20, fontSize: '0.65rem' }} />
                         )}
                       </Box>
                     }
@@ -123,7 +124,7 @@ export const PaletteVersionHistory = memo<PaletteVersionHistoryProps>(
                   />
                   {idx > 0 && (
                     <Typography sx={{ fontSize: '0.75rem', color: 'primary.main', flexShrink: 0 }}>
-                      Restore
+                      {t.paletteVersionHistory.restore}
                     </Typography>
                   )}
                 </ListItemButton>

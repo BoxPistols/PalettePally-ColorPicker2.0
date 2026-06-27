@@ -37,6 +37,7 @@ import { FigmaConnectDialog } from './figma/FigmaConnectDialog';
 import { FigmaExportDialog } from './figma/FigmaExportDialog';
 import { FigmaImportDialog } from './figma/FigmaImportDialog';
 import * as firestoreService from '@/lib/firebase/firestore';
+import { t } from '@/lib/i18n';
 
 // Pallet + Palette: ハンドリフトがカラー版を運ぶダブルミーニング
 const LogoMark = () => (
@@ -322,9 +323,9 @@ function ColorPicker() {
     if (!user) return;
     if (currentPaletteId) {
       const ok = await confirm({
-        title: 'Update Palette',
-        message: `"${name}" を上書きしますか？`,
-        confirmLabel: 'Update',
+        title: t.colorPicker.updatePaletteTitle,
+        message: t.colorPicker.updatePaletteMessage(name),
+        confirmLabel: t.colorPicker.updateLabel,
         severity: 'warning',
       });
       if (!ok) return;
@@ -348,9 +349,9 @@ function ColorPicker() {
 
   const handleCloudDelete = useCallback(async (paletteId: string, name: string): Promise<boolean> => {
     const ok = await confirm({
-      title: 'Delete Palette',
-      message: `"${name}" を完全に削除しますか？この操作は取り消せません。`,
-      confirmLabel: 'Delete',
+      title: t.colorPicker.deletePaletteTitle,
+      message: t.colorPicker.deletePaletteMessage(name),
+      confirmLabel: t.colorPicker.deleteLabel,
       severity: 'error',
     });
     if (!ok) return false;
@@ -364,9 +365,9 @@ function ColorPicker() {
 
   const handleVersionRestore = useCallback(async (versionId: string, version: number): Promise<boolean> => {
     const ok = await confirm({
-      title: 'Restore Version',
-      message: `v${version} に復元しますか？現在の変更は新しいバージョンとして保存されます。`,
-      confirmLabel: 'Restore',
+      title: t.colorPicker.restoreVersionTitle,
+      message: t.colorPicker.restoreVersionMessage(version),
+      confirmLabel: t.colorPicker.restoreLabel,
       severity: 'warning',
     });
     if (!ok || !currentPaletteId) return false;
@@ -378,9 +379,9 @@ function ColorPicker() {
 
   const handleRevokeShare = useCallback(async (): Promise<boolean> => {
     return confirm({
-      title: 'Revoke Share Link',
-      message: 'このリンクを無効にしますか？既に共有された相手はアクセスできなくなります。',
-      confirmLabel: 'Revoke',
+      title: t.colorPicker.revokeShareTitle,
+      message: t.colorPicker.revokeShareMessage,
+      confirmLabel: t.colorPicker.revokeLabel,
       severity: 'error',
     });
   }, [confirm]);
@@ -398,9 +399,9 @@ function ColorPicker() {
 
   const handleResetWithConfirm = useCallback(async () => {
     const ok = await confirm({
-      title: 'Reset All Colors',
-      message: '全てのカラーを初期状態にリセットしますか？',
-      confirmLabel: 'Reset',
+      title: t.colorPicker.resetAllColorsTitle,
+      message: t.colorPicker.resetAllColorsMessage,
+      confirmLabel: t.colorPicker.resetLabel,
       severity: 'warning',
     });
     if (ok) handleReset();
@@ -411,9 +412,9 @@ function ColorPicker() {
     const hasLegacy = colorNames.some((n, i) => /^color\d+$/.test(n) && i < 6);
     if (!hasLegacy) return;
     const ok = await confirm({
-      title: 'Rename to Semantic Names',
-      message: 'color1/color2... を primary/secondary/success/warning/info/error に変更しますか？',
-      confirmLabel: 'Rename',
+      title: t.colorPicker.renameSemanticTitle,
+      message: t.colorPicker.renameSemanticMessage,
+      confirmLabel: t.colorPicker.renameLabel,
       severity: 'warning',
     });
     if (!ok) return;
@@ -457,18 +458,18 @@ function ColorPicker() {
 
   const handleFigmaExportConfirm = useCallback(async (): Promise<boolean> => {
     return confirm({
-      title: 'Push to Figma',
-      message: 'Figma Variables を上書きします。この操作は取り消せません。',
-      confirmLabel: 'Push',
+      title: t.colorPicker.pushToFigma,
+      message: t.colorPicker.pushToFigmaMessage,
+      confirmLabel: t.colorPicker.pushLabel,
       severity: 'warning',
     });
   }, [confirm]);
 
   const handleFigmaImportConfirm = useCallback(async (): Promise<boolean> => {
     return confirm({
-      title: 'Import from Figma',
-      message: '現在のパレットが Figma の Variables で置き換えられます。',
-      confirmLabel: 'Import',
+      title: t.colorPicker.importFromFigma,
+      message: t.colorPicker.importFromFigmaMessage,
+      confirmLabel: t.colorPicker.importLabel,
       severity: 'warning',
     });
   }, [confirm]);
@@ -502,7 +503,7 @@ function ColorPicker() {
                 lineHeight: 1.2,
               }}
             >
-              Palette Pally
+              {t.colorPicker.appTitle}
             </Typography>
             <Typography
               sx={{
@@ -514,7 +515,7 @@ function ColorPicker() {
                 mt: 0.25,
               }}
             >
-              MUI Color Palette Generator
+              {t.colorPicker.appSubtitle}
             </Typography>
           </Box>
         </Box>
@@ -547,7 +548,7 @@ function ColorPicker() {
                 cursor: 'pointer',
               }}
             >
-              Colors
+              {t.colorPicker.colorsLabel}
             </Typography>
             <TextField
               id='color-length'
@@ -581,7 +582,7 @@ function ColorPicker() {
           <Box sx={{ width: '1px', height: 24, bgcolor: 'rgba(0,0,0,0.1)' }} />
 
           {/* Undo / Redo */}
-          <Tooltip title='Undo (⌘Z)' arrow>
+          <Tooltip title={t.colorPicker.undoTooltip} arrow>
             <span>
               <IconButton
                 onClick={undo}
@@ -601,7 +602,7 @@ function ColorPicker() {
               </IconButton>
             </span>
           </Tooltip>
-          <Tooltip title='Redo (⌘⇧Z)' arrow>
+          <Tooltip title={t.colorPicker.redoTooltip} arrow>
             <span>
               <IconButton
                 onClick={redo}
@@ -623,10 +624,10 @@ function ColorPicker() {
           </Tooltip>
 
           {/* Action Buttons */}
-          <Tooltip title='Reset all colors' arrow>
+          <Tooltip title={t.colorPicker.resetAllColors} arrow>
             <IconButton
               onClick={handleResetWithConfirm}
-              aria-label='Reset all colors'
+              aria-label={t.colorPicker.resetAllColors}
               size='small'
               sx={{
                 width: 34,
@@ -648,31 +649,31 @@ function ColorPicker() {
               </svg>
             </IconButton>
           </Tooltip>
-          <Tooltip title='Harmony — 補色・三角・類似など配色理論からシードカラーを生成' arrow>
+          <Tooltip title={t.colorPicker.harmonyTooltip} arrow>
             <Button
               variant='text'
               onClick={() => setHarmonyOpen(true)}
               size='small'
               sx={headerButtonSx}
             >
-              Harmony
+              {t.colorPicker.harmonyButton}
             </Button>
           </Tooltip>
-          <Tooltip title='Compare — 別パレット(JSON)を読み込んで現在のパレットと並べて比較' arrow>
+          <Tooltip title={t.colorPicker.compareTooltip} arrow>
             <Button
               variant='text'
               onClick={() => setCompareOpen(true)}
               size='small'
               sx={headerButtonSx}
             >
-              Compare
+              {t.colorPicker.compareButton}
             </Button>
           </Tooltip>
 
           {/* Legacy name migration (表示条件: color1/color2 名が残っている) */}
           {colorNames.slice(0, 6).some(n => /^color\d+$/.test(n)) && (
             <>
-              <Tooltip title='Rename color1/color2... to semantic names' arrow>
+              <Tooltip title={t.colorPicker.renameLegacyTooltip} arrow>
                 <Button
                   variant='text'
                   onClick={handleMigrateNames}
@@ -685,7 +686,7 @@ function ColorPicker() {
                     '&:hover': { bgcolor: '#fde68a', borderColor: '#d97706' },
                   }}
                 >
-                  Rename
+                  {t.colorPicker.renameLabel}
                 </Button>
               </Tooltip>
               <Box sx={{ width: '1px', height: 24, bgcolor: 'rgba(0,0,0,0.1)' }} />
@@ -696,14 +697,14 @@ function ColorPicker() {
               圧迫していたため縦 stack に変更。タッチターゲットを確保するため
               py は最低限残し (~28px)、角丸は既存 UI の 6px / 4px に揃える */}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-            <Tooltip title='Contrast text 戦略 (light mode のみ適用 / dark mode は常に A11y 自動選択)' arrow>
+            <Tooltip title={t.colorPicker.contrastStrategyTooltip} arrow>
               <Box
                 role='radiogroup'
-                aria-label='Contrast text strategy'
+                aria-label={t.colorPicker.contrastStrategyAria}
                 sx={{ display: 'flex', bgcolor: '#f5f5f5', borderRadius: '6px', border: '1px solid rgba(0,0,0,0.1)', p: '2px' }}
               >
                 {(['auto', 'white', 'black'] as ContrastMode[]).map(m => {
-                  const label = m === 'auto' ? 'A11y' : m === 'white' ? 'White' : 'Black';
+                  const label = m === 'auto' ? t.colorPicker.contrastAuto : m === 'white' ? t.colorPicker.contrastWhite : t.colorPicker.contrastBlack;
                   const selected = contrastMode === m;
                   return (
                     <Box
@@ -712,7 +713,7 @@ function ColorPicker() {
                       type='button'
                       role='radio'
                       aria-checked={selected}
-                      aria-label={`Contrast: ${label}`}
+                      aria-label={t.colorPicker.contrastOptionAria(label)}
                       onClick={() => setContrastMode(m)}
                       sx={{
                         border: 0,
@@ -738,24 +739,24 @@ function ColorPicker() {
               </Box>
             </Tooltip>
 
-            <Tooltip title='A11y 許容しきい値（通常テキスト 14-16px 想定）: None (無効) / A (≥3:1, 大きい文字向け) / AA (≥4.5:1, WCAG 標準) / AAA (≥7:1, 強化)' arrow>
+            <Tooltip title={t.colorPicker.a11yThresholdTooltip} arrow>
               <Box
                 role='radiogroup'
-                aria-label='A11y contrast threshold'
+                aria-label={t.colorPicker.a11yThresholdAria}
                 sx={{ display: 'flex', bgcolor: '#f5f5f5', borderRadius: '6px', border: '1px solid rgba(0,0,0,0.1)', p: '2px' }}
               >
-                {(['none', 'A', 'AA', 'AAA'] as A11yThreshold[]).map(t => {
-                  const label = t === 'none' ? 'None' : t;
-                  const selected = a11yThreshold === t;
+                {(['none', 'A', 'AA', 'AAA'] as A11yThreshold[]).map(th => {
+                  const label = th === 'none' ? t.colorPicker.thresholdNone : th;
+                  const selected = a11yThreshold === th;
                   return (
                     <Box
-                      key={t}
+                      key={th}
                       component='button'
                       type='button'
                       role='radio'
                       aria-checked={selected}
-                      aria-label={`A11y threshold: ${label}`}
-                      onClick={() => setA11yThreshold(t)}
+                      aria-label={t.colorPicker.thresholdOptionAria(label)}
+                      onClick={() => setA11yThreshold(th)}
                       sx={{
                         border: 0,
                         flex: 1,
@@ -790,9 +791,9 @@ function ColorPicker() {
             size='small'
             sx={headerButtonSx}
           >
-            Example
+            {t.colorPicker.exampleButton}
           </Button>
-          <Tooltip title={greyscale ? 'Greyscale ON (click to disable)' : 'Greyscale mode (monochrome preview)'} arrow>
+          <Tooltip title={greyscale ? t.colorPicker.greyscaleOnTooltip : t.colorPicker.greyscaleOffTooltip} arrow>
             <IconButton
               onClick={toggleGreyscale}
               size='small'
@@ -817,21 +818,21 @@ function ColorPicker() {
           {/* Figma */}
           {figmaConnected ? (
             <>
-              <Tooltip title='Import from Figma' arrow>
+              <Tooltip title={t.colorPicker.importFromFigma} arrow>
                 <Button variant='text' onClick={() => setFigmaImportOpen(true)} size='small' sx={headerButtonSx}>
-                  Figma Import
+                  {t.colorPicker.figmaImportButton}
                 </Button>
               </Tooltip>
-              <Tooltip title='Push to Figma' arrow>
+              <Tooltip title={t.colorPicker.pushToFigma} arrow>
                 <Button variant='text' onClick={() => setFigmaExportOpen(true)} size='small' sx={headerButtonSx}>
-                  Figma Push
+                  {t.colorPicker.figmaPushButton}
                 </Button>
               </Tooltip>
             </>
           ) : (
-            <Tooltip title='Connect Figma' arrow>
+            <Tooltip title={t.colorPicker.connectFigmaTooltip} arrow>
               <Button variant='text' onClick={() => setFigmaConnectOpen(true)} size='small' sx={headerButtonSx}>
-                Figma
+                {t.colorPicker.figmaButton}
               </Button>
             </Tooltip>
           )}
@@ -840,11 +841,11 @@ function ColorPicker() {
           <Box sx={{ width: '1px', height: 24, bgcolor: 'rgba(0,0,0,0.1)' }} />
 
           {/* Export / Import / Help (右端グループ) */}
-          <Tooltip title='Export (JSON/DTCG/CSS/SCSS/MUI/Tailwind/MCP)' arrow>
+          <Tooltip title={t.colorPicker.exportTooltip} arrow>
             <Button
               variant='text'
               onClick={() => setExportHubOpen(true)}
-              aria-label='Export palette'
+              aria-label={t.colorPicker.exportAria}
               size='small'
               startIcon={
                 <svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
@@ -855,14 +856,14 @@ function ColorPicker() {
               }
               sx={headerButtonSx}
             >
-              Export
+              {t.colorPicker.exportButton}
             </Button>
           </Tooltip>
-          <Tooltip title='Import (JSON/DTCG/Tokens Studio)' arrow>
+          <Tooltip title={t.colorPicker.importTooltip} arrow>
             <Button
               variant='text'
               onClick={() => setImportHubOpen(true)}
-              aria-label='Import palette'
+              aria-label={t.colorPicker.importAria}
               size='small'
               startIcon={
                 <svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
@@ -873,7 +874,7 @@ function ColorPicker() {
               }
               sx={headerButtonSx}
             >
-              Import
+              {t.colorPicker.importLabel}
             </Button>
           </Tooltip>
           <Button
@@ -882,7 +883,7 @@ function ColorPicker() {
             size='small'
             sx={headerButtonSx}
           >
-            Help
+            {t.colorPicker.helpButton}
           </Button>
 
           {/* Divider */}
@@ -891,36 +892,36 @@ function ColorPicker() {
           {/* Cloud / Auth (Firebase 未設定時は非表示) */}
           {!firebaseReady ? null : user ? (
             <>
-              <Tooltip title={currentPaletteId ? 'Update to cloud' : 'Save to cloud'} arrow>
+              <Tooltip title={currentPaletteId ? t.colorPicker.updateToCloudTooltip : t.colorPicker.saveToCloudTooltip} arrow>
                 <Button
                   variant='text'
                   onClick={() => setSaveOpen(true)}
                   size='small'
                   sx={headerButtonSx}
                 >
-                  {currentPaletteId ? 'Update' : 'Save'}
+                  {currentPaletteId ? t.colorPicker.updateLabel : t.colorPicker.saveLabel}
                 </Button>
               </Tooltip>
               {currentPaletteId && (
                 <>
-                  <Tooltip title='Share palette' arrow>
+                  <Tooltip title={t.colorPicker.sharePaletteTooltip} arrow>
                     <Button
                       variant='text'
                       onClick={() => setShareOpen(true)}
                       size='small'
                       sx={headerButtonSx}
                     >
-                      Share
+                      {t.colorPicker.shareButton}
                     </Button>
                   </Tooltip>
-                  <Tooltip title='Version history' arrow>
+                  <Tooltip title={t.colorPicker.versionHistoryTooltip} arrow>
                     <Button
                       variant='text'
                       onClick={() => setVersionOpen(true)}
                       size='small'
                       sx={headerButtonSx}
                     >
-                      History
+                      {t.colorPicker.historyButton}
                     </Button>
                   </Tooltip>
                 </>
@@ -934,7 +935,7 @@ function ColorPicker() {
               size='small'
               sx={headerButtonSx}
             >
-              Login
+              {t.colorPicker.loginButton}
             </Button>
           )}
         </Box>
@@ -976,7 +977,7 @@ function ColorPicker() {
               onChange={e => handleColorNameChange(index, e.target.value)}
               size='small'
               fullWidth
-              aria-label={`Color ${index + 1} name`}
+              aria-label={t.colorPicker.colorNameAria(index + 1)}
               placeholder={defaultColorName(index)}
               sx={{
                 mb: 1,
@@ -1030,7 +1031,7 @@ function ColorPicker() {
               mb: 2,
             }}
           >
-            Theme Tokens
+            {t.colorPicker.themeTokensHeading}
             <Typography
               component='span'
               sx={{
@@ -1040,7 +1041,7 @@ function ColorPicker() {
                 ml: 1,
               }}
             >
-              derived from {colorNames[0] ?? 'primary'}
+              {t.colorPicker.derivedFrom(colorNames[0] ?? 'primary')}
             </Typography>
           </Typography>
           <Box
@@ -1146,9 +1147,9 @@ function ColorPicker() {
           if (data.themeTokens) setThemeTokens(data.themeTokens);
         }}
         onConfirm={() => confirm({
-          title: 'Import Palette',
-          message: '現在のパレットを上書きしますか？',
-          confirmLabel: 'Import',
+          title: t.colorPicker.importPaletteTitle,
+          message: t.colorPicker.importPaletteMessage,
+          confirmLabel: t.colorPicker.importLabel,
           severity: 'warning',
         })}
       />

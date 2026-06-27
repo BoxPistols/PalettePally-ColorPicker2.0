@@ -20,6 +20,7 @@ import {
 } from '@/lib/formatters';
 import { downloadPalettePNG } from '@/lib/imageExport';
 import { tokenizeCode, hexFromToken, TokenType } from '@/lib/highlight';
+import { t } from '@/lib/i18n';
 
 type ExportHubDialogProps = {
   open: boolean;
@@ -44,7 +45,7 @@ const CodeBlock = memo<{ content: string }>(({ content }) => {
   return (
     <Box
       component='pre'
-      aria-label='Export preview'
+      aria-label={t.exportHubDialog.exportPreviewAriaLabel}
       sx={{
         m: 0,
         p: 3,
@@ -153,7 +154,7 @@ export const ExportHubDialog = memo<ExportHubDialogProps>(
           }}
         >
           <Typography sx={{ fontSize: '1rem', fontWeight: 700 }}>
-            Export Palette
+            {t.exportHubDialog.title}
           </Typography>
           <IconButton onClick={onClose} size='small'>
             <svg width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
@@ -196,7 +197,7 @@ export const ExportHubDialog = memo<ExportHubDialogProps>(
             }}
           >
             <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
-              {lineCount} lines · .{FORMAT_EXTENSIONS[format]}
+              {t.exportHubDialog.lineCountLabel(lineCount, FORMAT_EXTENSIONS[format])}
             </Typography>
             <Box sx={{ display: 'flex', gap: 1 }}>
               <Button
@@ -204,21 +205,21 @@ export const ExportHubDialog = memo<ExportHubDialogProps>(
                 onClick={() => downloadPalettePNG(paletteData, { mode: 'light' })}
                 sx={{ textTransform: 'none', fontWeight: 600 }}
               >
-                PNG (Light)
+                {t.exportHubDialog.pngLight}
               </Button>
               <Button
                 size='small'
                 onClick={() => downloadPalettePNG(paletteData, { mode: 'dark' })}
                 sx={{ textTransform: 'none', fontWeight: 600 }}
               >
-                PNG (Dark)
+                {t.exportHubDialog.pngDark}
               </Button>
               <Button
                 size='small'
                 onClick={handleCopy}
                 sx={{ textTransform: 'none', fontWeight: 600 }}
               >
-                Copy
+                {t.exportHubDialog.copy}
               </Button>
               <Button
                 size='small'
@@ -226,7 +227,7 @@ export const ExportHubDialog = memo<ExportHubDialogProps>(
                 onClick={handleDownload}
                 sx={{ textTransform: 'none', fontWeight: 600, borderRadius: '6px' }}
               >
-                Download
+                {t.exportHubDialog.download}
               </Button>
             </Box>
           </Box>
@@ -238,7 +239,7 @@ export const ExportHubDialog = memo<ExportHubDialogProps>(
           open={copied}
           autoHideDuration={1500}
           onClose={() => setCopied(false)}
-          message='Copied to clipboard'
+          message={t.exportHubDialog.copiedToClipboard}
           anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         />
       </Dialog>

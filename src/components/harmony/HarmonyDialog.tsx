@@ -12,6 +12,7 @@ import {
   Alert,
 } from '@mui/material';
 import { HarmonyScheme, HARMONY_LABELS, generateHarmony } from '@/lib/harmony';
+import { t } from '@/lib/i18n';
 
 type HarmonyDialogProps = {
   open: boolean;
@@ -69,7 +70,7 @@ export const HarmonyDialog = memo<HarmonyDialogProps>(
           }}
         >
           <Typography sx={{ fontSize: '1rem', fontWeight: 700 }}>
-            Generate Harmony
+            {t.harmonyDialog.title}
           </Typography>
           <IconButton onClick={onClose} size='small'>
             <svg width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
@@ -81,7 +82,7 @@ export const HarmonyDialog = memo<HarmonyDialogProps>(
 
         <DialogContent sx={{ p: 3 }}>
           <Typography sx={{ fontSize: '0.85rem', color: 'text.secondary', mb: 2 }}>
-            ベースカラーから配色理論に基づいて {count} 色のパレットを生成します。
+            {t.harmonyDialog.description(count)}
           </Typography>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
@@ -103,12 +104,12 @@ export const HarmonyDialog = memo<HarmonyDialogProps>(
               sx={{ width: 140, '& input': { fontFamily: 'monospace', fontSize: '0.85rem' } }}
             />
             <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
-              Base color
+              {t.harmonyDialog.baseColor}
             </Typography>
           </Box>
 
           <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, mb: 1.5 }}>
-            Harmony Scheme
+            {t.harmonyDialog.harmonyScheme}
           </Typography>
           <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1, mb: 3 }}>
             {SCHEMES.map(s => (
@@ -131,7 +132,7 @@ export const HarmonyDialog = memo<HarmonyDialogProps>(
           </Box>
 
           <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, mb: 1 }}>
-            Preview
+            {t.harmonyDialog.preview}
           </Typography>
           <Box sx={{ display: 'flex', gap: 0.5, mb: 2, height: 60 }}>
             {preview.map((c, i) => (
@@ -164,13 +165,13 @@ export const HarmonyDialog = memo<HarmonyDialogProps>(
           </Box>
 
           <Alert severity='warning' sx={{ borderRadius: '8px', fontSize: '0.8rem' }}>
-            現在のパレットが上書きされます。
+            {t.harmonyDialog.overwriteWarning}
           </Alert>
         </DialogContent>
 
         <DialogActions sx={{ px: 3, pb: 2.5 }}>
           <Button onClick={onClose} sx={{ textTransform: 'none' }}>
-            Cancel
+            {t.harmonyDialog.cancel}
           </Button>
           <Button
             onClick={handleApply}
@@ -178,7 +179,7 @@ export const HarmonyDialog = memo<HarmonyDialogProps>(
             disabled={preview.length === 0}
             sx={{ textTransform: 'none', fontWeight: 600, borderRadius: '8px' }}
           >
-            Apply
+            {t.harmonyDialog.apply}
           </Button>
         </DialogActions>
       </Dialog>
