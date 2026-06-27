@@ -83,7 +83,7 @@ const ColorSwatch = memo<{
     <Box
       onClick={() => onCopy(colorValue)}
       onKeyDown={(e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' || e.key === ' ') {
+        if ((e.key === 'Enter' || e.key === ' ') && !e.repeat) {
           e.preventDefault();
           onCopy(colorValue);
         }

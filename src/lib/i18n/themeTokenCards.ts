@@ -4,6 +4,7 @@ export const themeTokenCards = {
   swatchTitle: (label: string, value: string) => `${label}: ${value}`,
   colorPicker: 'カラーピッカー',
   colorValueHex: 'カラー値 (HEX)',
+  colorValueRgba: 'カラー値 (RGBA)',
   remove: 'Remove',
   edit: 'Edit',
   clickToCopyAll: 'Click to copy all',
