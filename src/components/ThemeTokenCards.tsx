@@ -13,8 +13,8 @@ import {
 } from '@mui/material';
 import chroma from 'chroma-js';
 import { ThemeTokens } from './colorUtils';
+import { copyToClipboard } from '@/lib/clipboard';
 
-const copyToClipboard = (text: string) => navigator.clipboard.writeText(text);
 const isValidColor = (v: string) =>
   /^#([0-9A-F]{3}){1,2}$/i.test(v) || v.startsWith('rgba');
 
@@ -57,6 +57,15 @@ const TokenSwatch = memo<{
   return (
     <Box
       onClick={() => onCopy(value)}
+      onKeyDown={(e: React.KeyboardEvent) => {
+        if ((e.key === 'Enter' || e.key === ' ') && !e.repeat) {
+          e.preventDefault();
+          onCopy(value);
+        }
+      }}
+      role='button'
+      tabIndex={0}
+      aria-label={`${label} ${value} をコピー`}
       title={`${label}: ${value}`}
       sx={{
         position: 'relative',
@@ -74,6 +83,10 @@ const TokenSwatch = memo<{
         transition: 'transform 0.1s ease',
         '&:hover': { transform: 'scale(1.02)' },
         '&:active': { transform: 'scale(0.98)' },
+        '&:focus-visible': {
+          outline: '2px solid #1976d2',
+          outlineOffset: '1px',
+        },
       }}
     >
       {isRgba && tintMode === 'bg' && (
@@ -149,6 +162,7 @@ const EditCell = memo<{
           component='input'
           type='color'
           value={value}
+          aria-label='カラーピッカー'
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
           sx={{
             width: 28,
@@ -166,6 +180,7 @@ const EditCell = memo<{
       <Box
         component='input'
         value={text}
+        aria-label={isRgba ? 'カラー値 (RGBA)' : 'カラー値 (HEX)'}
         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setText(e.target.value)}
         onBlur={commit}
         onKeyDown={(e: React.KeyboardEvent) => {
@@ -202,10 +217,12 @@ const DeleteBtn = memo<{ onClick: () => void; title?: string }>(
       onClick={onClick}
       size='small'
       title={title}
+      aria-label={title}
       sx={{
         width: 24,
         height: 24,
-        color: 'rgba(0,0,0,0.3)',
+        // アイコンの非テキストコントラスト（WCAG 1.4.11 ≥3:1）を満たすよう不透明度を引き上げ
+        color: 'rgba(0,0,0,0.55)',
         '&:hover': { color: '#d32f2f', bgcolor: 'rgba(211,47,47,0.08)' },
       }}
     >

@@ -83,6 +83,12 @@ export const FigmaConnectDialog = memo<FigmaConnectDialogProps>(
               placeholder='figd_...'
               sx={{ '& input': { fontFamily: 'monospace', fontSize: '0.85rem' } }}
             />
+            {/* セキュリティ注意: PAT はブラウザ→API 経由で送信され、永続保存はしないが
+                クライアントに渡る。XSS 時の漏洩リスクがあるため最小スコープ + 使用後失効を推奨。
+                恒久対策（OAuth 化）は docs/security.md 参照。 */}
+            <Typography sx={{ fontSize: '0.7rem', color: 'warning.main', mt: 0.75 }}>
+              ⚠️ トークンはこのセッション内のみ保持され保存されません。最小権限のトークンを使い、使用後は失効を推奨します。
+            </Typography>
           </Box>
 
           <Box>

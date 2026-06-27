@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Box,
   TextField,
@@ -124,13 +124,11 @@ function ColorPicker() {
 
   const [themeTokens, setThemeTokens] = useState<ThemeTokens | null>(null);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   const skipAutoResetRef = useRef(false);
   const initializedRef = useRef(false);
   const prevPrimaryRef = useRef<string | undefined>(undefined);
 
-  const isValidHex = (hex: never) => /^#([0-9A-F]{3}){1,2}$/i.test(hex);
+  const isValidHex = (hex: string) => /^#([0-9A-F]{3}){1,2}$/i.test(hex);
 
   // numColors 変更時のみ色を増減（functional setState でカスケード防止）
   useEffect(() => {
@@ -272,7 +270,7 @@ function ColorPicker() {
   };
 
   const handleColorChange = (index: number, newColor: string) => {
-    if (!isValidHex(newColor as never) && newColor !== '#') return;
+    if (!isValidHex(newColor) && newColor !== '#') return;
     const newColors = [...color];
     newColors[index] = newColor;
     setColor(newColors);
@@ -475,23 +473,6 @@ function ColorPicker() {
     });
   }, [confirm]);
 
-  const importFromJson = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files ? event.target.files[0] : null;
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = e => {
-        if (e.target !== null) {
-          const data = JSON.parse(e.target.result as string);
-          setColor(data.colors);
-          setColorNames(data.names);
-          setPalette(data.palette);
-          setNumColors(data.colors.length);
-        }
-      };
-      reader.readAsText(file);
-    }
-  };
-
   return (
     <>
       {/* ===== Header ===== */}
@@ -667,8 +648,7 @@ function ColorPicker() {
               </svg>
             </IconButton>
           </Tooltip>
-          {/* TODO: Harmony / Compare ボタンは UX 説明不足のため一旦非表示
-          <Tooltip title='Harmony Generator (complementary/triadic/...)' arrow>
+          <Tooltip title='Harmony — 補色・三角・類似など配色理論からシードカラーを生成' arrow>
             <Button
               variant='text'
               onClick={() => setHarmonyOpen(true)}
@@ -678,7 +658,7 @@ function ColorPicker() {
               Harmony
             </Button>
           </Tooltip>
-          <Tooltip title='Compare with another palette' arrow>
+          <Tooltip title='Compare — 別パレット(JSON)を読み込んで現在のパレットと並べて比較' arrow>
             <Button
               variant='text'
               onClick={() => setCompareOpen(true)}
@@ -688,15 +668,6 @@ function ColorPicker() {
               Compare
             </Button>
           </Tooltip>
-          */}
-
-          <input
-            ref={fileInputRef}
-            type='file'
-            accept='.json'
-            onChange={importFromJson}
-            style={{ display: 'none' }}
-          />
 
           {/* Legacy name migration (表示条件: color1/color2 名が残っている) */}
           {colorNames.slice(0, 6).some(n => /^color\d+$/.test(n)) && (

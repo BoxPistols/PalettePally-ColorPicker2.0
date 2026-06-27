@@ -186,3 +186,31 @@ describe('generateThemeTokens', () => {
     expect(blue.grey.light['500']).not.toBe(red.grey.light['500']);
   });
 });
+
+describe('invalid hex handling (defensive)', () => {
+  beforeEach(() => clearColorSchemeCache());
+
+  // インポートデータ等に不正な hex が混入しても、chroma / argbFromHex の throw で
+  // レンダリングが巻き込まれず、安全なフォールバックで結果を返すことを保証する。
+  it('generateColorScheme does not throw on invalid hex', () => {
+    expect(() => generateColorScheme('not-a-color')).not.toThrow();
+    const scheme = generateColorScheme('garbage');
+    expect(scheme.light.main).toMatch(/^#[0-9a-f]{6}$/i);
+    expect(scheme.light.contrastText).toMatch(/^#[0-9a-f]{6}$/i);
+  });
+
+  it('generateColorScheme handles empty string', () => {
+    expect(() => generateColorScheme('')).not.toThrow();
+  });
+
+  it('generateThemeTokens does not throw on invalid hex', () => {
+    expect(() => generateThemeTokens('#zzz')).not.toThrow();
+    const tokens = generateThemeTokens('#zzz');
+    expect(tokens.grey.light['500']).toMatch(/^#[0-9a-f]{6}$/i);
+  });
+
+  it('still produces correct output for valid hex (no regression)', () => {
+    const scheme = generateColorScheme('#1976d2');
+    expect(scheme.light.main).toBe('#1976d2');
+  });
+});

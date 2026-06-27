@@ -1,13 +1,11 @@
 import {
   collection,
   doc,
-  updateDoc,
   getDoc,
   getDocs,
   query,
   where,
   orderBy,
-  limit,
   serverTimestamp,
   writeBatch,
 } from 'firebase/firestore';
@@ -21,6 +19,20 @@ function getDb() {
 
 const PALETTES = 'palettes';
 const VERSIONS = 'versions';
+const SHARES = 'shares';
+
+// 公開共有リンクの閲覧用ビュー。PaletteDocument 全体ではなく shares スナップショットに
+// 実在するフィールドだけを持つ（PaletteDocument へ無理に cast して必須フィールド欠落を
+// 隠さないための専用型）。
+export type SharedPaletteView = {
+  id: string;
+  ownerUid: string;
+  name: string;
+  description: string;
+  data: PaletteData;
+  shareId: string;
+  sharePermission: 'view' | 'duplicate';
+};
 
 // ── Save (create new) ──
 
@@ -154,45 +166,68 @@ export async function restoreVersion(
 
 // ── Sharing ──
 
+// 公開共有は shares/{shareId} のスナップショットとして保存する。
+// palettes コレクションは owner 限定読み取りのまま残し、shareId(nanoid) を知らない
+// 第三者がパレットを列挙・参照できないようにする（shares は get のみ許可、list 不可）。
 export async function generateShareLink(
   paletteId: string,
   permission: 'view' | 'duplicate'
 ): Promise<string> {
   const { nanoid } = await import('nanoid');
   const shareId = nanoid(12);
-  await updateDoc(doc(getDb(), PALETTES, paletteId), {
+  const palette = await loadPalette(paletteId);
+  // share doc の作成/更新と palette メタの更新を 1 バッチでアトミックに行う。
+  // 途中失敗で shares が孤児化したり shareId が stale になるのを防ぐ。
+  const batch = writeBatch(getDb());
+  // 再生成時は旧 share doc も同一バッチで削除し、古いリンクを無効化する
+  if (palette.shareId) {
+    batch.delete(doc(getDb(), SHARES, palette.shareId));
+  }
+  batch.set(doc(getDb(), SHARES, shareId), {
+    paletteId,
+    ownerUid: palette.ownerUid,
+    permission,
+    name: palette.name,
+    description: palette.description ?? '',
+    data: palette.data,
+    createdAt: serverTimestamp(),
+  });
+  batch.update(doc(getDb(), PALETTES, paletteId), {
     shareId,
     sharePermission: permission,
   });
+  await batch.commit();
   return shareId;
 }
 
 export async function revokeShareLink(paletteId: string): Promise<void> {
-  await updateDoc(doc(getDb(), PALETTES, paletteId), {
+  const snap = await getDoc(doc(getDb(), PALETTES, paletteId));
+  const shareId = snap.exists() ? (snap.data().shareId as string | null) : null;
+  // share doc 削除と palette メタのクリアを 1 バッチでアトミックに行う
+  const batch = writeBatch(getDb());
+  if (shareId) {
+    batch.delete(doc(getDb(), SHARES, shareId));
+  }
+  batch.update(doc(getDb(), PALETTES, paletteId), {
     shareId: null,
     sharePermission: null,
   });
+  await batch.commit();
 }
 
 export async function loadSharedPalette(
   shareId: string
-): Promise<PaletteDocument | null> {
-  const q = query(
-    collection(getDb(), PALETTES),
-    where('shareId', '==', shareId),
-    limit(1)
-  );
-  const snap = await getDocs(q);
-  if (snap.empty) return null;
-  const d = snap.docs[0];
-  return { id: d.id, ...d.data() } as unknown as PaletteDocument;
-}
-
-export async function duplicatePalette(
-  sourcePaletteId: string,
-  targetUid: string,
-  newName: string
-): Promise<string> {
-  const source = await loadPalette(sourcePaletteId);
-  return savePalette(targetUid, source.data, newName, `Duplicated from "${source.name}"`);
+): Promise<SharedPaletteView | null> {
+  const snap = await getDoc(doc(getDb(), SHARES, shareId));
+  if (!snap.exists()) return null;
+  const s = snap.data();
+  return {
+    id: s.paletteId,
+    ownerUid: s.ownerUid,
+    name: s.name,
+    description: s.description ?? '',
+    data: s.data as PaletteData,
+    shareId,
+    sharePermission: s.permission,
+  };
 }

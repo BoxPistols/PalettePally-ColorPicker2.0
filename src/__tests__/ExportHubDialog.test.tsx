@@ -55,14 +55,14 @@ describe('ExportHubDialog', () => {
 
   it('shows JSON preview by default', () => {
     render(<ExportHubDialog open={true} onClose={() => {}} paletteData={sampleData} />);
-    // JSON preview contains field name "colors"
-    expect(screen.getByText(/"colors":/)).toBeInTheDocument();
+    // プレビューはシンタックスハイライトで span 分割されるため textContent で検証する
+    expect(screen.getByLabelText('Export preview').textContent).toMatch(/"colors":/);
   });
 
   it('switches to CSS tab when clicked', () => {
     render(<ExportHubDialog open={true} onClose={() => {}} paletteData={sampleData} />);
     fireEvent.click(screen.getByText('CSS Variables'));
-    expect(screen.getByText(/:root \{/)).toBeInTheDocument();
+    expect(screen.getByLabelText('Export preview').textContent).toMatch(/:root \{/);
   });
 
   it('copies content to clipboard when Copy clicked', () => {
@@ -90,12 +90,12 @@ describe('ExportHubDialog', () => {
   it('switches to MUI Theme tab and shows TS code', () => {
     render(<ExportHubDialog open={true} onClose={() => {}} paletteData={sampleData} />);
     fireEvent.click(screen.getByText('MUI Theme (TS)'));
-    expect(screen.getByText(/createTheme/)).toBeInTheDocument();
+    expect(screen.getByLabelText('Export preview').textContent).toMatch(/createTheme/);
   });
 
   it('switches to Tailwind tab', () => {
     render(<ExportHubDialog open={true} onClose={() => {}} paletteData={sampleData} />);
     fireEvent.click(screen.getByText('Tailwind Config'));
-    expect(screen.getByText(/module.exports/)).toBeInTheDocument();
+    expect(screen.getByLabelText('Export preview').textContent).toMatch(/module\.exports/);
   });
 });

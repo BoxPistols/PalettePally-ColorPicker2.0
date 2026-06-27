@@ -9,9 +9,6 @@ service cloud.firestore {
       allow create: if request.auth != null
         && request.auth.uid == request.resource.data.ownerUid;
 
-      // Shared read-only access via shareId (public link flow)
-      allow read: if resource.data.shareId != null;
-
       // Version history — only the owner of the parent palette can access
       match /versions/{versionId} {
         allow read, write: if request.auth != null
@@ -19,6 +16,30 @@ service cloud.firestore {
             /databases/$(database)/documents/palettes/$(paletteId)
           ).data.ownerUid;
       }
+    }
+
+    // Public share snapshots, keyed by an unguessable nanoid shareId.
+    // `get` only (knowing the shareId), never `list` — so shared palettes
+    // cannot be enumerated. The palettes collection above stays owner-only,
+    // closing the previous hole where `allow read: if shareId != null` let
+    // anyone enumerate every shared palette via a `where('shareId','!=',null)`
+    // query. Snapshots are immutable; revoke = delete.
+    match /shares/{shareId} {
+      allow get: if true;
+      // create は「参照先 palette の所有者本人」だけに限定し、permission 値と
+      // 書き込めるフィールドも固定する（任意の paletteId/permission/追加フィールドを
+      // 持つ公開ドキュメントを認証ユーザーが捏造できないようにする）。
+      allow create: if request.auth != null
+        && request.auth.uid == request.resource.data.ownerUid
+        && request.resource.data.ownerUid == get(
+          /databases/$(database)/documents/palettes/$(request.resource.data.paletteId)
+        ).data.ownerUid
+        && request.resource.data.permission in ['view', 'duplicate']
+        && request.resource.data.keys().hasOnly(
+          ['paletteId', 'ownerUid', 'permission', 'name', 'description', 'data', 'createdAt']
+        );
+      allow delete: if request.auth != null
+        && request.auth.uid == resource.data.ownerUid;
     }
   }
 }

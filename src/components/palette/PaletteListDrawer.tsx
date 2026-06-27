@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useEffect, useState } from 'react';
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import {
   Drawer,
   Box,
@@ -9,6 +9,7 @@ import {
   IconButton,
   Divider,
   CircularProgress,
+  Button,
 } from '@mui/material';
 import { PaletteDocument } from '@/lib/types/palette';
 import * as firestoreService from '@/lib/firebase/firestore';
@@ -25,16 +26,23 @@ export const PaletteListDrawer = memo<PaletteListDrawerProps>(
   ({ open, onClose, uid, onLoad, onDelete }) => {
     const [palettes, setPalettes] = useState<PaletteDocument[]>([]);
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+    // 再オープン/再読み込みで並行実行されたとき、遅れて返った古い fetch が
+    // 最新の結果を上書きしないよう、最新リクエストの結果だけを反映する
+    const reqRef = useRef(0);
 
     const fetchPalettes = useCallback(async () => {
+      const reqId = ++reqRef.current;
       setLoading(true);
+      setError('');
       try {
         const list = await firestoreService.listPalettes(uid);
-        setPalettes(list);
+        if (reqRef.current === reqId) setPalettes(list);
       } catch {
-        /* ignore */
+        // 以前は握りつぶしており、失敗時も「No saved palettes」と表示され区別不能だった
+        if (reqRef.current === reqId) setError('パレットの読み込みに失敗しました');
       } finally {
-        setLoading(false);
+        if (reqRef.current === reqId) setLoading(false);
       }
     }, [uid]);
 
@@ -85,6 +93,15 @@ export const PaletteListDrawer = memo<PaletteListDrawerProps>(
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
             <CircularProgress size={24} />
+          </Box>
+        ) : error ? (
+          <Box sx={{ px: 2, py: 4, textAlign: 'center' }}>
+            <Typography role='alert' sx={{ color: 'error.main', fontSize: '0.85rem', mb: 1.5 }}>
+              {error}
+            </Typography>
+            <Button size='small' variant='outlined' onClick={fetchPalettes} sx={{ textTransform: 'none' }}>
+              再読み込み
+            </Button>
           </Box>
         ) : palettes.length === 0 ? (
           <Box sx={{ px: 2, py: 4, textAlign: 'center' }}>

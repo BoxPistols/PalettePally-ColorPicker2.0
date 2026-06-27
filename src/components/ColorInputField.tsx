@@ -72,8 +72,9 @@ const ColorInputField = memo(({ color, onChange }: ColorInputFieldProps) => {
             fontSize: '11px !important',
             borderRadius: '3px !important',
             textAlign: 'center !important',
+            // フォーカスリングを消さず、視認できる枠を出す（WCAG 2.4.7 / プロジェクト規約）
             '&:focus': {
-              boxShadow: 'none !important',
+              boxShadow: '0 0 0 2px rgba(25,118,210,0.6) !important',
             },
           },
         },
@@ -101,7 +102,15 @@ const ColorInputField = memo(({ color, onChange }: ColorInputFieldProps) => {
             <Tooltip key={row.kind} arrow placement='right' title='クリックでコピー'>
               <Box
                 onClick={() => handleCopy(row.kind, row.value)}
+                onKeyDown={e => {
+                  // role=button 相当のキーボード操作 (Enter / Space)。長押しの repeat は弾く
+                  if ((e.key === 'Enter' || e.key === ' ') && !e.repeat) {
+                    e.preventDefault();
+                    handleCopy(row.kind, row.value);
+                  }
+                }}
                 role='button'
+                tabIndex={0}
                 aria-label={`${row.label} をコピー`}
                 sx={{
                   display: 'flex',
@@ -113,6 +122,11 @@ const ColorInputField = memo(({ color, onChange }: ColorInputFieldProps) => {
                   cursor: 'pointer',
                   bgcolor: copied === row.kind ? 'rgba(46,125,50,0.12)' : 'transparent',
                   '&:hover': { bgcolor: 'rgba(0,0,0,0.04)' },
+                  '&:focus-visible': {
+                    outline: '2px solid #1976d2',
+                    outlineOffset: '1px',
+                    bgcolor: 'rgba(0,0,0,0.04)',
+                  },
                   transition: 'background-color 0.15s ease',
                 }}
               >

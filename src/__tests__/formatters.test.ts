@@ -132,6 +132,94 @@ describe('toTailwind', () => {
     expect(result).toContain('theme:');
     expect(result).toContain('colors:');
   });
+
+  it('includes light-mode colors at the root', () => {
+    const parsed = parseTailwindColors(toTailwind(sampleData));
+    const primary = parsed.primary as Record<string, string>;
+    expect(primary.DEFAULT).toBe('#1976d2'); // light.main
+  });
+
+  it('includes dark-mode colors under colors.dark (previously missing entirely)', () => {
+    const parsed = parseTailwindColors(toTailwind(sampleData));
+    expect(parsed.dark).toBeDefined();
+    const dark = parsed.dark as Record<string, Record<string, string>>;
+    expect(dark.primary.DEFAULT).toBe('#90caf9'); // dark.main
+    expect(dark.secondary.DEFAULT).toBe('#ce93d8');
+    expect(dark.grey['50']).toBe('#121212'); // dark grey
+  });
+
+  it('does not clobber a user color literally named "dark" (reserved-key collision)', () => {
+    const data: PaletteData = {
+      numColors: 1,
+      colors: ['#111111'],
+      names: ['dark'],
+      palette: [
+        {
+          dark: {
+            light: { main: '#111111', dark: '#000000', light: '#333333', lighter: '#cccccc', contrastText: '#ffffff' },
+            dark: { main: '#222222', dark: '#111111', light: '#444444', lighter: '#dddddd', contrastText: '#ffffff' },
+          },
+        },
+      ],
+      themeTokens: null,
+    };
+    const parsed = parseTailwindColors(toTailwind(data));
+    // ユーザーの "dark" 色（light 側）は保持される
+    expect((parsed.dark as Record<string, string>).DEFAULT).toBe('#111111');
+    // dark モードは衝突回避キー (_dark) に退避される
+    const darkMode = parsed._dark as Record<string, Record<string, string>>;
+    expect(darkMode.dark.DEFAULT).toBe('#222222');
+  });
+});
+
+// toTailwind の colors マップを取り出すヘルパ。colors の値は JSON.stringify 由来の
+// 正当な JSON なので、対応する括弧まで切り出して JSON.parse する（eval 不使用）。
+function parseTailwindColors(src: string): Record<string, unknown> {
+  const start = src.indexOf('colors:');
+  const open = src.indexOf('{', start);
+  let depth = 0;
+  let end = open;
+  for (let i = open; i < src.length; i++) {
+    if (src[i] === '{') depth++;
+    else if (src[i] === '}') {
+      depth--;
+      if (depth === 0) {
+        end = i;
+        break;
+      }
+    }
+  }
+  return JSON.parse(src.slice(open, end + 1));
+}
+
+describe('kebab sanitization (custom group names)', () => {
+  // カスタムトークングループ名に空白や記号が含まれても、CSS/SCSS の識別子として
+  // 不正な文字（空白・"!" など）を出力しないことを保証する。
+  const dataWithMessyGroup: PaletteData = {
+    numColors: 0,
+    colors: [],
+    names: [],
+    palette: [],
+    themeTokens: {
+      grey: { light: {}, dark: {} },
+      utility: {
+        light: { 'My Group!': { 'Hover State': '#ffffff' } },
+        dark: { 'My Group!': { 'Hover State': '#000000' } },
+      },
+    },
+  };
+
+  it('CSS produces a valid custom-property name', () => {
+    const css = toCSS(dataWithMessyGroup);
+    expect(css).toContain('--color-my-group-hover-state: #ffffff;');
+    expect(css).not.toMatch(/--color-my group/i); // 空白を含まない
+    expect(css).not.toContain('!');
+  });
+
+  it('SCSS produces a valid variable name', () => {
+    const scss = toSCSS(dataWithMessyGroup);
+    expect(scss).toContain('$color-my-group-hover-state-light: #ffffff;');
+  });
 });
 
 describe('toTokensStudio', () => {
@@ -401,6 +489,23 @@ describe('Round-trip: Export → Import', () => {
       // Tokens Studio import extracts palette groups as color/name pairs
       expect(result.data.colors).toContain('#1976d2');
       expect(result.data.names).toContain('primary');
+    }
+  });
+
+  // 回帰テスト: 以前 detectAndProc は DTCG を検出しても空データを返していた（パレットが消える）。
+  // dtcgToPalette を経由して action-colors / grey / utility を完全復元することを保証する。
+  it('DTCG: export then import restores full palette (not empty)', () => {
+    const exported = toDTCG(sampleData);
+    const result = detectAndParse(exported);
+    expect(result.format).toBe('dtcg');
+    if (result.format === 'dtcg') {
+      expect(result.data.colors).toEqual(['#1976d2', '#9c27b0']);
+      expect(result.data.names).toEqual(['primary', 'secondary']);
+      const primary = Object.values(result.data.palette![0])[0];
+      expect(primary.light.main).toBe('#1976d2');
+      expect(primary.dark.main).toBe('#90caf9');
+      expect(result.data.themeTokens?.grey.light['50']).toBe('#fafafa');
+      expect(result.data.themeTokens?.utility.light.text?.primary).toBe('#1a1a2e');
     }
   });
 });

@@ -39,9 +39,12 @@ export const FigmaImportDialog = memo<FigmaImportDialogProps>(
       setError('');
       setVariables([]);
 
+      // fileKey 変更や unmount で古い fetch の結果が新しい state を上書きしないようガード
+      let cancelled = false;
+
       (async () => {
         const authHeader = await getAuthHeader();
-        return fetch(`/api/figma/variables?fileKey=${fileKey}`, {
+        return fetch(`/api/figma/variables?fileKey=${encodeURIComponent(fileKey)}`, {
           headers: { 'X-Figma-Token': pat, ...authHeader },
         });
       })()
@@ -53,13 +56,21 @@ export const FigmaImportDialog = memo<FigmaImportDialogProps>(
           return res.json();
         })
         .then(data => {
+          if (cancelled) return;
           setVariables(data.variables ?? []);
           setCollections(data.collections ?? []);
         })
         .catch(err => {
+          if (cancelled) return;
           setError(err instanceof Error ? err.message : 'Failed to load');
         })
-        .finally(() => setLoading(false));
+        .finally(() => {
+          if (!cancelled) setLoading(false);
+        });
+
+      return () => {
+        cancelled = true;
+      };
     }, [open, fileKey, pat]);
 
     const handleImport = async () => {

@@ -2,15 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { Box, Typography, Button, CircularProgress, Container } from '@mui/material';
 import { PaletteCard } from '@/components/PaletteGrid';
-import { PaletteDocument } from '@/lib/types/palette';
 import * as firestoreService from '@/lib/firebase/firestore';
+import { SharedPaletteView } from '@/lib/firebase/firestore';
 import { useAuthContext } from '@/components/auth/AuthProvider';
 
 export default function SharedPalettePage() {
   const router = useRouter();
   const { shareId } = router.query;
   const { user } = useAuthContext();
-  const [palette, setPalette] = useState<PaletteDocument | null>(null);
+  const [palette, setPalette] = useState<SharedPaletteView | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [duplicating, setDuplicating] = useState(false);
@@ -31,7 +31,14 @@ export default function SharedPalettePage() {
     if (!palette || !user) return;
     setDuplicating(true);
     try {
-      await firestoreService.duplicatePalette(palette.id, user.uid, `${palette.name} (copy)`);
+      // 複製は閲覧者が自分のパレットとして新規保存する（owner 限定ルール下でも成立）。
+      // 共有スナップショットの data をそのまま使うため元パレットの直接読み取りは不要。
+      await firestoreService.savePalette(
+        user.uid,
+        palette.data,
+        `${palette.name} (copy)`,
+        `Duplicated from "${palette.name}"`
+      );
       router.push('/');
     } catch {
       setError('Failed to duplicate');

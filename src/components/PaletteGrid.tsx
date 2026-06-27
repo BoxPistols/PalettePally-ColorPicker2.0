@@ -12,6 +12,7 @@ import {
 import chroma from 'chroma-js';
 import { ColorPalette, MuiColorVariant } from './colorUtils';
 import { contrastRatio, wcagLevel, WCAG_COLOR, A11yThreshold, THRESHOLD_RATIO, meetsThreshold, formatPreviewLevel, PreviewLabel } from '@/lib/wcag';
+import { copyToClipboard } from '@/lib/clipboard';
 
 const DISPLAY_COLOR: Record<PreviewLabel, string> = {
   AAA: WCAG_COLOR.AAA,
@@ -50,10 +51,6 @@ const SHADE_LABELS: Record<keyof MuiColorVariant, string> = {
   contrastText: 'contrast',
 };
 
-const copyToClipboard = (text: string) => {
-  navigator.clipboard.writeText(text);
-};
-
 const isValidHex = (hex: string) => /^#([0-9A-F]{3}){1,2}$/i.test(hex);
 
 // ── Read-only Swatch (click to copy) ──
@@ -84,6 +81,15 @@ const ColorSwatch = memo<{
   return (
     <Box
       onClick={() => onCopy(colorValue)}
+      onKeyDown={(e: React.KeyboardEvent) => {
+        if ((e.key === 'Enter' || e.key === ' ') && !e.repeat) {
+          e.preventDefault();
+          onCopy(colorValue);
+        }
+      }}
+      role='button'
+      tabIndex={0}
+      aria-label={`${shade} ${colorValue} をコピー`}
       title={`${shade}: ${colorValue} — click to copy`}
       sx={{
         background: swatchBg,
@@ -93,6 +99,10 @@ const ColorSwatch = memo<{
         mb: 0.5,
         transition: 'transform 0.15s ease, box-shadow 0.15s ease',
         cursor: 'pointer',
+        '&:focus-visible': {
+          outline: '2px solid #1976d2',
+          outlineOffset: '2px',
+        },
         border: isLight || isContrast
           ? `1.5px solid ${isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)'}`
           : '1.5px solid transparent',

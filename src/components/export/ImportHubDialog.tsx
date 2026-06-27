@@ -147,7 +147,7 @@ export const ImportHubDialog = memo<ImportHubDialogProps>(
 
           {result && result.format !== 'unknown' && result.format === 'dtcg' && (
             <Alert severity='info' sx={{ mt: 2, borderRadius: '8px' }}>
-              DTCG 形式は部分的インポートのみサポート (色数・名前のみ反映)
+              DTCG 形式を読み込みます (action-colors / grey / utility を復元)
             </Alert>
           )}
         </DialogContent>

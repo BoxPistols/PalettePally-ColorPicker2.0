@@ -134,7 +134,7 @@ describe('ImportHubDialog', () => {
     });
   });
 
-  it('shows DTCG warning for partial import', () => {
+  it('shows DTCG info note when a DTCG file is detected', () => {
     render(<ImportHubDialog {...defaultProps} />);
     const textarea = screen.getByPlaceholderText(/Paste JSON content/);
     fireEvent.change(textarea, {
@@ -144,7 +144,8 @@ describe('ImportHubDialog', () => {
         }),
       },
     });
-    expect(screen.getByText(/部分的インポート/)).toBeInTheDocument();
+    // DTCG は完全インポートに対応済み（旧「部分的インポート」表記は廃止）
+    expect(screen.getByText(/DTCG 形式を読み込みます/)).toBeInTheDocument();
   });
 
   it('does not render when open=false', () => {
