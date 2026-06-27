@@ -31,6 +31,12 @@ export function useAppTheme() {
     } catch { /* ignore */ }
   }, [greyscale]);
 
+  // unmount 時にグローバルな <html> filter を残さない（toggle ごとの再適用で
+  // ちらつかないよう、cleanup は unmount 限定の別 effect にする）。
+  useEffect(() => () => {
+    document.documentElement.style.filter = '';
+  }, []);
+
   const toggle = () => setGreyscale(prev => !prev);
 
   return { greyscale, toggle };

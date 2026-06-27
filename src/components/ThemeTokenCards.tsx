@@ -58,7 +58,7 @@ const TokenSwatch = memo<{
     <Box
       onClick={() => onCopy(value)}
       onKeyDown={(e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' || e.key === ' ') {
+        if ((e.key === 'Enter' || e.key === ' ') && !e.repeat) {
           e.preventDefault();
           onCopy(value);
         }
@@ -180,7 +180,7 @@ const EditCell = memo<{
       <Box
         component='input'
         value={text}
-        aria-label='カラー値 (HEX)'
+        aria-label={isRgba ? 'カラー値 (RGBA)' : 'カラー値 (HEX)'}
         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setText(e.target.value)}
         onBlur={commit}
         onKeyDown={(e: React.KeyboardEvent) => {

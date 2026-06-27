@@ -27,11 +27,15 @@ describe('tokenizeCode', () => {
     expect(typesOf(tokens, 'hex')).toContain("'#1976d2'");
   });
 
-  it('supports 3- and 8-digit hex', () => {
-    const tokens = tokenizeCode('a: #abc; b: #1976d2ff;');
+  it('supports 3-, 4-, 6- and 8-digit hex', () => {
+    const tokens = tokenizeCode('a: #abc; b: #abcd; c: #1976d2; d: #1976d2ff;');
     const hexes = typesOf(tokens, 'hex');
-    expect(hexes).toContain('#abc');
-    expect(hexes).toContain('#1976d2ff');
+    expect(hexes).toEqual(expect.arrayContaining(['#abc', '#abcd', '#1976d2', '#1976d2ff']));
+  });
+
+  it('does NOT treat invalid hex lengths (5, 7 digits) as hex', () => {
+    const tokens = tokenizeCode('a: #12345; b: #1234567;');
+    expect(typesOf(tokens, 'hex')).toHaveLength(0);
   });
 
   it('does not treat a Markdown heading "# Title" as a hex', () => {

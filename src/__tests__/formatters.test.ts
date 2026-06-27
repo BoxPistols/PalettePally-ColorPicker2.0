@@ -147,6 +147,29 @@ describe('toTailwind', () => {
     expect(dark.secondary.DEFAULT).toBe('#ce93d8');
     expect(dark.grey['50']).toBe('#121212'); // dark grey
   });
+
+  it('does not clobber a user color literally named "dark" (reserved-key collision)', () => {
+    const data: PaletteData = {
+      numColors: 1,
+      colors: ['#111111'],
+      names: ['dark'],
+      palette: [
+        {
+          dark: {
+            light: { main: '#111111', dark: '#000000', light: '#333333', lighter: '#cccccc', contrastText: '#ffffff' },
+            dark: { main: '#222222', dark: '#111111', light: '#444444', lighter: '#dddddd', contrastText: '#ffffff' },
+          },
+        },
+      ],
+      themeTokens: null,
+    };
+    const parsed = parseTailwindColors(toTailwind(data));
+    // ユーザーの "dark" 色（light 側）は保持される
+    expect((parsed.dark as Record<string, string>).DEFAULT).toBe('#111111');
+    // dark モードは衝突回避キー (_dark) に退避される
+    const darkMode = parsed._dark as Record<string, Record<string, string>>;
+    expect(darkMode.dark.DEFAULT).toBe('#222222');
+  });
 });
 
 // toTailwind の colors マップを取り出すヘルパ。colors の値は JSON.stringify 由来の

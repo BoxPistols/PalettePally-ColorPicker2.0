@@ -36,12 +36,29 @@ const KEYWORDS = new Set([
 
 // 優先順位順の単一マスター正規表現。
 // 引用符つき hex を生 string より前に置き、hex として捕捉する。
-const MATCH_RE =
-  /\/\*[\s\S]*?\*\/|\/\/[^\n]*|"#[0-9a-fA-F]{3,8}"|'#[0-9a-fA-F]{3,8}'|#[0-9a-fA-F]{3,8}\b|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\b\d+(?:\.\d+)?\b|\b(?:true|false|null|const|let|var|export|import|from|module|exports|type|return|default)\b|[{}[\]():,;=]/g;
+// hex は有効な CSS 長（#RGB / #RGBA / #RRGGBB / #RRGGBBAA = 3/4/6/8 桁）のみ。
+// {3,8} だと 5/7 桁の無効カラーまで拾い、無効なスウォッチを描いてしまうため除外する。
+const HEX_BODY = '(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{4}|[0-9a-fA-F]{3})';
+const MATCH_RE = new RegExp(
+  [
+    String.raw`/\*[\s\S]*?\*/`,
+    String.raw`//[^\n]*`,
+    `"#${HEX_BODY}"`,
+    `'#${HEX_BODY}'`,
+    `#${HEX_BODY}\\b`,
+    String.raw`"(?:\\.|[^"\\])*"`,
+    String.raw`'(?:\\.|[^'\\])*'`,
+    String.raw`\b\d+(?:\.\d+)?\b`,
+    String.raw`\b(?:true|false|null|const|let|var|export|import|from|module|exports|type|return|default)\b`,
+    String.raw`[{}[\]():,;=]`,
+  ].join('|'),
+  'g'
+);
+const HEX_TOKEN_RE = new RegExp(`^['"]?#${HEX_BODY}['"]?$`);
 
 function classify(v: string): TokenType {
   if (v.startsWith('/*') || v.startsWith('//')) return 'comment';
-  if (/#/.test(v) && /^['"]?#[0-9a-fA-F]{3,8}['"]?$/.test(v)) return 'hex';
+  if (v.includes('#') && HEX_TOKEN_RE.test(v)) return 'hex';
   if (v.startsWith('"') || v.startsWith("'")) return 'string';
   if (/^\d/.test(v)) return 'number';
   if (KEYWORDS.has(v)) return 'keyword';

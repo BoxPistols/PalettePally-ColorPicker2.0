@@ -40,4 +40,12 @@ describe('useAppTheme', () => {
     // mount の初期 false 反映で保存値を潰さないこと（hydration ガード）
     expect(localStorage.getItem('palettePallyGreyscale')).toBe('true');
   });
+
+  it('clears the global <html> filter on unmount (no leaked greyscale)', () => {
+    const { result, unmount } = renderHook(() => useAppTheme());
+    act(() => result.current.toggle());
+    expect(document.documentElement.style.filter).toBe('grayscale(100%)');
+    unmount();
+    expect(document.documentElement.style.filter).toBe('');
+  });
 });

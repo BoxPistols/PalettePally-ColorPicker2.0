@@ -103,8 +103,8 @@ const ColorInputField = memo(({ color, onChange }: ColorInputFieldProps) => {
               <Box
                 onClick={() => handleCopy(row.kind, row.value)}
                 onKeyDown={e => {
-                  // role=button 相当のキーボード操作 (Enter / Space) を付与
-                  if (e.key === 'Enter' || e.key === ' ') {
+                  // role=button 相当のキーボード操作 (Enter / Space)。長押しの repeat は弾く
+                  if ((e.key === 'Enter' || e.key === ' ') && !e.repeat) {
                     e.preventDefault();
                     handleCopy(row.kind, row.value);
                   }

@@ -58,33 +58,34 @@ const CodeBlock = memo<{ content: string }>(({ content }) => {
         whiteSpace: 'pre',
       }}
     >
+      {/* トークンは数千個になりうるため、ループ内は Emotion(sx) ではなく素の
+          <span style> で描画してスタイル解決のオーバーヘッドを避ける */}
       {tokens.map((t, i) => {
         if (t.type === 'hex') {
           const hex = hexFromToken(t.value);
           return (
-            <Box component='span' key={i} sx={{ color: TOKEN_COLORS.hex }}>
-              <Box
-                component='span'
+            <span key={i} style={{ color: TOKEN_COLORS.hex }}>
+              <span
                 aria-hidden
-                sx={{
+                style={{
                   display: 'inline-block',
                   width: '0.72em',
                   height: '0.72em',
                   borderRadius: '2px',
-                  bgcolor: hex,
+                  backgroundColor: hex,
                   border: '1px solid rgba(255,255,255,0.35)',
-                  mr: '0.32em',
+                  marginRight: '0.32em',
                   verticalAlign: 'middle',
                 }}
               />
               {t.value}
-            </Box>
+            </span>
           );
         }
         return (
-          <Box component='span' key={i} sx={{ color: TOKEN_COLORS[t.type] }}>
+          <span key={i} style={{ color: TOKEN_COLORS[t.type] }}>
             {t.value}
-          </Box>
+          </span>
         );
       })}
     </Box>

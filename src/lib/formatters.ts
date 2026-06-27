@@ -290,8 +290,12 @@ export function toTailwind(data: PaletteData): string {
 
   // dark モードのトークンは colors.dark.* に格納（例: bg-dark-primary, text-dark-grey-900）。
   // 以前は light モードのみ出力しており dark の色定義が完全に欠落していた。
+  // ただし "dark" という色名がユーザー/インポートで入ると light 側エントリを上書きするため、
+  // 衝突する場合は接頭辞を付けた空きキーへ退避する（予約語衝突で export を壊さない）。
   if (Object.keys(darkColors).length > 0) {
-    colors.dark = darkColors;
+    let darkKey = 'dark';
+    while (darkKey in colors) darkKey = `_${darkKey}`;
+    colors[darkKey] = darkColors;
   }
 
   return `/** @type {import('tailwindcss').Config} */
