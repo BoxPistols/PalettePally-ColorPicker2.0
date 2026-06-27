@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useEffect, useState } from 'react';
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import {
   Drawer,
   Box,
@@ -28,18 +28,22 @@ export const PaletteListDrawer = memo<PaletteListDrawerProps>(
     const [palettes, setPalettes] = useState<PaletteDocument[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    // 再オープン/再読み込みで並行実行されたとき、遅れて返った古い fetch が
+    // 最新の結果を上書きしないよう、最新リクエストの結果だけを反映する
+    const reqRef = useRef(0);
 
     const fetchPalettes = useCallback(async () => {
+      const reqId = ++reqRef.current;
       setLoading(true);
       setError('');
       try {
         const list = await firestoreService.listPalettes(uid);
-        setPalettes(list);
+        if (reqRef.current === reqId) setPalettes(list);
       } catch {
         // 以前は握りつぶしており、失敗時も「No saved palettes」と表示され区別不能だった
-        setError(t.paletteListDrawer.loadError);
+        if (reqRef.current === reqId) setError(t.paletteListDrawer.loadError);
       } finally {
-        setLoading(false);
+        if (reqRef.current === reqId) setLoading(false);
       }
     }, [uid]);
 
