@@ -166,6 +166,10 @@ export async function generateShareLink(
   const { nanoid } = await import('nanoid');
   const shareId = nanoid(12);
   const palette = await loadPalette(paletteId);
+  // 再生成時に旧 share doc が残ると古いリンクが生き続けてしまうため削除しておく
+  if (palette.shareId) {
+    await deleteDoc(doc(getDb(), SHARES, palette.shareId));
+  }
   await setDoc(doc(getDb(), SHARES, shareId), {
     paletteId,
     ownerUid: palette.ownerUid,

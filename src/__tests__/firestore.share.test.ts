@@ -67,6 +67,28 @@ describe('generateShareLink', () => {
       { shareId: 'SHAREID12345', sharePermission: 'view' }
     );
   });
+
+  it('deletes a pre-existing share doc before creating a new one (no orphan links)', async () => {
+    mockGetDoc.mockResolvedValueOnce({
+      exists: () => true,
+      id: 'p1',
+      data: () => ({ ownerUid: 'u1', name: 'My', description: 'd', data: {}, shareId: 'OLDSHARE12345' }),
+    });
+    await generateShareLink('p1', 'view');
+    // 旧 share doc を削除してから新規作成する
+    expect(mockDeleteDoc).toHaveBeenCalledWith({ col: 'shares', id: 'OLDSHARE12345' });
+    expect(mockSetDoc).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not delete anything when the palette has no existing share', async () => {
+    mockGetDoc.mockResolvedValueOnce({
+      exists: () => true,
+      id: 'p1',
+      data: () => ({ ownerUid: 'u1', name: 'My', description: 'd', data: {} }),
+    });
+    await generateShareLink('p1', 'view');
+    expect(mockDeleteDoc).not.toHaveBeenCalled();
+  });
 });
 
 describe('loadSharedPalette', () => {
